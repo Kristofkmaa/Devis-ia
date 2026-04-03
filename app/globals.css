@@ -1,0 +1,18 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream: #F6F0E4; --cream-light: #FBF8F1; --paper: #FFFDF8;
+  --ink: #1C1710; --ink-mid: #6B5E45; --ink-light: #A89878;
+  --gold: #B5792A; --gold-light: #E8D5A8; --gold-pale: #FAF3E0;
+  --border: #E2D8C4; --green: #2D7A4F; --green-bg: #EDFAF3;
+  --red: #8B1A1A; --red-bg: #FFF3F3; --red-border: #FFCACA;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+a { text-decoration: none; color: inherit; }
