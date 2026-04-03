@@ -285,7 +285,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
       {/* NAV */}
       <div className="nav-tabs">
-        {[['dashboard','🏠 Tableau de bord'],['calendrier','📅 Calendrier'],['revenus','💶 Mes revenus'],['calculateur','🧮 Calculateur'],['assistant','💬 Assistant IA']].map(([v,l]) => (
+        {[['dashboard','🏠 Tableau de bord'],['calendrier','📅 Calendrier'],['revenus','💶 Mes revenus'],['calculateur','🧮 Calculateur'],['assistant','💬 Assistant IA'],['ressources','📚 Ressources']].map(([v,l]) => (
           <button key={v} className={`nav-tab ${view===v?'active':''}`} onClick={() => setView(v)}>{l}</button>
         ))}
       </div>
@@ -678,8 +678,219 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               ))}
             </div>
           )}
+      {/* ══════════════════════════════════════════ */}
+      {/* VIEW : RESSOURCES                         */}
+      {/* ══════════════════════════════════════════ */}
+      {view === 'ressources' && (
+        <div className="main">
+          <div className="page-header">
+            <h2 className="page-title">Ressources officielles</h2>
+            <p className="page-sub">Tous les liens utiles pour gérer ton auto-entreprise — directs, officiels, gratuits</p>
+          </div>
+
+          {/* Déclarations & paiements */}
+          <div className="res-section">
+            <div className="res-section-title">
+              <span className="res-icon" style={{background:'#FAF3E0',color:'#B5792A'}}>📋</span>
+              Déclarations & paiements
+            </div>
+            <div className="res-grid">
+              <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-urssaf">URSSAF</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Déclarer & payer mes cotisations</div>
+                <div className="res-card-desc">Le site officiel pour déclarer ton chiffre d'affaires et payer tes cotisations sociales chaque mois ou trimestre.</div>
+                <div className="res-card-url">autoentrepreneur.urssaf.fr</div>
+              </a>
+
+              <a href="https://www.impots.gouv.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-impots">Impôts</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Déclaration de revenus (IR)</div>
+                <div className="res-card-desc">Pour déclarer tes revenus chaque année (avant fin mai). Tu y trouves aussi le versement libératoire et la gestion de TVA.</div>
+                <div className="res-card-url">impots.gouv.fr</div>
+              </a>
+
+              <a href="https://www.urssaf.fr/portail/home/espaces-dedies/auto-entrepreneur.html" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-urssaf">URSSAF</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Payer la CFE</div>
+                <div className="res-card-desc">La Cotisation Foncière des Entreprises est due chaque année en décembre. Paiement en ligne sur le portail URSSAF.</div>
+                <div className="res-card-url">urssaf.fr</div>
+              </a>
+            </div>
+          </div>
+
+          {/* Gérer son entreprise */}
+          <div className="res-section">
+            <div className="res-section-title">
+              <span className="res-icon" style={{background:'#EDFAF3',color:'#2D7A4F'}}>🏢</span>
+              Gérer mon auto-entreprise
+            </div>
+            <div className="res-grid">
+              <a href="https://www.guichet-entreprises.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-gouv">Officiel</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Modifier ou fermer mon auto-entreprise</div>
+                <div className="res-card-desc">Changer d'adresse, modifier ton activité, déclarer une cessation d'activité. Toutes les démarches administratives en un seul endroit.</div>
+                <div className="res-card-url">guichet-entreprises.fr</div>
+              </a>
+
+              <a href="https://www.infogreffe.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-gouv">Officiel</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Obtenir mon Kbis / extrait RCS</div>
+                <div className="res-card-desc">Télécharge ton extrait Kbis ou vérifie les informations d'une autre entreprise. Document souvent demandé par les clients professionnels.</div>
+                <div className="res-card-url">infogreffe.fr</div>
+              </a>
+
+              <a href="https://www.mon.service-public.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-gouv">Officiel</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Mon espace personnel État</div>
+                <div className="res-card-desc">Espace centralisé pour accéder à tous les services publics en ligne : URSSAF, impôts, retraite, santé…</div>
+                <div className="res-card-url">mon.service-public.fr</div>
+              </a>
+            </div>
+          </div>
+
+          {/* Aides & financement */}
+          <div className="res-section">
+            <div className="res-section-title">
+              <span className="res-icon" style={{background:'#EEF4FF',color:'#1A4A8A'}}>💰</span>
+              Aides & financement
+            </div>
+            <div className="res-grid">
+              <a href="https://www.pole-emploi.fr/independants/are-et-auto-entrepreneur.html" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-aide">Aide</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Cumul chômage & auto-entreprise (ARE)</div>
+                <div className="res-card-desc">Tu peux cumuler allocations chômage et revenus d'auto-entrepreneur sous conditions. Calcul et démarches sur France Travail.</div>
+                <div className="res-card-url">francetravail.fr</div>
+              </a>
+
+              <a href="https://www.bpifrance.fr/nos-solutions/financement" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-aide">Financement</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Aides et prêts BPI France</div>
+                <div className="res-card-desc">Prêts, garanties et subventions pour développer ton activité. Certains dispositifs sont accessibles dès le statut auto-entrepreneur.</div>
+                <div className="res-card-url">bpifrance.fr</div>
+              </a>
+
+              <a href="https://www.aides-entreprises.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-aide">Aide</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Toutes les aides disponibles</div>
+                <div className="res-card-desc">Moteur de recherche officiel pour trouver toutes les aides locales, régionales et nationales selon ton activité et ta situation.</div>
+                <div className="res-card-url">aides-entreprises.fr</div>
+              </a>
+            </div>
+          </div>
+
+          {/* Protection sociale */}
+          <div className="res-section">
+            <div className="res-section-title">
+              <span className="res-icon" style={{background:'#FFF4E6',color:'#7A3A0A'}}>🏥</span>
+              Protection sociale & retraite
+            </div>
+            <div className="res-grid">
+              <a href="https://www.ameli.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-social">Santé</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Assurance maladie (Ameli)</div>
+                <div className="res-card-desc">Gère ta couverture maladie, tes remboursements et ton attestation de droits. En tant qu'auto-entrepreneur tu es affilié à la Sécurité Sociale des Indépendants.</div>
+                <div className="res-card-url">ameli.fr</div>
+              </a>
+
+              <a href="https://www.lassuranceretraite.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-social">Retraite</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Mes droits à la retraite</div>
+                <div className="res-card-desc">Vérifie tes trimestres validés, simule ta future retraite et consulte ton relevé de carrière. Important à surveiller régulièrement.</div>
+                <div className="res-card-url">lassuranceretraite.fr</div>
+              </a>
+
+              <a href="https://www.net-entreprises.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-social">Social</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Portail déclarations sociales</div>
+                <div className="res-card-desc">Pour les auto-entrepreneurs qui ont des salariés : déclarations sociales nominatives, DADS et autres obligations employeur.</div>
+                <div className="res-card-url">net-entreprises.fr</div>
+              </a>
+            </div>
+          </div>
+
+          {/* Se former */}
+          <div className="res-section">
+            <div className="res-section-title">
+              <span className="res-icon" style={{background:'#F5F0FF',color:'#6B2D7A'}}>📖</span>
+              Se former & s'informer
+            </div>
+            <div className="res-grid">
+              <a href="https://www.entreprises.gouv.fr/fr/auto-entrepreneur" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-gouv">Officiel</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Guide officiel auto-entrepreneur</div>
+                <div className="res-card-desc">Le guide complet du gouvernement sur le statut auto-entrepreneur : droits, obligations, seuils, démarches. La référence officielle.</div>
+                <div className="res-card-url">entreprises.gouv.fr</div>
+              </a>
+
+              <a href="https://www.service-public.fr/professionnels-entreprises/vosdroits/F23961" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-gouv">Officiel</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Vos droits en tant qu'auto-entrepreneur</div>
+                <div className="res-card-desc">Fiche complète service-public.fr sur les obligations, les cotisations, la TVA et tout ce qu'il faut savoir sur le régime micro-entreprise.</div>
+                <div className="res-card-url">service-public.fr</div>
+              </a>
+
+              <a href="https://www.moncompteformation.gouv.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-aide">Formation</span>
+                  <span className="res-arrow">→</span>
+                </div>
+                <div className="res-card-title">Mon Compte Formation (CPF)</div>
+                <div className="res-card-desc">Utilise ton Compte Personnel de Formation pour te former. En tant qu'auto-entrepreneur tu cotises et tu as des droits à la formation.</div>
+                <div className="res-card-url">moncompteformation.gouv.fr</div>
+              </a>
+            </div>
+          </div>
+
+          {/* Disclaimer */}
+          <div className="res-disclaimer">
+            <strong>ℹ️ Information importante</strong><br/>
+            Ces liens pointent vers des sites officiels du gouvernement français. Les informations présentées dans AutoIA (taux, seuils, dates) sont basées sur la législation en vigueur en 2025 et peuvent évoluer. En cas de doute, consulte toujours les sites officiels ou un expert-comptable.
+          </div>
         </div>
       )}
+
     </>
   )
 }
@@ -812,4 +1023,26 @@ textarea::placeholder{color:#A89878}
 .btn-dark{background:#1C1710;border:none;color:#fff}.btn-dark:hover{background:#B5792A}
 .btn-amber{background:#FAF3E0;border:1px solid #E8D5A8;color:#B5792A}.btn-amber:hover{background:#B5792A;color:#fff}
 .btn-sm{padding:7px 14px;font-size:12px}
+.res-section{margin-bottom:2rem}
+.res-section-title{display:flex;align-items:center;gap:12px;font-family:'Playfair Display',serif;font-size:18px;color:#1C1710;margin-bottom:1rem;font-weight:600}
+.res-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.res-grid{grid-template-columns:1fr}}
+.res-card{display:block;background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1.1rem 1.25rem;text-decoration:none;color:inherit;transition:all .18s}
+.res-card:hover{border-color:#B5792A;box-shadow:0 4px 20px rgba(181,121,42,.12);transform:translateY(-2px)}
+.res-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.res-tag{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:.3px}
+.res-tag-urssaf{background:#FAF3E0;color:#B5792A}
+.res-tag-impots{background:#EEF4FF;color:#1A4A8A}
+.res-tag-gouv{background:#EDFAF3;color:#2D7A4F}
+.res-tag-aide{background:#F5F0FF;color:#6B2D7A}
+.res-tag-social{background:#FFF4E6;color:#7A3A0A}
+.res-arrow{font-size:16px;color:#E2D8C4;transition:all .18s}
+.res-card:hover .res-arrow{color:#B5792A}
+.res-card-title{font-family:'Playfair Display',serif;font-size:15px;color:#1C1710;margin-bottom:8px;line-height:1.3}
+.res-card-desc{font-size:12px;color:#6B5E45;line-height:1.65;margin-bottom:10px}
+.res-card-url{font-size:11px;color:#A89878;font-family:monospace}
+.res-card:hover .res-card-url{color:#B5792A}
+.res-disclaimer{background:#F6F0E4;border:1px solid #E2D8C4;border-radius:14px;padding:1rem 1.25rem;font-size:12px;color:#6B5E45;line-height:1.7;margin-top:1rem}
+.res-disclaimer strong{color:#1C1710}
 `
