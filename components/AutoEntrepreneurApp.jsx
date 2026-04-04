@@ -82,7 +82,20 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const loadAll = async () => {
     setLoading(true)
     const { data:p } = await supabase.from('ae_profiles').select('*').eq('user_id',user.id).single()
-    if (p) {   setProfil(p)   setOForm({     prenom: p.prenom || '',     nom: p.nom || '',     activite: p.activite || '',     secteur: p.secteur || 'services_bnc',     date_creation: p.date_creation || '',     regime_declaration: p.regime_declaration || 'trimestriel',     acre: p.acre || false,     acre_fin: p.acre_fin || '',     objectif_ca: p.objectif_ca || ''   }) } else setShowOnboarding(true)
+    if (p) {
+      setProfil(p)
+      setOForm({
+        prenom: p.prenom || '',
+        nom: p.nom || '',
+        activite: p.activite || '',
+        secteur: p.secteur || 'services_bnc',
+        date_creation: p.date_creation || '',
+        regime_declaration: p.regime_declaration || 'trimestriel',
+        acre: p.acre || false,
+        acre_fin: p.acre_fin || '',
+        objectif_ca: p.objectif_ca || ''
+      })
+    } else setShowOnboarding(true)
     const { data:r } = await supabase.from('ae_revenus').select('*').eq('user_id',user.id).order('mois',{ascending:false})
     if (r) setRevenus(r)
     const { data:d } = await supabase.from('ae_declarations').select('*').eq('user_id',user.id).order('created_at',{ascending:false})
@@ -173,7 +186,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
       {/* APP BAR */}
       <div className="app-bar">
-        <div className="logo">Assistant Serelyo</div>
+        <div className="logo">Serelyo</div>
         <div className="bar-right">
           <span className="user-tag">{profil?`${profil.prenom} ${profil.nom}`:user.email}</span>
           <button className="btn-profile" onClick={()=>setShowOnboarding(true)}>
@@ -437,7 +450,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   <div className="info-box" style={{marginTop:'1rem'}}>
                     <div className="info-text">💡 <strong>Conseil :</strong> Dès que tu reçois un virement client, mets <strong>{((calcResult.taux+0.14)*100).toFixed(0)}%</strong> de côté immédiatement sur un compte séparé. Tu ne seras jamais pris au dépourvu.</div>
                   </div>
-                  <div style={{marginTop:'8px',fontSize:11,color:'#A89878'}}>⚠️ Les impôts estimés (~14%) sont indicatifs. Le taux réel dépend de ta situation personnelle. Consulte un comptable pour une simulation précise.</div>
+                  <div style={{marginTop:'8px',fontSize:11,color:'#A89878'}}>⚠️ Les impôts estimés (~14%) sont indicatifs. Le taux réel dépend de ta situation personnelle.</div>
                 </div>
               )}
             </>
@@ -469,7 +482,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <div className="card" style={{marginBottom:'1.5rem'}}>
               <div className="reponse-header">
                 <div className="reponse-avatar">IA</div>
-                <span style={{fontSize:13,color:'#6B5E45',fontWeight:500}}>Assistant AutoIA</span>
+                <span style={{fontSize:13,color:'#6B5E45',fontWeight:500}}>Assistant Serelyo</span>
               </div>
               {asking
                 ? <div style={{display:'flex',alignItems:'center',gap:10,padding:'1rem 0',color:'#A89878'}}><div className="ring"/>Je réfléchis à ta question…</div>
@@ -498,7 +511,6 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <h2 className="page-title">Ressources officielles</h2>
             <p className="page-sub">Tous les liens utiles pour gérer ton auto-entreprise — directs, officiels, gratuits</p>
           </div>
-
           <div className="res-section">
             <div className="res-section-title"><span className="res-icon" style={{background:'#FAF3E0',color:'#B5792A'}}>📋</span>Déclarations & paiements</div>
             <div className="res-grid">
@@ -522,15 +534,14 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </a>
             </div>
           </div>
-
           <div className="res-section">
             <div className="res-section-title"><span className="res-icon" style={{background:'#EDFAF3',color:'#2D7A4F'}}>🏢</span>Gérer mon auto-entreprise</div>
             <div className="res-grid">
-              <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F24023" target="_blank" rel="noopener noreferrer" className="res-card">
+              <a href="https://formalites.entreprises.gouv.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
                 <div className="res-card-title">Modifier ou fermer mon auto-entreprise</div>
                 <div className="res-card-desc">Changer d'adresse, modifier ton activité, déclarer une cessation d'activité. Toutes les démarches en un seul endroit.</div>
-                <div className="res-card-url">guichet-entreprises.fr</div>
+                <div className="res-card-url">formalites.entreprises.gouv.fr</div>
               </a>
               <a href="https://www.infogreffe.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
@@ -542,19 +553,18 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
                 <div className="res-card-title">Mon espace personnel État</div>
                 <div className="res-card-desc">Espace centralisé pour accéder à tous les services publics en ligne : URSSAF, impôts, retraite, santé…</div>
-                <div className="res-card-url">mon.service-public.fr</div>
+                <div className="res-card-url">service-public.fr</div>
               </a>
             </div>
           </div>
-
           <div className="res-section">
             <div className="res-section-title"><span className="res-icon" style={{background:'#EEF4FF',color:'#1A4A8A'}}>💰</span>Aides & financement</div>
             <div className="res-grid">
               <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F36613" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-aide">Aide</span><span className="res-arrow">→</span></div>
                 <div className="res-card-title">Cumul chômage & auto-entreprise (ARE)</div>
-                <div className="res-card-desc">Tu peux cumuler allocations chômage et revenus d'auto-entrepreneur sous conditions. Calcul et démarches sur France Travail.</div>
-                <div className="res-card-url">francetravail.fr</div>
+                <div className="res-card-desc">Tu peux cumuler allocations chômage et revenus d'auto-entrepreneur sous conditions. Calcul et démarches officielles.</div>
+                <div className="res-card-url">service-public.gouv.fr</div>
               </a>
               <a href="https://www.bpifrance.fr/nos-solutions/financement" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-aide">Financement</span><span className="res-arrow">→</span></div>
@@ -565,12 +575,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               <a href="https://www.aides-entreprises.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-aide">Aide</span><span className="res-arrow">→</span></div>
                 <div className="res-card-title">Toutes les aides disponibles</div>
-                <div className="res-card-desc">Moteur de recherche officiel pour trouver toutes les aides locales, régionales et nationales selon ton activité et ta situation.</div>
+                <div className="res-card-desc">Moteur de recherche officiel pour trouver toutes les aides locales, régionales et nationales selon ton activité.</div>
                 <div className="res-card-url">aides-entreprises.fr</div>
               </a>
             </div>
           </div>
-
           <div className="res-section">
             <div className="res-section-title"><span className="res-icon" style={{background:'#FFF4E6',color:'#7A3A0A'}}>🏥</span>Protection sociale & retraite</div>
             <div className="res-grid">
@@ -594,15 +603,14 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </a>
             </div>
           </div>
-
           <div className="res-section">
             <div className="res-section-title"><span className="res-icon" style={{background:'#F5F0FF',color:'#6B2D7A'}}>📖</span>Se former & s'informer</div>
             <div className="res-grid">
-              <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F23282" target="_blank" rel="noopener noreferrer" className="res-card">
+              <a href="https://www.service-public.fr/professionnels-entreprises/vosdroits/F23282" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
                 <div className="res-card-title">Guide officiel auto-entrepreneur</div>
                 <div className="res-card-desc">Le guide complet du gouvernement sur le statut auto-entrepreneur : droits, obligations, seuils, démarches. La référence officielle.</div>
-                <div className="res-card-url">entreprises.gouv.fr</div>
+                <div className="res-card-url">service-public.fr</div>
               </a>
               <a href="https://www.service-public.fr/professionnels-entreprises/vosdroits/F23961" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
@@ -618,10 +626,9 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </a>
             </div>
           </div>
-
           <div className="res-disclaimer">
             <strong>ℹ️ Information importante</strong><br/>
-            Ces liens pointent vers des sites officiels du gouvernement français. Les informations présentées dans AutoIA (taux, seuils, dates) sont basées sur la législation en vigueur en 2025 et peuvent évoluer. En cas de doute, consulte toujours les sites officiels ou un expert-comptable.
+            Ces liens pointent vers des sites officiels du gouvernement français. Les informations présentées dans Serelyo (taux, seuils, dates) sont basées sur la législation en vigueur en 2025 et peuvent évoluer. En cas de doute, consulte toujours les sites officiels ou un expert-comptable.
           </div>
         </div>
       )}
@@ -631,7 +638,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
 const CSS = `
 .app-bar{background:#1C1710;height:58px;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
-.logo{font-family:'Playfair Display',serif;font-size:21px;color:#fff}.logo em{color:#E8D5A8;font-style:normal}
+.logo{font-family:'Playfair Display',serif;font-size:21px;color:#fff}
 .bar-right{display:flex;align-items:center;gap:10px}
 .user-tag{font-size:12px;color:rgba(255,255,255,0.5)}
 .btn-profile{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:6px 14px;cursor:pointer;color:#fff;font-size:12px;font-family:'Outfit',sans-serif;font-weight:500}
