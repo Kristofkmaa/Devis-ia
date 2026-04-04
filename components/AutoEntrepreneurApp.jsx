@@ -82,7 +82,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const loadAll = async () => {
     setLoading(true)
     const { data:p } = await supabase.from('ae_profiles').select('*').eq('user_id',user.id).single()
-    if (p) { setProfil(p); setOForm(f=>({...f,...p})) } else setShowOnboarding(true)
+    if (p) {   setProfil(p)   setOForm({     prenom: p.prenom || '',     nom: p.nom || '',     activite: p.activite || '',     secteur: p.secteur || 'services_bnc',     date_creation: p.date_creation || '',     regime_declaration: p.regime_declaration || 'trimestriel',     acre: p.acre || false,     acre_fin: p.acre_fin || '',     objectif_ca: p.objectif_ca || ''   }) } else setShowOnboarding(true)
     const { data:r } = await supabase.from('ae_revenus').select('*').eq('user_id',user.id).order('mois',{ascending:false})
     if (r) setRevenus(r)
     const { data:d } = await supabase.from('ae_declarations').select('*').eq('user_id',user.id).order('created_at',{ascending:false})
