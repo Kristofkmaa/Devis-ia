@@ -17,10 +17,6 @@ const TAUX_ACRE = {
   ventes: 0.0615,
 }
 
-/**
- * Valeurs par défaut dans l'app.
- * Si tu veux des calculs plus personnalisés, utilise taux_impot_personnalise dans le profil.
- */
 const TAUX_VL = {
   services_bnc: 0.022,
   services_bic: 0.017,
@@ -291,7 +287,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       setHistoQ(questionsRes.data || [])
     } catch (err) {
       console.error('Erreur générale loadAll:', err)
-      alert(`Erreur lors du chargement: ${err.message}`)
+      alert(`Erreur lors du chargement : ${err.message}`)
     } finally {
       setLoading(false)
     }
@@ -597,17 +593,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            border: '2.5px solid #E2D8C4',
-            borderTopColor: '#B5792A',
-            borderRadius: '50%',
-            animation: 'spin .7s linear infinite',
-          }}
-        />
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh' }}>
+        <div style={{ width:28, height:28, border:'2.5px solid #E2D8C4', borderTopColor:'#B5792A', borderRadius:'50%', animation:'spin .7s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     )
@@ -623,8 +610,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           <span className="user-tag">{profil ? `${profil.prenom} ${profil.nom}` : user?.email}</span>
           <button className="btn-profile" onClick={() => setShowOnboarding(true)}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
             </svg>
             Mon profil
           </button>
@@ -633,203 +620,110 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       </div>
 
       <div className="nav-tabs">
-        {[
-          ['dashboard', '🏠 Tableau de bord'],
-          ['calendrier', '📅 Calendrier'],
-          ['revenus', '💶 Mes revenus'],
-          ['calculateur', '🧮 Calculateur'],
-          ['assistant', '💬 Assistant IA'],
-          ['ressources', '📚 Ressources'],
-        ].map(([v, l]) => (
-          <button
-            key={v}
-            className={`nav-tab ${view === v ? 'active' : ''}`}
-            onClick={() => setView(v)}
-          >
-            {l}
-          </button>
+        {[['dashboard','🏠 Tableau de bord'],['calendrier','📅 Calendrier'],['revenus','💶 Mes revenus'],['calculateur','🧮 Calculateur'],['assistant','💬 Assistant IA'],['ressources','📚 Ressources']].map(([v,l])=>(
+          <button key={v} className={`nav-tab ${view===v?'active':''}`} onClick={()=>setView(v)}>{l}</button>
         ))}
       </div>
 
       {showOnboarding && (
-        <div
-          className="overlay show"
-          onClick={(e) => {
-            if (profil && e.target.className.includes('overlay')) {
-              setShowOnboarding(false)
-            }
-          }}
-        >
-          <div className="modal" style={{ maxWidth: 860 }}>
-            <div className="modal-title">{profil ? 'Mon profil' : 'Bienvenue ! Configurons ton profil 👋'}</div>
+        <div className="overlay show" onClick={e=>{if(profil&&e.target.className.includes('overlay'))setShowOnboarding(false)}}>
+          <div className="modal" style={{maxWidth:860}}>
+            <div className="modal-title">{profil?'Mon profil':'Bienvenue ! Configurons ton profil 👋'}</div>
             <p className="modal-sub">
               Plus ton profil est complet, plus les calculs, alertes et réponses IA seront utiles.
             </p>
 
             <div className="section-title">Informations de base</div>
             <div className="form-grid">
-              <div className="field">
-                <label>Prénom *</label>
-                <input value={oForm.prenom} onChange={(e) => setOForm((p) => ({ ...p, prenom: e.target.value }))} placeholder="Sophie" />
-              </div>
-
-              <div className="field">
-                <label>Nom *</label>
-                <input value={oForm.nom} onChange={(e) => setOForm((p) => ({ ...p, nom: e.target.value }))} placeholder="Martin" />
-              </div>
-
-              <div className="field full">
-                <label>Activité *</label>
-                <input value={oForm.activite} onChange={(e) => setOForm((p) => ({ ...p, activite: e.target.value }))} placeholder="Développeuse web freelance, graphiste, plombier…" />
-              </div>
-
+              <div className="field"><label>Prénom *</label><input value={oForm.prenom} onChange={e=>setOForm(p=>({...p,prenom:e.target.value}))} placeholder="Sophie"/></div>
+              <div className="field"><label>Nom *</label><input value={oForm.nom} onChange={e=>setOForm(p=>({...p,nom:e.target.value}))} placeholder="Martin"/></div>
+              <div className="field full"><label>Activité *</label><input value={oForm.activite} onChange={e=>setOForm(p=>({...p,activite:e.target.value}))} placeholder="Développeuse web freelance, graphiste, plombier…"/></div>
               <div className="field full">
                 <label>Secteur d'activité *</label>
-                <select value={oForm.secteur} onChange={(e) => setOForm((p) => ({ ...p, secteur: e.target.value }))}>
-                  {SECTEURS.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                  ))}
+                <select value={oForm.secteur} onChange={e=>setOForm(p=>({...p,secteur:e.target.value}))}>
+                  {SECTEURS.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </div>
-
-              <div className="field">
-                <label>Date de création *</label>
-                <input type="date" value={oForm.date_creation} onChange={(e) => setOForm((p) => ({ ...p, date_creation: e.target.value }))} />
-              </div>
-
+              <div className="field"><label>Date de création *</label><input type="date" value={oForm.date_creation} onChange={e=>setOForm(p=>({...p,date_creation:e.target.value}))}/></div>
               <div className="field">
                 <label>Régime déclaration URSSAF</label>
-                <select value={oForm.regime_declaration} onChange={(e) => setOForm((p) => ({ ...p, regime_declaration: e.target.value }))}>
+                <select value={oForm.regime_declaration} onChange={e=>setOForm(p=>({...p,regime_declaration:e.target.value}))}>
                   <option value="mensuel">Mensuel</option>
                   <option value="trimestriel">Trimestriel</option>
                 </select>
               </div>
-
-              <div className="field">
-                <label>Objectif CA annuel (€)</label>
-                <input type="number" value={oForm.objectif_ca} onChange={(e) => setOForm((p) => ({ ...p, objectif_ca: e.target.value }))} placeholder="30000" />
-              </div>
-
-              <div className="field">
-                <label>Objectif CA mensuel (€)</label>
-                <input type="number" value={oForm.objectif_mensuel} onChange={(e) => setOForm((p) => ({ ...p, objectif_mensuel: e.target.value }))} placeholder="2500" />
-              </div>
-
+              <div className="field"><label>Objectif CA annuel (€)</label><input type="number" value={oForm.objectif_ca} onChange={e=>setOForm(p=>({...p,objectif_ca:e.target.value}))} placeholder="30000"/></div>
+              <div className="field"><label>Objectif CA mensuel (€)</label><input type="number" value={oForm.objectif_mensuel} onChange={e=>setOForm(p=>({...p,objectif_mensuel:e.target.value}))} placeholder="2500"/></div>
               <div className="field">
                 <label>ACRE ?</label>
-                <select value={oForm.acre ? 'oui' : 'non'} onChange={(e) => setOForm((p) => ({ ...p, acre: e.target.value === 'oui' }))}>
+                <select value={oForm.acre?'oui':'non'} onChange={e=>setOForm(p=>({...p,acre:e.target.value==='oui'}))}>
                   <option value="non">Non</option>
                   <option value="oui">Oui</option>
                 </select>
               </div>
-
-              {oForm.acre && (
-                <div className="field">
-                  <label>Date de fin ACRE</label>
-                  <input type="date" value={oForm.acre_fin} onChange={(e) => setOForm((p) => ({ ...p, acre_fin: e.target.value }))} />
-                </div>
-              )}
+              {oForm.acre && <div className="field"><label>Date de fin ACRE</label><input type="date" value={oForm.acre_fin} onChange={e=>setOForm(p=>({...p,acre_fin:e.target.value}))}/></div>}
             </div>
 
             <div className="section-title">Fiscalité & TVA</div>
             <div className="form-grid">
               <div className="field">
                 <label>Versement libératoire</label>
-                <select
-                  value={oForm.versement_liberatoire ? 'oui' : 'non'}
-                  onChange={(e) => setOForm((p) => ({ ...p, versement_liberatoire: e.target.value === 'oui' }))}
-                >
+                <select value={oForm.versement_liberatoire ? 'oui' : 'non'} onChange={e=>setOForm(p=>({...p,versement_liberatoire:e.target.value==='oui'}))}>
                   <option value="non">Non</option>
                   <option value="oui">Oui</option>
                 </select>
               </div>
-
-              <div className="field">
-                <label>Taux d'impôt perso (%)</label>
-                <input
-                  type="number"
-                  value={oForm.taux_impot_personnalise}
-                  onChange={(e) => setOForm((p) => ({ ...p, taux_impot_personnalise: e.target.value }))}
-                  placeholder="14"
-                />
-              </div>
-
+              <div className="field"><label>Taux d'impôt perso (%)</label><input type="number" value={oForm.taux_impot_personnalise} onChange={e=>setOForm(p=>({...p,taux_impot_personnalise:e.target.value}))} placeholder="14"/></div>
               <div className="field">
                 <label>TVA active ?</label>
-                <select
-                  value={oForm.tva_actif ? 'oui' : 'non'}
-                  onChange={(e) => setOForm((p) => ({ ...p, tva_actif: e.target.value === 'oui' }))}
-                >
+                <select value={oForm.tva_actif ? 'oui' : 'non'} onChange={e=>setOForm(p=>({...p,tva_actif:e.target.value==='oui'}))}>
                   <option value="non">Non</option>
                   <option value="oui">Oui</option>
                 </select>
               </div>
-
               <div className="field">
                 <label>Régime TVA</label>
-                <select
-                  value={oForm.regime_tva}
-                  onChange={(e) => setOForm((p) => ({ ...p, regime_tva: e.target.value }))}
-                >
+                <select value={oForm.regime_tva} onChange={e=>setOForm(p=>({...p,regime_tva:e.target.value}))}>
                   <option value="franchise_base">Franchise en base</option>
                   <option value="reel_simplifie">Réel simplifié</option>
                   <option value="reel_normal">Réel normal</option>
                 </select>
               </div>
-
-              {oForm.tva_actif && (
-                <div className="field full">
-                  <label>Numéro de TVA</label>
-                  <input
-                    value={oForm.numero_tva}
-                    onChange={(e) => setOForm((p) => ({ ...p, numero_tva: e.target.value }))}
-                    placeholder="FRXX999999999"
-                  />
-                </div>
-              )}
+              {oForm.tva_actif && <div className="field full"><label>Numéro de TVA</label><input value={oForm.numero_tva} onChange={e=>setOForm(p=>({...p,numero_tva:e.target.value}))} placeholder="FRXX999999999"/></div>}
             </div>
 
             <div className="section-title">Banque & organisation</div>
             <div className="form-grid">
               <div className="field">
                 <label>Compte bancaire dédié ?</label>
-                <select
-                  value={oForm.compte_dedie ? 'oui' : 'non'}
-                  onChange={(e) => setOForm((p) => ({ ...p, compte_dedie: e.target.value === 'oui' }))}
-                >
+                <select value={oForm.compte_dedie ? 'oui' : 'non'} onChange={e=>setOForm(p=>({...p,compte_dedie:e.target.value==='oui'}))}>
                   <option value="non">Non</option>
                   <option value="oui">Oui</option>
                 </select>
               </div>
-
-              <div className="field">
-                <label>IBAN</label>
-                <input value={oForm.iban} onChange={(e) => setOForm((p) => ({ ...p, iban: e.target.value }))} placeholder="FR76..." />
-              </div>
+              <div className="field"><label>IBAN</label><input value={oForm.iban} onChange={e=>setOForm(p=>({...p,iban:e.target.value}))} placeholder="FR76..."/></div>
             </div>
 
             <div className="section-title">Objectifs & activité</div>
             <div className="form-grid">
               <div className="field">
                 <label>Revenus</label>
-                <select value={oForm.revenu_type} onChange={(e) => setOForm((p) => ({ ...p, revenu_type: e.target.value }))}>
+                <select value={oForm.revenu_type} onChange={e=>setOForm(p=>({...p,revenu_type:e.target.value}))}>
                   <option value="régulier">Réguliers</option>
                   <option value="irrégulier">Irréguliers</option>
                 </select>
               </div>
-
               <div className="field">
                 <label>Objectif</label>
-                <select value={oForm.objectif_type} onChange={(e) => setOForm((p) => ({ ...p, objectif_type: e.target.value }))}>
+                <select value={oForm.objectif_type} onChange={e=>setOForm(p=>({...p,objectif_type:e.target.value}))}>
                   <option value="complément_revenu">Complément de revenu</option>
                   <option value="activité_principale">Activité principale</option>
                   <option value="croissance">Croissance</option>
                 </select>
               </div>
-
               <div className="field">
                 <label>Statut complémentaire</label>
-                <select value={oForm.statut_complementaire} onChange={(e) => setOForm((p) => ({ ...p, statut_complementaire: e.target.value }))}>
+                <select value={oForm.statut_complementaire} onChange={e=>setOForm(p=>({...p,statut_complementaire:e.target.value}))}>
                   <option value="aucun">Aucun</option>
                   <option value="salarié">Salarié en parallèle</option>
                   <option value="chomage">Chômage / ARE</option>
@@ -837,33 +731,20 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   <option value="retraite">Retraite</option>
                 </select>
               </div>
-
               <div className="field">
                 <label>Niveau</label>
-                <select value={oForm.niveau_experience} onChange={(e) => setOForm((p) => ({ ...p, niveau_experience: e.target.value }))}>
+                <select value={oForm.niveau_experience} onChange={e=>setOForm(p=>({...p,niveau_experience:e.target.value}))}>
                   <option value="debutant">Débutant</option>
                   <option value="intermediaire">Intermédiaire</option>
                   <option value="confirme">Confirmé</option>
                 </select>
               </div>
-
-              <div className="field">
-                <label>Prix moyen prestation (€)</label>
-                <input type="number" value={oForm.prix_moyen_prestation} onChange={(e) => setOForm((p) => ({ ...p, prix_moyen_prestation: e.target.value }))} placeholder="250" />
-              </div>
-
-              <div className="field">
-                <label>Clients / mois</label>
-                <input type="number" value={oForm.clients_mois} onChange={(e) => setOForm((p) => ({ ...p, clients_mois: e.target.value }))} placeholder="8" />
-              </div>
+              <div className="field"><label>Prix moyen prestation (€)</label><input type="number" value={oForm.prix_moyen_prestation} onChange={e=>setOForm(p=>({...p,prix_moyen_prestation:e.target.value}))} placeholder="250"/></div>
+              <div className="field"><label>Clients / mois</label><input type="number" value={oForm.clients_mois} onChange={e=>setOForm(p=>({...p,clients_mois:e.target.value}))} placeholder="8"/></div>
             </div>
 
             <div className="modal-actions">
-              {profil && (
-                <button className="btn btn-ghost" onClick={() => setShowOnboarding(false)}>
-                  Annuler
-                </button>
-              )}
+              {profil&&<button className="btn btn-ghost" onClick={()=>setShowOnboarding(false)}>Annuler</button>}
               <button className="btn btn-dark" onClick={saveProfil} disabled={savingProfile}>
                 {savingProfile ? 'Enregistrement…' : 'Enregistrer →'}
               </button>
@@ -872,7 +753,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
         </div>
       )}
 
-      {view === 'dashboard' && (
+      {view==='dashboard' && (
         <div className="main">
           {profil && (
             <div className="welcome-bar">
@@ -880,7 +761,6 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 <h1 className="welcome-title">Bonjour {profil.prenom} 👋</h1>
                 <p className="welcome-sub">{profil.activite}</p>
               </div>
-
               {prochaineDecl && (
                 <div className="next-decl">
                   <span className="next-decl-label">Prochaine déclaration</span>
@@ -894,39 +774,26 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <div className="metric-card">
               <div className="metric-label">CA ce mois</div>
               <div className="metric-value">{caMois.toLocaleString('fr-FR')} €</div>
-              <div className="metric-sub">
-                Cotisations : ~{(caMois * tauxUrssaf).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-              </div>
+              <div className="metric-sub">Cotisations : ~{(caMois*tauxUrssaf).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
             </div>
-
             <div className="metric-card">
               <div className="metric-label">CA {year}</div>
               <div className="metric-value">{caAnnuel.toLocaleString('fr-FR')} €</div>
-              <div className="metric-sub">
-                Cotisations : ~{cotisAnnuel.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-              </div>
+              <div className="metric-sub">Cotisations : ~{cotisAnnuel.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
             </div>
-
             <div className="metric-card">
               <div className="metric-label">Taux URSSAF</div>
-              <div className="metric-value" style={{ color: '#B5792A' }}>
-                {profil ? (tauxUrssaf * 100).toFixed(1) : '—'} %
-              </div>
-              <div className="metric-sub">{profil?.acre ? '✓ ACRE actif' : 'Taux normal'}</div>
+              <div className="metric-value" style={{color:'#B5792A'}}>{profil?(tauxUrssaf*100).toFixed(1):'—'} %</div>
+              <div className="metric-sub">{profil?.acre?'✓ ACRE actif':'Taux normal'}</div>
             </div>
-
             <div className="metric-card">
               <div className="metric-label">À mettre de côté</div>
-              <div className="metric-value" style={{ color: '#2D7A4F' }}>
-                {(caMois * (tauxUrssaf + tauxImpotDashboard)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-              </div>
-              <div className="metric-sub">
-                {profil?.versement_liberatoire ? 'URSSAF + versement libératoire' : 'URSSAF + impôts estimés'}
-              </div>
+              <div className="metric-value" style={{color:'#2D7A4F'}}>{(caMois*(tauxUrssaf+tauxImpotDashboard)).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+              <div className="metric-sub">{profil?.versement_liberatoire?'URSSAF + versement libératoire':'URSSAF + impôts estimés'}</div>
             </div>
           </div>
 
-          <div className="metrics-grid" style={{ marginTop: '-0.25rem' }}>
+          <div className="metrics-grid" style={{marginTop:'-0.25rem'}}>
             <div className="metric-card">
               <div className="metric-label">Objectif mensuel</div>
               <div className="metric-value">{objectifMensuel.toLocaleString('fr-FR')} €</div>
@@ -938,15 +805,13 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   : 'Non renseigné'}
               </div>
             </div>
-
             <div className="metric-card">
               <div className="metric-label">TVA</div>
-              <div className="metric-value" style={{ color: profil?.tva_actif ? '#B5792A' : '#2D7A4F' }}>
+              <div className="metric-value" style={{color:profil?.tva_actif ? '#B5792A' : '#2D7A4F'}}>
                 {profil?.tva_actif ? 'Active' : 'Inactive'}
               </div>
               <div className="metric-sub">{profil?.regime_tva || '—'}</div>
             </div>
-
             <div className="metric-card">
               <div className="metric-label">Projection mensuelle</div>
               <div className="metric-value">{projectionMensuelle.toLocaleString('fr-FR')} €</div>
@@ -956,316 +821,173 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   : 'Prix moyen / clients non renseignés'}
               </div>
             </div>
-
             <div className="metric-card">
               <div className="metric-label">Profil</div>
-              <div className="metric-value" style={{ color: '#1C1710', fontSize: 18 }}>
+              <div className="metric-value" style={{color:'#1C1710',fontSize:18}}>
                 {profil?.niveau_experience || '—'}
               </div>
               <div className="metric-sub">{profil?.objectif_type || '—'}</div>
             </div>
           </div>
 
-          <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <div className="card" style={{marginBottom:'1.5rem'}}>
             <div className="card-title">Progression vers les seuils {year}</div>
-
             <div className="seuil-item">
-              <div className="seuil-top">
-                <span className="seuil-label">Seuil TVA</span>
-                <span className="seuil-val">
-                  {caAnnuel.toLocaleString('fr-FR')} € / {seuil_tva?.toLocaleString('fr-FR')} €
-                </span>
-              </div>
-              <div className="progress-bar">
-                <div
-                  className="progress-fill"
-                  style={{
-                    width: pctTVA + '%',
-                    background: pctTVA > 85 ? '#C0392B' : pctTVA > 60 ? '#B5792A' : '#2D7A4F',
-                  }}
-                />
-              </div>
-              {pctTVA > 85 && (
-                <div className="seuil-alert">
-                  ⚠️ Attention — tu approches du seuil de TVA.
-                </div>
-              )}
+              <div className="seuil-top"><span className="seuil-label">Seuil TVA</span><span className="seuil-val">{caAnnuel.toLocaleString('fr-FR')} € / {seuil_tva.toLocaleString('fr-FR')} €</span></div>
+              <div className="progress-bar"><div className="progress-fill" style={{width:pctTVA+'%',background:pctTVA>85?'#C0392B':pctTVA>60?'#B5792A':'#2D7A4F'}}/></div>
+              {pctTVA>85&&<div className="seuil-alert">⚠️ Attention — tu approches du seuil de TVA.</div>}
             </div>
-
-            <div className="seuil-item" style={{ marginTop: '1rem' }}>
-              <div className="seuil-top">
-                <span className="seuil-label">Plafond micro-entreprise</span>
-                <span className="seuil-val">
-                  {caAnnuel.toLocaleString('fr-FR')} € / {plafond?.toLocaleString('fr-FR')} €
-                </span>
-              </div>
-              <div className="progress-bar">
-                <div
-                  className="progress-fill"
-                  style={{
-                    width: pctPlafond + '%',
-                    background: pctPlafond > 85 ? '#C0392B' : pctPlafond > 60 ? '#B5792A' : '#2D7A4F',
-                  }}
-                />
-              </div>
-              {pctPlafond > 85 && (
-                <div className="seuil-alert">
-                  ⚠️ Tu approches du plafond micro-entreprise.
-                </div>
-              )}
+            <div className="seuil-item" style={{marginTop:'1rem'}}>
+              <div className="seuil-top"><span className="seuil-label">Plafond micro-entreprise</span><span className="seuil-val">{caAnnuel.toLocaleString('fr-FR')} € / {plafond.toLocaleString('fr-FR')} €</span></div>
+              <div className="progress-bar"><div className="progress-fill" style={{width:pctPlafond+'%',background:pctPlafond>85?'#C0392B':pctPlafond>60?'#B5792A':'#2D7A4F'}}/></div>
+              {pctPlafond>85&&<div className="seuil-alert">⚠️ Tu approches du plafond micro-entreprise.</div>}
             </div>
           </div>
 
-          {histoQ.length > 0 && (
+          {histoQ.length>0&&(
             <div className="card">
               <div className="card-title">Dernières questions à l'assistant</div>
-              {histoQ.slice(0, 3).map((q) => (
-                <div
-                  key={q.id}
-                  className="question-preview"
-                  onClick={() => {
-                    setQuestion(q.question)
-                    setReponse(q.reponse)
-                    setView('assistant')
-                  }}
-                >
+              {histoQ.slice(0,3).map(q=>(
+                <div key={q.id} className="question-preview" onClick={()=>{setQuestion(q.question);setReponse(q.reponse);setView('assistant')}}>
                   <div className="question-text">💬 {q.question}</div>
                   <div className="question-date">{new Date(q.created_at).toLocaleDateString('fr-FR')}</div>
                 </div>
               ))}
-              <button className="link-btn" onClick={() => setView('assistant')}>
-                Poser une nouvelle question →
-              </button>
+              <button className="link-btn" onClick={()=>setView('assistant')}>Poser une nouvelle question →</button>
             </div>
           )}
         </div>
       )}
 
-      {view === 'calendrier' && (
+      {view==='calendrier' && (
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Calendrier administratif</h2>
             <p className="page-sub">Toutes tes échéances au même endroit</p>
           </div>
-
           {!profil ? (
-            <div className="empty-state">
-              <h3>Configure ton profil d'abord</h3>
-              <button className="btn btn-dark" onClick={() => setShowOnboarding(true)}>
-                Configurer →
-              </button>
-            </div>
+            <div className="empty-state"><h3>Configure ton profil d'abord</h3><button className="btn btn-dark" onClick={()=>setShowOnboarding(true)}>Configurer →</button></div>
           ) : (
             <div className="cal-list">
-              {calendrier.map((ev) => {
-                const decl = declarations.find((d) => d.periode === ev.id)
-                const statut = decl?.statut || (ev.past ? 'a_verifier' : 'a_faire')
-
+              {calendrier.map(ev=>{
+                const decl = declarations.find(d=>d.periode===ev.id)
+                const statut = decl?.statut||(ev.past?'a_verifier':'a_faire')
                 return (
-                  <div
-                    key={ev.id}
-                    className={`cal-card ${ev.current ? 'cal-current' : ''} ${ev.special ? 'cal-special' : ''} ${
-                      ev.past && statut !== 'faite' ? 'cal-past' : ''
-                    }`}
-                  >
+                  <div key={ev.id} className={`cal-card ${ev.current?'cal-current':''} ${ev.special?'cal-special':''} ${ev.past&&statut!=='faite'?'cal-past':''}`}>
                     <div className="cal-left">
-                      <div
-                        className={`cal-dot ${
-                          statut === 'faite' ? 'dot-done' : ev.past ? 'dot-late' : 'dot-pending'
-                        }`}
-                      />
+                      <div className={`cal-dot ${statut==='faite'?'dot-done':ev.past?'dot-late':'dot-pending'}`}/>
                       <div>
                         <div className="cal-label">{ev.label}</div>
                         <div className="cal-date">Avant le {ev.date_limite}</div>
-                        {ev.current && <span className="badge-current">Période en cours</span>}
+                        {ev.current&&<span className="badge-current">Période en cours</span>}
                       </div>
                     </div>
-
                     <div className="cal-right">
-                      {statut === 'faite' ? (
-                        <span className="badge-done">✓ Faite</span>
-                      ) : (
-                        <button className="btn btn-sm btn-amber" onClick={() => marquerDeclaration(ev.id, ev.type, 'faite')}>
-                          Marquer comme faite
-                        </button>
-                      )}
+                      {statut==='faite'
+                        ? <span className="badge-done">✓ Faite</span>
+                        : <button className="btn btn-sm btn-amber" onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')}>Marquer comme faite</button>
+                      }
                     </div>
                   </div>
                 )
               })}
             </div>
           )}
-
-          <div className="info-box" style={{ marginTop: '1.5rem' }}>
+          <div className="info-box" style={{marginTop:'1.5rem'}}>
             <div className="info-title">📌 Comment déclarer sur autoentrepreneur.urssaf.fr</div>
             <div className="info-text">
-              1. Va sur autoentrepreneur.urssaf.fr<br />
-              2. Connecte-toi avec ton numéro SIRET<br />
-              3. Clique sur "Déclarer et payer"<br />
-              4. Saisis ton CA de la période<br />
-              5. Valide
+              1. Va sur <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" style={{color:'#1A4A8A',fontWeight:600}}>autoentrepreneur.urssaf.fr</a><br/>
+              2. Connecte-toi avec ton numéro SIRET<br/>
+              3. Clique sur "Déclarer et payer"<br/>
+              4. Saisis ton CA de la période<br/>
+              5. Valide — le montant à payer est calculé automatiquement
             </div>
           </div>
         </div>
       )}
 
-      {view === 'revenus' && (
+      {view==='revenus' && (
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Mes revenus</h2>
             <p className="page-sub">Saisir ton chiffre d'affaires mois par mois</p>
           </div>
-
-          <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <div className="card" style={{marginBottom:'1.5rem'}}>
             <div className="card-title">Ajouter / modifier un mois</div>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-              <div>
-                <span className="mini-label">Mois</span>
-                <input className="mini-input" type="month" value={revMois} onChange={(e) => setRevMois(e.target.value)} />
-              </div>
-              <div>
-                <span className="mini-label">CA encaissé (€ HT)</span>
-                <input className="mini-input" type="number" value={revMontant} onChange={(e) => setRevMontant(e.target.value)} placeholder="3500" style={{ width: 160 }} />
-              </div>
-              <button className="btn btn-dark" onClick={saveRevenu} disabled={savingRev}>
-                {savingRev ? 'Sauvegarde…' : 'Enregistrer →'}
-              </button>
+            <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'flex-end'}}>
+              <div><span className="mini-label">Mois</span><input className="mini-input" type="month" value={revMois} onChange={e=>setRevMois(e.target.value)}/></div>
+              <div><span className="mini-label">CA encaissé (€ HT)</span><input className="mini-input" type="number" value={revMontant} onChange={e=>setRevMontant(e.target.value)} placeholder="3 500" style={{width:160}}/></div>
+              <button className="btn btn-dark" onClick={saveRevenu} disabled={savingRev}>{savingRev?'Sauvegarde…':'Enregistrer →'}</button>
             </div>
           </div>
-
           <div className="card">
             <div className="card-title">Historique {year}</div>
-
-            {revenus.filter((r) => r.mois.startsWith(String(year))).length === 0 ? (
-              <p style={{ fontSize: 13, color: '#A89878', padding: '1rem 0' }}>
-                Aucun revenu saisi pour {year}.
-              </p>
-            ) : (
-              <table className="rev-table">
-                <thead>
-                  <tr>
-                    <th>Mois</th>
-                    <th>CA</th>
-                    <th>URSSAF ({(tauxUrssaf * 100).toFixed(1)}%)</th>
-                    <th>Impôts (~{(tauxImpotDashboard * 100).toFixed(1)}%)</th>
-                    <th>Net estimé</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {revenus
-                    .filter((r) => r.mois.startsWith(String(year)))
-                    .map((r) => {
-                      const cotis = r.montant * tauxUrssaf
-                      const impots = r.montant * tauxImpotDashboard
-                      const net = r.montant - cotis - impots
-
+            {revenus.filter(r=>r.mois.startsWith(String(year))).length===0
+              ? <p style={{fontSize:13,color:'#A89878',padding:'1rem 0'}}>Aucun revenu saisi pour {year}.</p>
+              : (
+                <table className="rev-table">
+                  <thead><tr><th>Mois</th><th>CA</th><th>URSSAF ({(tauxUrssaf*100).toFixed(1)}%)</th><th>Impôts (~{(tauxImpotDashboard*100).toFixed(1)}%)</th><th>Net estimé</th></tr></thead>
+                  <tbody>
+                    {revenus.filter(r=>r.mois.startsWith(String(year))).map(r=>{
+                      const cotis=r.montant*tauxUrssaf, impots=r.montant*tauxImpotDashboard, net=r.montant-cotis-impots
                       return (
                         <tr key={r.mois}>
                           <td>{formatMois(r.mois)}</td>
                           <td><strong>{r.montant.toLocaleString('fr-FR')} €</strong></td>
-                          <td style={{ color: '#8B1A1A' }}>{cotis.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</td>
-                          <td style={{ color: '#7A3A0A' }}>{impots.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</td>
-                          <td style={{ color: '#2D7A4F', fontWeight: 600 }}>{net.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</td>
+                          <td style={{color:'#8B1A1A'}}>{cotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                          <td style={{color:'#7A3A0A'}}>{impots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                          <td style={{color:'#2D7A4F',fontWeight:600}}>{net.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
                         </tr>
                       )
                     })}
-
-                  <tr className="rev-total">
-                    <td>Total {year}</td>
-                    <td>{caAnnuel.toLocaleString('fr-FR')} €</td>
-                    <td style={{ color: '#8B1A1A' }}>{(caAnnuel * tauxUrssaf).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</td>
-                    <td style={{ color: '#7A3A0A' }}>{(caAnnuel * tauxImpotDashboard).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</td>
-                    <td style={{ color: '#2D7A4F' }}>{(caAnnuel * (1 - tauxUrssaf - tauxImpotDashboard)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</td>
-                  </tr>
-                </tbody>
-              </table>
-            )}
+                    <tr className="rev-total">
+                      <td>Total {year}</td>
+                      <td>{caAnnuel.toLocaleString('fr-FR')} €</td>
+                      <td style={{color:'#8B1A1A'}}>{(caAnnuel*tauxUrssaf).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                      <td style={{color:'#7A3A0A'}}>{(caAnnuel*tauxImpotDashboard).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                      <td style={{color:'#2D7A4F'}}>{(caAnnuel*(1-tauxUrssaf-tauxImpotDashboard)).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                    </tr>
+                  </tbody>
+                </table>
+              )
+            }
           </div>
         </div>
       )}
 
-      {view === 'calculateur' && (
+      {view==='calculateur' && (
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Calculateur</h2>
             <p className="page-sub">Combien dois-je payer et mettre de côté ?</p>
           </div>
-
           {!profil ? (
-            <div className="empty-state">
-              <h3>Configure ton profil d'abord</h3>
-              <button className="btn btn-dark" onClick={() => setShowOnboarding(true)}>
-                Configurer →
-              </button>
-            </div>
+            <div className="empty-state"><h3>Configure ton profil d'abord</h3><button className="btn btn-dark" onClick={()=>setShowOnboarding(true)}>Configurer →</button></div>
           ) : (
             <>
-              <div className="card" style={{ marginBottom: '1.5rem' }}>
+              <div className="card" style={{marginBottom:'1.5rem'}}>
                 <div className="card-title">Simuler un encaissement</div>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                <div style={{display:'flex',gap:12,alignItems:'flex-end',flexWrap:'wrap'}}>
                   <div>
                     <span className="mini-label">Montant encaissé (€ HT)</span>
-                    <input
-                      className="mini-input"
-                      type="number"
-                      value={calcCA}
-                      onChange={(e) => setCalcCA(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && calculer()}
-                      placeholder="2500"
-                      style={{ width: 200, fontSize: 18, padding: '12px 14px' }}
-                    />
+                    <input className="mini-input" type="number" value={calcCA} onChange={e=>setCalcCA(e.target.value)} onKeyDown={e=>e.key==='Enter'&&calculer()} placeholder="2 500" style={{width:200,fontSize:18,padding:'12px 14px'}}/>
                   </div>
-                  <button className="btn btn-dark" style={{ padding: '12px 24px' }} onClick={calculer}>
-                    Calculer →
-                  </button>
+                  <button className="btn btn-dark" style={{padding:'12px 24px'}} onClick={calculer}>Calculer →</button>
                 </div>
               </div>
-
               {calcResult && (
                 <div className="calc-result">
                   <div className="calc-grid">
-                    <div className="calc-card main-card">
-                      <div className="calc-label">CA encaissé</div>
-                      <div className="calc-big">{calcResult.ca.toLocaleString('fr-FR')} €</div>
-                    </div>
-
-                    <div className="calc-card red-card">
-                      <div className="calc-label">URSSAF à payer ({(calcResult.tauxUrssaf * 100).toFixed(1)}%)</div>
-                      <div className="calc-big">{calcResult.cotisations.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</div>
-                    </div>
-
-                    <div className="calc-card orange-card">
-                      <div className="calc-label">
-                        {profil.versement_liberatoire
-                          ? `Versement libératoire (${(calcResult.tauxImpot * 100).toFixed(1)}%)`
-                          : `Impôts estimés (~${(calcResult.tauxImpot * 100).toFixed(1)}%)`}
-                      </div>
-                      <div className="calc-big">{calcResult.impots_estimes.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</div>
-                    </div>
-
-                    <div className="calc-card amber-card">
-                      <div className="calc-label">Total à mettre de côté</div>
-                      <div className="calc-big">{calcResult.a_mettre_de_cote.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</div>
-                    </div>
-
-                    <div className="calc-card green-card">
-                      <div className="calc-label">Net estimé</div>
-                      <div className="calc-big">{calcResult.net_estime.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</div>
-                    </div>
+                    <div className="calc-card main-card"><div className="calc-label">CA encaissé</div><div className="calc-big">{calcResult.ca.toLocaleString('fr-FR')} €</div></div>
+                    <div className="calc-card red-card"><div className="calc-label">URSSAF à payer ({(calcResult.tauxUrssaf*100).toFixed(1)}%)</div><div className="calc-big">{calcResult.cotisations.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div></div>
+                    <div className="calc-card orange-card"><div className="calc-label">{profil.versement_liberatoire ? `Versement libératoire (${(calcResult.tauxImpot*100).toFixed(1)}%)` : `Impôts estimés (~${(calcResult.tauxImpot*100).toFixed(1)}%)`}</div><div className="calc-big">{calcResult.impots_estimes.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div></div>
+                    <div className="calc-card amber-card"><div className="calc-label">Total à mettre de côté</div><div className="calc-big">{calcResult.a_mettre_de_cote.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div></div>
+                    <div className="calc-card green-card"><div className="calc-label">Net estimé</div><div className="calc-big">{calcResult.net_estime.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div></div>
                   </div>
-
-                  {(calcResult.alerte_tva || calcResult.alerte_plafond) && (
-                    <div style={{ marginTop: '1rem' }}>
-                      {calcResult.alerte_tva && (
-                        <div className="seuil-alert">
-                          ⚠️ Avec ce CA annuel estimé ({calcResult.caAnnuel.toLocaleString('fr-FR')} €), tu approches du seuil TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €).
-                        </div>
-                      )}
-                      {calcResult.alerte_plafond && (
-                        <div className="seuil-alert" style={{ marginTop: 8 }}>
-                          ⚠️ Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €).
-                        </div>
-                      )}
+                  {(calcResult.alerte_tva||calcResult.alerte_plafond)&&(
+                    <div style={{marginTop:'1rem'}}>
+                      {calcResult.alerte_tva&&<div className="seuil-alert">⚠️ Avec ce CA annuel estimé ({calcResult.caAnnuel.toLocaleString('fr-FR')} €), tu approches du seuil TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €).</div>}
+                      {calcResult.alerte_plafond&&<div className="seuil-alert" style={{marginTop:8}}>⚠️ Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €).</div>}
                     </div>
                   )}
                 </div>
@@ -1275,84 +997,42 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
         </div>
       )}
 
-      {view === 'assistant' && (
+      {view==='assistant' && (
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Assistant IA</h2>
-            <p className="page-sub">Pose tes questions en français simple</p>
+            <p className="page-sub">Pose tes questions en français simple — comme à un ami comptable</p>
           </div>
-
-          <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <div className="card" style={{marginBottom:'1.5rem'}}>
             <span className="chips-hint">Questions fréquentes ↓</span>
             <div className="chips">
-              {[
-                "Quand dois-je déclarer mon CA à l'URSSAF ?",
-                'Comment calculer mes cotisations ?',
-                "Qu'est-ce que le seuil de TVA ?",
-                "C'est quoi la CFE et quand la payer ?",
-                "J'ai oublié de déclarer, que faire ?",
-                'Puis-je me verser un salaire ?',
-              ].map((q) => (
-                <span key={q} className="chip" onClick={() => setQuestion(q)}>
-                  {q}
-                </span>
+              {["Quand dois-je déclarer mon CA à l'URSSAF ?","Comment calculer mes cotisations ?","Qu'est-ce que le seuil de TVA ?","C'est quoi la CFE et quand la payer ?","J'ai oublié de déclarer, que faire ?","Puis-je me verser un salaire ?"].map(q=>(
+                <span key={q} className="chip" onClick={()=>setQuestion(q)}>{q}</span>
               ))}
             </div>
-
-            <div className="input-wrap" style={{ marginTop: '1rem' }}>
-              <textarea
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) poserQuestion()
-                }}
-                placeholder="Ex : J'ai encaissé 4200€ ce mois, combien je vais payer ?"
-                style={{ minHeight: 80 }}
-              />
-              <button className="btn-gen" onClick={poserQuestion} disabled={asking || !question.trim()}>
-                {asking ? 'Réflexion…' : 'Envoyer →'}
-              </button>
+            <div className="input-wrap" style={{marginTop:'1rem'}}>
+              <textarea value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))poserQuestion()}} placeholder="Ex : J'ai encaissé 4 200€ ce mois, combien je vais payer à l'URSSAF ?" style={{minHeight:80}}/>
+              <button className="btn-gen" onClick={poserQuestion} disabled={asking||!question.trim()}>{asking?'Réflexion…':'Envoyer →'}</button>
             </div>
-
             <div className="hint-text">⌘ + Entrée pour envoyer</div>
           </div>
-
-          {(reponse || asking) && (
-            <div className="card" style={{ marginBottom: '1.5rem' }}>
+          {(reponse||asking)&&(
+            <div className="card" style={{marginBottom:'1.5rem'}}>
               <div className="reponse-header">
                 <div className="reponse-avatar">IA</div>
-                <span style={{ fontSize: 13, color: '#6B5E45', fontWeight: 500 }}>Assistant AutoIA</span>
+                <span style={{fontSize:13,color:'#6B5E45',fontWeight:500}}>Assistant AutoIA</span>
               </div>
-
-              {asking ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '1rem 0', color: '#A89878' }}>
-                  <div className="ring" />
-                  Je réfléchis à ta question…
-                </div>
-              ) : (
-                <div className="reponse-text">
-                  {reponse.split('\n').map((line, i) => (
-                    <p key={i} style={{ marginBottom: line ? '0.75rem' : 0 }}>
-                      {line}
-                    </p>
-                  ))}
-                </div>
-              )}
+              {asking
+                ? <div style={{display:'flex',alignItems:'center',gap:10,padding:'1rem 0',color:'#A89878'}}><div className="ring"/>Je réfléchis à ta question…</div>
+                : <div className="reponse-text">{reponse.split('\n').map((line,i)=><p key={i} style={{marginBottom:line?'0.75rem':0}}>{line}</p>)}</div>
+              }
             </div>
           )}
-
-          {histoQ.length > 0 && (
+          {histoQ.length>0&&(
             <div>
-              <div className="card-title" style={{ marginBottom: 12 }}>Questions précédentes</div>
-              {histoQ.slice(0, 10).map((q) => (
-                <div
-                  key={q.id}
-                  className="question-preview"
-                  onClick={() => {
-                    setQuestion(q.question)
-                    setReponse(q.reponse)
-                  }}
-                >
+              <div className="card-title" style={{marginBottom:12}}>Questions précédentes</div>
+              {histoQ.slice(0,10).map(q=>(
+                <div key={q.id} className="question-preview" onClick={()=>{setQuestion(q.question);setReponse(q.reponse)}}>
                   <div className="question-text">💬 {q.question}</div>
                   <div className="question-date">{new Date(q.created_at).toLocaleDateString('fr-FR')}</div>
                 </div>
@@ -1362,22 +1042,136 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
         </div>
       )}
 
-      {view === 'ressources' && (
+      {view==='ressources' && (
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Ressources officielles</h2>
-            <p className="page-sub">Tous les liens utiles pour gérer ton auto-entreprise</p>
+            <p className="page-sub">Tous les liens utiles pour gérer ton auto-entreprise — directs, officiels, gratuits</p>
           </div>
 
-          <div className="card">
-            <div className="card-title">Liens utiles</div>
-            <div className="reponse-text">
-              <p>• autoentrepreneur.urssaf.fr</p>
-              <p>• impots.gouv.fr</p>
-              <p>• service-public.fr</p>
-              <p>• ameli.fr</p>
-              <p>• lassuranceretraite.fr</p>
+          <div className="res-section">
+            <div className="res-section-title"><span className="res-icon" style={{background:'#FAF3E0',color:'#B5792A'}}>📋</span>Déclarations & paiements</div>
+            <div className="res-grid">
+              <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-urssaf">URSSAF</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Déclarer & payer mes cotisations</div>
+                <div className="res-card-desc">Le site officiel pour déclarer ton chiffre d'affaires et payer tes cotisations sociales chaque mois ou trimestre.</div>
+                <div className="res-card-url">autoentrepreneur.urssaf.fr</div>
+              </a>
+              <a href="https://www.impots.gouv.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-impots">Impôts</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Déclaration de revenus (IR)</div>
+                <div className="res-card-desc">Pour déclarer tes revenus chaque année (avant fin mai). Tu y trouves aussi le versement libératoire et la gestion de TVA.</div>
+                <div className="res-card-url">impots.gouv.fr</div>
+              </a>
+              <a href="https://www.urssaf.fr/portail/home/espaces-dedies/auto-entrepreneur.html" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-urssaf">URSSAF</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Payer la CFE</div>
+                <div className="res-card-desc">La Cotisation Foncière des Entreprises est due chaque année en décembre. Paiement en ligne sur le portail URSSAF.</div>
+                <div className="res-card-url">urssaf.fr</div>
+              </a>
             </div>
+          </div>
+
+          <div className="res-section">
+            <div className="res-section-title"><span className="res-icon" style={{background:'#EDFAF3',color:'#2D7A4F'}}>🏢</span>Gérer mon auto-entreprise</div>
+            <div className="res-grid">
+              <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F24023" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Modifier ou fermer mon auto-entreprise</div>
+                <div className="res-card-desc">Changer d'adresse, modifier ton activité, déclarer une cessation d'activité. Toutes les démarches en un seul endroit.</div>
+                <div className="res-card-url">guichet-entreprises.fr</div>
+              </a>
+              <a href="https://www.infogreffe.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Obtenir mon Kbis / extrait RCS</div>
+                <div className="res-card-desc">Télécharge ton extrait Kbis ou vérifie les informations d'une autre entreprise. Souvent demandé par les clients professionnels.</div>
+                <div className="res-card-url">infogreffe.fr</div>
+              </a>
+              <a href="https://www.service-public.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Mon espace personnel État</div>
+                <div className="res-card-desc">Espace centralisé pour accéder à tous les services publics en ligne : URSSAF, impôts, retraite, santé…</div>
+                <div className="res-card-url">mon.service-public.fr</div>
+              </a>
+            </div>
+          </div>
+
+          <div className="res-section">
+            <div className="res-section-title"><span className="res-icon" style={{background:'#EEF4FF',color:'#1A4A8A'}}>💰</span>Aides & financement</div>
+            <div className="res-grid">
+              <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F36613" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-aide">Aide</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Cumul chômage & auto-entreprise (ARE)</div>
+                <div className="res-card-desc">Tu peux cumuler allocations chômage et revenus d'auto-entrepreneur sous conditions. Calcul et démarches sur France Travail.</div>
+                <div className="res-card-url">francetravail.fr</div>
+              </a>
+              <a href="https://www.bpifrance.fr/nos-solutions/financement" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-aide">Financement</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Aides et prêts BPI France</div>
+                <div className="res-card-desc">Prêts, garanties et subventions pour développer ton activité. Certains dispositifs sont accessibles dès le statut auto-entrepreneur.</div>
+                <div className="res-card-url">bpifrance.fr</div>
+              </a>
+              <a href="https://www.aides-entreprises.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-aide">Aide</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Toutes les aides disponibles</div>
+                <div className="res-card-desc">Moteur de recherche officiel pour trouver toutes les aides locales, régionales et nationales selon ton activité et ta situation.</div>
+                <div className="res-card-url">aides-entreprises.fr</div>
+              </a>
+            </div>
+          </div>
+
+          <div className="res-section">
+            <div className="res-section-title"><span className="res-icon" style={{background:'#FFF4E6',color:'#7A3A0A'}}>🏥</span>Protection sociale & retraite</div>
+            <div className="res-grid">
+              <a href="https://www.ameli.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-social">Santé</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Assurance maladie (Ameli)</div>
+                <div className="res-card-desc">Gère ta couverture maladie, tes remboursements et ton attestation de droits. En tant qu'auto-entrepreneur tu es affilié à la SSI.</div>
+                <div className="res-card-url">ameli.fr</div>
+              </a>
+              <a href="https://www.lassuranceretraite.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-social">Retraite</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Mes droits à la retraite</div>
+                <div className="res-card-desc">Vérifie tes trimestres validés, simule ta future retraite et consulte ton relevé de carrière. Important à surveiller régulièrement.</div>
+                <div className="res-card-url">lassuranceretraite.fr</div>
+              </a>
+              <a href="https://www.net-entreprises.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-social">Social</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Portail déclarations sociales</div>
+                <div className="res-card-desc">Pour les auto-entrepreneurs qui ont des salariés : déclarations sociales nominatives et autres obligations employeur.</div>
+                <div className="res-card-url">net-entreprises.fr</div>
+              </a>
+            </div>
+          </div>
+
+          <div className="res-section">
+            <div className="res-section-title"><span className="res-icon" style={{background:'#F5F0FF',color:'#6B2D7A'}}>📖</span>Se former & s'informer</div>
+            <div className="res-grid">
+              <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F23282" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Guide officiel auto-entrepreneur</div>
+                <div className="res-card-desc">Le guide complet du gouvernement sur le statut auto-entrepreneur : droits, obligations, seuils, démarches. La référence officielle.</div>
+                <div className="res-card-url">entreprises.gouv.fr</div>
+              </a>
+              <a href="https://www.service-public.fr/professionnels-entreprises/vosdroits/F23961" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Vos droits en tant qu'auto-entrepreneur</div>
+                <div className="res-card-desc">Fiche complète sur les obligations, les cotisations, la TVA et tout ce qu'il faut savoir sur le régime micro-entreprise.</div>
+                <div className="res-card-url">service-public.fr</div>
+              </a>
+              <a href="https://www.moncompteformation.gouv.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+                <div className="res-card-top"><span className="res-tag res-tag-aide">Formation</span><span className="res-arrow">→</span></div>
+                <div className="res-card-title">Mon Compte Formation (CPF)</div>
+                <div className="res-card-desc">Utilise ton Compte Personnel de Formation pour te former. En tant qu'auto-entrepreneur tu cotises et tu as des droits à la formation.</div>
+                <div className="res-card-url">moncompteformation.gouv.fr</div>
+              </a>
+            </div>
+          </div>
+
+          <div className="res-disclaimer">
+            <strong>ℹ️ Information importante</strong><br/>
+            Ces liens pointent vers des sites officiels du gouvernement français. Les informations présentées dans AutoIA (taux, seuils, dates) sont basées sur la législation en vigueur en 2025 et peuvent évoluer. En cas de doute, consulte toujours les sites officiels ou un expert-comptable.
           </div>
         </div>
       )}
@@ -1387,7 +1181,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
 const CSS = `
 .app-bar{background:#1C1710;height:58px;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
-.logo{font-family:'Playfair Display',serif;font-size:21px;color:#fff}
+.logo{font-family:'Playfair Display',serif;font-size:21px;color:#fff}.logo em{color:#E8D5A8;font-style:normal}
 .bar-right{display:flex;align-items:center;gap:10px}
 .user-tag{font-size:12px;color:rgba(255,255,255,0.5)}
 .btn-profile{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:6px 14px;cursor:pointer;color:#fff;font-size:12px;font-family:'Outfit',sans-serif;font-weight:500}
@@ -1414,9 +1208,8 @@ const CSS = `
 .metric-sub{font-size:11px;color:#A89878}
 .card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:20px;padding:1.5rem;box-shadow:0 2px 16px rgba(28,23,16,.06)}
 .card-title{font-family:'Playfair Display',serif;font-size:17px;margin-bottom:1rem;color:#1C1710}
-.seuil-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.seuil-label{font-size:13px;color:#6B5E45;font-weight:500}
-.seuil-val{font-size:12px;color:#A89878}
+.seuil-item{} .seuil-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.seuil-label{font-size:13px;color:#6B5E45;font-weight:500} .seuil-val{font-size:12px;color:#A89878}
 .progress-bar{height:10px;background:#F6F0E4;border-radius:20px;overflow:hidden}
 .progress-fill{height:100%;border-radius:20px;transition:width .5s ease}
 .seuil-alert{font-size:12px;color:#8B1A1A;background:#FFF3F3;border:1px solid #FFCACA;border-radius:8px;padding:8px 12px;margin-top:8px}
@@ -1425,22 +1218,15 @@ const CSS = `
 .page-sub{font-size:14px;color:#6B5E45}
 .cal-list{display:flex;flex-direction:column;gap:10px}
 .cal-card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1.1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
-.cal-current{border-color:#B5792A;background:#FAF3E0}
-.cal-special{border-style:dashed}
-.cal-past{opacity:.65}
-.cal-left{display:flex;align-items:center;gap:14px}
-.cal-right{flex-shrink:0}
+.cal-current{border-color:#B5792A;background:#FAF3E0} .cal-special{border-style:dashed} .cal-past{opacity:.65}
+.cal-left{display:flex;align-items:center;gap:14px} .cal-right{flex-shrink:0}
 .cal-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
-.dot-done{background:#2D7A4F}
-.dot-late{background:#C0392B}
-.dot-pending{background:#E2D8C4}
-.cal-label{font-size:14px;font-weight:500;color:#1C1710;margin-bottom:3px}
-.cal-date{font-size:12px;color:#A89878}
+.dot-done{background:#2D7A4F} .dot-late{background:#C0392B} .dot-pending{background:#E2D8C4}
+.cal-label{font-size:14px;font-weight:500;color:#1C1710;margin-bottom:3px} .cal-date{font-size:12px;color:#A89878}
 .badge-current{display:inline-block;font-size:10px;font-weight:600;background:#B5792A;color:#fff;padding:3px 9px;border-radius:20px;margin-top:5px}
 .badge-done{font-size:12px;font-weight:600;color:#2D7A4F;background:#EDFAF3;padding:6px 14px;border-radius:20px}
 .info-box{background:#EEF4FF;border:1px solid #C3D8F8;border-radius:14px;padding:1.1rem 1.25rem}
-.info-title{font-size:13px;font-weight:600;color:#1A4A8A;margin-bottom:8px}
-.info-text{font-size:13px;color:#1A4A8A;line-height:1.8}
+.info-title{font-size:13px;font-weight:600;color:#1A4A8A;margin-bottom:8px} .info-text{font-size:13px;color:#1A4A8A;line-height:1.8}
 .mini-label{font-size:11px;font-weight:600;letter-spacing:.5px;color:#6B5E45;display:block;margin-bottom:5px;text-transform:uppercase}
 .mini-input{padding:9px 12px;border-radius:10px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;font-family:'Outfit',sans-serif;font-size:13px;width:100%}
 .mini-input:focus{outline:none;border-color:#B5792A;background:#fff}
@@ -1451,49 +1237,39 @@ const CSS = `
 .rev-table tbody td{padding:11px 0;color:#1C1710;vertical-align:top}
 .rev-table tbody td:not(:first-child){text-align:right}
 .rev-total{border-top:1.5px solid #1C1710!important;font-weight:600}
-.calc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1rem}
+.calc-result{} .calc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1rem}
 @media(max-width:700px){.calc-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:500px){.calc-grid{grid-template-columns:1fr}}
 .calc-card{border-radius:16px;padding:1.1rem 1.25rem;border:1px solid transparent}
-.main-card{background:#1C1710;color:#fff;border-color:#1C1710}
-.main-card .calc-label{color:rgba(255,255,255,.6)}
-.main-card .calc-big{color:#fff}
-.red-card{background:#FFF3F3;border-color:#FFCACA}
-.red-card .calc-big{color:#8B1A1A}
-.orange-card{background:#FFF4E6;border-color:#FFD5A0}
-.orange-card .calc-big{color:#7A3A0A}
-.amber-card{background:#FAF3E0;border-color:#E8D5A8}
-.amber-card .calc-big{color:#B5792A}
-.green-card{background:#EDFAF3;border-color:#9CDBB8}
-.green-card .calc-big{color:#2D7A4F}
+.main-card{background:#1C1710;color:#fff;border-color:#1C1710} .main-card .calc-label{color:rgba(255,255,255,.6)} .main-card .calc-big{color:#fff}
+.red-card{background:#FFF3F3;border-color:#FFCACA} .red-card .calc-big{color:#8B1A1A}
+.orange-card{background:#FFF4E6;border-color:#FFD5A0} .orange-card .calc-big{color:#7A3A0A}
+.amber-card{background:#FAF3E0;border-color:#E8D5A8} .amber-card .calc-big{color:#B5792A}
+.green-card{background:#EDFAF3;border-color:#9CDBB8} .green-card .calc-big{color:#2D7A4F}
 .calc-label{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;color:#6B5E45}
 .calc-big{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;margin-bottom:4px}
+.calc-sub{font-size:11px;color:#A89878;line-height:1.5}
 .chips-hint{font-size:11px;color:#A89878;font-weight:500;margin-bottom:10px;display:block}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .chip{font-size:12px;padding:5px 14px;border-radius:30px;border:1px solid #E2D8C4;background:#FBF8F1;color:#6B5E45;cursor:pointer;transition:all .16s}
 .chip:hover{background:#FAF3E0;border-color:#E8D5A8;color:#B5792A}
 .input-wrap{position:relative}
 textarea{width:100%;resize:none;font-family:'Outfit',sans-serif;font-size:14px;font-weight:300;padding:13px 15px 52px;border-radius:13px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;line-height:1.65;min-height:95px}
-textarea:focus{outline:none;border-color:#B5792A;background:#fff}
+textarea:focus{outline:none;border-color:#B5792A;background:#fff} textarea::placeholder{color:#A89878}
 .btn-gen{position:absolute;bottom:11px;right:11px;padding:9px 20px;border-radius:10px;border:none;background:#1C1710;color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif}
-.btn-gen:hover{background:#B5792A}
-.btn-gen:disabled{background:#ccc;cursor:not-allowed}
+.btn-gen:hover{background:#B5792A} .btn-gen:disabled{background:#ccc;cursor:not-allowed}
 .hint-text{font-size:11px;color:#A89878;margin-top:9px}
 .reponse-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
 .reponse-avatar{width:32px;height:32px;border-radius:50%;background:#1C1710;color:#E8D5A8;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'Playfair Display',serif}
-.reponse-text{font-size:14px;color:#1C1710;line-height:1.7}
-.reponse-text p{margin-bottom:.75rem}
-.reponse-text p:last-child{margin-bottom:0}
+.reponse-text{font-size:14px;color:#1C1710;line-height:1.7} .reponse-text p{margin-bottom:.75rem} .reponse-text p:last-child{margin-bottom:0}
 .ring{width:20px;height:20px;flex-shrink:0;border:2px solid #E2D8C4;border-top-color:#B5792A;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .question-preview{background:#FBF8F1;border:1px solid #E2D8C4;border-radius:12px;padding:.9rem 1rem;margin-bottom:8px;cursor:pointer;transition:all .15s}
 .question-preview:hover{border-color:#E8D5A8;background:#FAF3E0}
-.question-text{font-size:13px;color:#1C1710;margin-bottom:4px}
-.question-date{font-size:11px;color:#A89878}
+.question-text{font-size:13px;color:#1C1710;margin-bottom:4px} .question-date{font-size:11px;color:#A89878}
 .link-btn{background:none;border:none;color:#B5792A;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:8px;padding:0}
 .link-btn:hover{text-decoration:underline}
-.empty-state{text-align:center;padding:4rem 2rem}
-.empty-state h3{font-family:'Playfair Display',serif;font-size:20px;color:#6B5E45;margin-bottom:1rem}
+.empty-state{text-align:center;padding:4rem 2rem} .empty-state h3{font-family:'Playfair Display',serif;font-size:20px;color:#6B5E45;margin-bottom:1rem}
 .overlay{display:none;position:fixed;inset:0;background:rgba(28,23,16,.6);z-index:300;align-items:center;justify-content:center;padding:1rem;overflow-y:auto}
 .overlay.show{display:flex}
 .modal{background:#FFFDF8;border-radius:20px;padding:2rem;width:100%;max-width:860px;box-shadow:0 20px 60px rgba(28,23,16,.25);animation:pop .3s cubic-bezier(.16,1,.3,1);margin:auto}
@@ -1501,20 +1277,33 @@ textarea:focus{outline:none;border-color:#B5792A;background:#fff}
 .modal-title{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:6px;color:#1C1710}
 .modal-sub{font-size:13px;color:#6B5E45;margin-bottom:1.2rem;line-height:1.5}
 .section-title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#B5792A;margin:1rem 0 .8rem}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1rem} .form-grid .full{grid-column:1/-1}
 @media(max-width:700px){.form-grid{grid-template-columns:1fr}}
-.form-grid .full{grid-column:1/-1}
 .field label{font-size:11px;font-weight:600;letter-spacing:.6px;color:#6B5E45;display:block;margin-bottom:5px;text-transform:uppercase}
 .field input,.field select{width:100%;padding:10px 13px;border-radius:10px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;font-family:'Outfit',sans-serif;font-size:13px}
-.field input:focus,.field select:focus{outline:none;border-color:#B5792A;background:#fff}
+.field input:focus,.field select:focus{outline:none;border-color:#B5792A;background:#fff} .field input::placeholder{color:#A89878}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px}
 .btn{padding:10px 20px;font-size:13px;font-weight:500;border-radius:10px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .17s}
-.btn-ghost{background:transparent;border:1px solid #E2D8C4;color:#6B5E45}
-.btn-ghost:hover{background:#F6F0E4}
-.btn-dark{background:#1C1710;border:none;color:#fff}
-.btn-dark:hover{background:#B5792A}
+.btn-ghost{background:transparent;border:1px solid #E2D8C4;color:#6B5E45} .btn-ghost:hover{background:#F6F0E4}
+.btn-dark{background:#1C1710;border:none;color:#fff} .btn-dark:hover{background:#B5792A}
 .btn-dark:disabled{opacity:.7;cursor:not-allowed}
-.btn-amber{background:#FAF3E0;border:1px solid #E8D5A8;color:#B5792A}
-.btn-amber:hover{background:#B5792A;color:#fff}
+.btn-amber{background:#FAF3E0;border:1px solid #E8D5A8;color:#B5792A} .btn-amber:hover{background:#B5792A;color:#fff}
 .btn-sm{padding:7px 14px;font-size:12px}
+.res-section{margin-bottom:2rem}
+.res-section-title{display:flex;align-items:center;gap:12px;font-family:'Playfair Display',serif;font-size:18px;color:#1C1710;margin-bottom:1rem;font-weight:600}
+.res-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.res-grid{grid-template-columns:1fr}}
+.res-card{display:block;background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1.1rem 1.25rem;text-decoration:none;color:inherit;transition:all .18s}
+.res-card:hover{border-color:#B5792A;box-shadow:0 4px 20px rgba(181,121,42,.12);transform:translateY(-2px)}
+.res-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.res-tag{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:.3px}
+.res-tag-urssaf{background:#FAF3E0;color:#B5792A} .res-tag-impots{background:#EEF4FF;color:#1A4A8A}
+.res-tag-gouv{background:#EDFAF3;color:#2D7A4F} .res-tag-aide{background:#F5F0FF;color:#6B2D7A} .res-tag-social{background:#FFF4E6;color:#7A3A0A}
+.res-arrow{font-size:16px;color:#E2D8C4;transition:all .18s} .res-card:hover .res-arrow{color:#B5792A}
+.res-card-title{font-family:'Playfair Display',serif;font-size:15px;color:#1C1710;margin-bottom:8px;line-height:1.3}
+.res-card-desc{font-size:12px;color:#6B5E45;line-height:1.65;margin-bottom:10px}
+.res-card-url{font-size:11px;color:#A89878;font-family:monospace} .res-card:hover .res-card-url{color:#B5792A}
+.res-disclaimer{background:#F6F0E4;border:1px solid #E2D8C4;border-radius:14px;padding:1rem 1.25rem;font-size:12px;color:#6B5E45;line-height:1.7;margin-top:1rem}
+.res-disclaimer strong{color:#1C1710}
 `
