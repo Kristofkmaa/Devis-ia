@@ -1,240 +1,728 @@
 'use client'
-import { useState, useEffect } from 'react'
+
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '../lib/supabase'
 
-const TAUX = { services_bnc:0.212, services_bic:0.212, liberal:0.212, ventes:0.123 }
-const TAUX_ACRE = { services_bnc:0.106, services_bic:0.106, liberal:0.106, ventes:0.0615 }
-const SEUILS = { tva_services:36800, tva_ventes:91900, plafond_services:77700, plafond_ventes:188700 }
+const TAUX = {
+  services_bnc: 0.212,
+  services_bic: 0.212,
+  liberal: 0.212,
+  ventes: 0.123,
+}
+
+const TAUX_ACRE = {
+  services_bnc: 0.106,
+  services_bic: 0.106,
+  liberal: 0.106,
+  ventes: 0.0615,
+}
+
+const SEUILS = {
+  tva_services: 36800,
+  tva_ventes: 91900,
+  plafond_services: 77700,
+  plafond_ventes: 188700,
+}
+
 const SECTEURS = [
-  { value:'services_bnc', label:'Prestation de services (BNC) — consultant, freelance, coach…' },
-  { value:'services_bic', label:'Prestation de services (BIC) — artisan, réparation…' },
-  { value:'liberal',      label:'Profession libérale réglementée — médecin, avocat, kiné…' },
-  { value:'ventes',       label:'Vente de marchandises — e-commerce, produits…' },
+  { value: 'services_bnc', label: 'Prestation de services (BNC) — consultant, freelance, coach…' },
+  { value: 'services_bic', label: 'Prestation de services (BIC) — artisan, réparation…' },
+  { value: 'liberal', label: 'Profession libérale réglementée — médecin, avocat, kiné…' },
+  { value: 'ventes', label: 'Vente de marchandises — e-commerce, produits…' },
 ]
-const MOIS_NOMS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
+
+const MOIS_NOMS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
 
 function getNow() {
   const d = new Date()
-  return { year:d.getFullYear(), month:d.getMonth()+1, day:d.getDate() }
-}
-function formatMois(str) {
-  const [y,m] = str.split('-')
-  return MOIS_NOMS[+m-1]+' '+y
-}
-function getDateLimite(periode, type) {
-  if (type==='mensuel') {
-    const [y,m] = periode.split('-').map(Number)
-    const nm = m===12?1:m+1, ny = m===12?y+1:y
-    return `31/${String(nm).padStart(2,'0')}/${ny}`
-  } else {
-    const [y,t] = periode.split('-')
-    const dates = { T1:`30/04/${y}`, T2:`31/07/${y}`, T3:`31/10/${y}`, T4:`31/01/${+y+1}` }
-    return dates[t]||'—'
+  return {
+    year: d.getFullYear(),
+    month: d.getMonth() + 1,
+    day: d.getDate(),
   }
 }
+
+function formatMois(str) {
+  const [y, m] = str.split('-')
+  return `${MOIS_NOMS[+m - 1]} ${y}`
+}
+
+function getDateLimite(periode, type) {
+  if (type === 'mensuel') {
+    const [y, m] = periode.split('-').map(Number)
+    const nm = m === 12 ? 1 : m + 1
+    const ny = m === 12 ? y + 1 : y
+    return `31/${String(nm).padStart(2, '0')}/${ny}`
+  } else {
+    const [y, t] = periode.split('-')
+    const dates = {
+      T1: `30/04/${y}`,
+      T2: `31/07/${y}`,
+      T3: `31/10/${y}`,
+      T4: `31/01/${+y + 1}`,
+    }
+    return dates[t] || '—'
+  }
+}
+
 function genererCalendrier(profil) {
   if (!profil) return []
+
   const { year, month } = getNow()
   const events = []
-  const regime = profil.regime_declaration||'trimestriel'
-  if (regime==='mensuel') {
-    for (let i=-2;i<=4;i++) {
-      let m=month+i, y=year
-      if (m<=0){m+=12;y--} if (m>12){m-=12;y++}
-      const periode=`${y}-${String(m).padStart(2,'0')}`
-      events.push({ id:periode, periode, type:'mensuel', label:`Déclaration URSSAF — ${formatMois(periode)}`, date_limite:getDateLimite(periode,'mensuel'), past:y<year||(y===year&&m<month), current:y===year&&m===month })
+  const regime = profil.regime_declaration || 'trimestriel'
+
+  if (regime === 'mensuel') {
+    for (let i = -2; i <= 4; i++) {
+      let m = month + i
+      let y = year
+
+      if (m <= 0) {
+        m += 12
+        y--
+      }
+      if (m > 12) {
+        m -= 12
+        y++
+      }
+
+      const periode = `${y}-${String(m).padStart(2, '0')}`
+
+      events.push({
+        id: periode,
+        periode,
+        type: 'mensuel',
+        label: `Déclaration URSSAF — ${formatMois(periode)}`,
+        date_limite: getDateLimite(periode, 'mensuel'),
+        past: y < year || (y === year && m < month),
+        current: y === year && m === month,
+      })
     }
   } else {
-    for (let i=-1;i<=2;i++) {
-      let t=Math.ceil(month/3)+i, y=year
-      while(t<=0){t+=4;y--} while(t>4){t-=4;y++}
-      const periode=`${y}-T${t}`
-      const trimNoms={T1:'1er trimestre (jan-mar)',T2:'2e trimestre (avr-jun)',T3:'3e trimestre (jul-sep)',T4:'4e trimestre (oct-déc)'}
-      events.push({ id:periode, periode, type:'trimestriel', label:`Déclaration URSSAF — ${trimNoms['T'+t]} ${y}`, date_limite:getDateLimite(periode,'trimestriel'), past:y<year||(y===year&&t<Math.ceil(month/3)), current:y===year&&t===Math.ceil(month/3) })
+    for (let i = -1; i <= 2; i++) {
+      let t = Math.ceil(month / 3) + i
+      let y = year
+
+      while (t <= 0) {
+        t += 4
+        y--
+      }
+      while (t > 4) {
+        t -= 4
+        y++
+      }
+
+      const periode = `${y}-T${t}`
+      const trimNoms = {
+        T1: '1er trimestre (jan-mar)',
+        T2: '2e trimestre (avr-jun)',
+        T3: '3e trimestre (jul-sep)',
+        T4: '4e trimestre (oct-déc)',
+      }
+
+      events.push({
+        id: periode,
+        periode,
+        type: 'trimestriel',
+        label: `Déclaration URSSAF — ${trimNoms['T' + t]} ${y}`,
+        date_limite: getDateLimite(periode, 'trimestriel'),
+        past: y < year || (y === year && t < Math.ceil(month / 3)),
+        current: y === year && t === Math.ceil(month / 3),
+      })
     }
   }
-  events.push({ id:`CFE-${year}`, periode:`${year}-12`, type:'cfe', label:`CFE — Cotisation Foncière des Entreprises ${year}`, date_limite:`15/12/${year}`, past:false, current:false, special:true })
-  events.push({ id:`IR-${year}`, periode:`${year}-05`, type:'ir', label:`Déclaration Impôt sur le Revenu ${year}`, date_limite:`31/05/${year+1}`, past:false, current:false, special:true })
-  return events.sort((a,b)=>a.id.localeCompare(b.id))
+
+  events.push({
+    id: `CFE-${year}`,
+    periode: `${year}-12`,
+    type: 'cfe',
+    label: `CFE — Cotisation Foncière des Entreprises ${year}`,
+    date_limite: `15/12/${year}`,
+    past: false,
+    current: false,
+    special: true,
+  })
+
+  events.push({
+    id: `IR-${year}`,
+    periode: `${year}-05`,
+    type: 'ir',
+    label: `Déclaration Impôt sur le Revenu ${year}`,
+    date_limite: `31/05/${year + 1}`,
+    past: false,
+    current: false,
+    special: true,
+  })
+
+  return events.sort((a, b) => a.id.localeCompare(b.id))
+}
+
+const defaultForm = {
+  prenom: '',
+  nom: '',
+  activite: '',
+  secteur: 'services_bnc',
+  date_creation: '',
+  regime_declaration: 'trimestriel',
+  acre: false,
+  acre_fin: '',
+  objectif_ca: '',
 }
 
 export default function AutoEntrepreneurApp({ user, onLogout }) {
   const supabase = createClient()
-  const [view, setView]         = useState('dashboard')
-  const [profil, setProfil]     = useState(null)
-  const [revenus, setRevenus]   = useState([])
+
+  const [view, setView] = useState('dashboard')
+  const [profil, setProfil] = useState(null)
+  const [revenus, setRevenus] = useState([])
   const [declarations, setDecl] = useState([])
-  const [loading, setLoading]   = useState(true)
+  const [loading, setLoading] = useState(true)
+  const [savingProfile, setSavingProfile] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [oForm, setOForm] = useState({ prenom:'', nom:'', activite:'', secteur:'services_bnc', date_creation:'', regime_declaration:'trimestriel', acre:false, acre_fin:'', objectif_ca:'' })
-  const [calcCA, setCalcCA]         = useState('')
+  const [oForm, setOForm] = useState(defaultForm)
+
+  const [calcCA, setCalcCA] = useState('')
   const [calcResult, setCalcResult] = useState(null)
-  const [question, setQuestion]     = useState('')
-  const [reponse, setReponse]       = useState('')
-  const [asking, setAsking]         = useState(false)
-  const [histoQ, setHistoQ]         = useState([])
-  const [revMois, setRevMois]       = useState('')
+
+  const [question, setQuestion] = useState('')
+  const [reponse, setReponse] = useState('')
+  const [asking, setAsking] = useState(false)
+  const [histoQ, setHistoQ] = useState([])
+
+  const [revMois, setRevMois] = useState('')
   const [revMontant, setRevMontant] = useState('')
-  const [savingRev, setSavingRev]   = useState(false)
+  const [savingRev, setSavingRev] = useState(false)
 
-  useEffect(() => { if (user) loadAll() }, [user])
+  const hydrateFormFromProfile = (p) => ({
+    prenom: p?.prenom || '',
+    nom: p?.nom || '',
+    activite: p?.activite || '',
+    secteur: p?.secteur || 'services_bnc',
+    date_creation: p?.date_creation || '',
+    regime_declaration: p?.regime_declaration || 'trimestriel',
+    acre: Boolean(p?.acre),
+    acre_fin: p?.acre_fin || '',
+    objectif_ca: p?.objectif_ca ?? '',
+  })
 
-  const loadAll = async () => {
+  const loadAll = useCallback(async () => {
+    if (!user?.id) return
+
     setLoading(true)
-    const { data:p } = await supabase.from('ae_profiles').select('*').eq('user_id',user.id).single()
-    if (p) {   setProfil(p)   setOForm({     prenom: p.prenom || '',     nom: p.nom || '',     activite: p.activite || '',     secteur: p.secteur || 'services_bnc',     date_creation: p.date_creation || '',     regime_declaration: p.regime_declaration || 'trimestriel',     acre: p.acre || false,     acre_fin: p.acre_fin || '',     objectif_ca: p.objectif_ca || ''   }) } else setShowOnboarding(true)
-    const { data:r } = await supabase.from('ae_revenus').select('*').eq('user_id',user.id).order('mois',{ascending:false})
-    if (r) setRevenus(r)
-    const { data:d } = await supabase.from('ae_declarations').select('*').eq('user_id',user.id).order('created_at',{ascending:false})
-    if (d) setDecl(d)
-    const { data:q } = await supabase.from('ae_questions').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(20)
-    if (q) setHistoQ(q)
-    setLoading(false)
-  }
+
+    try {
+      const [
+        profileRes,
+        revenusRes,
+        declarationsRes,
+        questionsRes,
+      ] = await Promise.all([
+        supabase
+          .from('ae_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+
+        supabase
+          .from('ae_revenus')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('mois', { ascending: false }),
+
+        supabase
+          .from('ae_declarations')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+
+        supabase
+          .from('ae_questions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20),
+      ])
+
+      if (profileRes.error) {
+        console.error('Erreur chargement profil:', profileRes.error)
+      }
+
+      if (revenusRes.error) {
+        console.error('Erreur chargement revenus:', revenusRes.error)
+      }
+
+      if (declarationsRes.error) {
+        console.error('Erreur chargement déclarations:', declarationsRes.error)
+      }
+
+      if (questionsRes.error) {
+        console.error('Erreur chargement questions:', questionsRes.error)
+      }
+
+      const p = profileRes.data
+
+      if (p) {
+        setProfil(p)
+        setOForm(hydrateFormFromProfile(p))
+        setShowOnboarding(false)
+      } else {
+        setProfil(null)
+        setOForm(defaultForm)
+        setShowOnboarding(true)
+      }
+
+      setRevenus(revenusRes.data || [])
+      setDecl(declarationsRes.data || [])
+      setHistoQ(questionsRes.data || [])
+    } catch (err) {
+      console.error('Erreur générale loadAll:', err)
+      alert(`Erreur lors du chargement: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }, [supabase, user])
+
+  useEffect(() => {
+    if (user?.id) {
+      loadAll()
+    }
+  }, [user?.id, loadAll])
 
   const saveProfil = async () => {
-    if (!oForm.prenom||!oForm.secteur||!oForm.date_creation) { alert('Remplis les champs obligatoires'); return }
-    const data = {...oForm, user_id:user.id, objectif_ca:parseFloat(oForm.objectif_ca)||0}
-    await supabase.from('ae_profiles').upsert(data,{onConflict:'user_id'})
-    setProfil(data); setShowOnboarding(false)
+    if (!user?.id) {
+      alert('Utilisateur non connecté')
+      return
+    }
+
+    if (!oForm.prenom || !oForm.nom || !oForm.activite || !oForm.secteur || !oForm.date_creation) {
+      alert('Remplis tous les champs obligatoires')
+      return
+    }
+
+    setSavingProfile(true)
+
+    try {
+      const payload = {
+        user_id: user.id,
+        prenom: oForm.prenom.trim(),
+        nom: oForm.nom.trim(),
+        activite: oForm.activite.trim(),
+        secteur: oForm.secteur,
+        date_creation: oForm.date_creation,
+        regime_declaration: oForm.regime_declaration,
+        acre: Boolean(oForm.acre),
+        acre_fin: oForm.acre ? (oForm.acre_fin || null) : null,
+        objectif_ca: parseFloat(oForm.objectif_ca) || 0,
+      }
+
+      const { data: saved, error } = await supabase
+        .from('ae_profiles')
+        .upsert(payload, { onConflict: 'user_id' })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Erreur saveProfil:', error)
+        alert(`Erreur sauvegarde profil : ${error.message}`)
+        return
+      }
+
+      setProfil(saved)
+      setOForm(hydrateFormFromProfile(saved))
+      setShowOnboarding(false)
+    } catch (err) {
+      console.error('Erreur saveProfil catch:', err)
+      alert(`Erreur sauvegarde profil : ${err.message}`)
+    } finally {
+      setSavingProfile(false)
+    }
   }
 
   const saveRevenu = async () => {
-    if (!revMois||!revMontant) return
+    if (!user?.id) {
+      alert('Utilisateur non connecté')
+      return
+    }
+
+    if (!revMois || !revMontant) {
+      alert('Renseigne le mois et le montant')
+      return
+    }
+
     setSavingRev(true)
-    const data = { user_id:user.id, mois:revMois, montant:parseFloat(revMontant)||0 }
-    await supabase.from('ae_revenus').upsert(data,{onConflict:'user_id,mois'})
-    setRevenus(prev=>[data,...prev.filter(r=>r.mois!==revMois)].sort((a,b)=>b.mois.localeCompare(a.mois)))
-    setRevMois(''); setRevMontant(''); setSavingRev(false)
+
+    try {
+      const payload = {
+        user_id: user.id,
+        mois: revMois,
+        montant: parseFloat(revMontant) || 0,
+      }
+
+      const { data: saved, error } = await supabase
+        .from('ae_revenus')
+        .upsert(payload, { onConflict: 'user_id,mois' })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Erreur saveRevenu:', error)
+        alert(`Erreur sauvegarde revenu : ${error.message}`)
+        return
+      }
+
+      setRevenus((prev) =>
+        [saved, ...prev.filter((r) => !(r.user_id === saved.user_id && r.mois === saved.mois))]
+          .sort((a, b) => b.mois.localeCompare(a.mois))
+      )
+
+      setRevMois('')
+      setRevMontant('')
+    } catch (err) {
+      console.error('Erreur saveRevenu catch:', err)
+      alert(`Erreur sauvegarde revenu : ${err.message}`)
+    } finally {
+      setSavingRev(false)
+    }
   }
 
   const marquerDeclaration = async (periode, type, statut) => {
-    const data = { user_id:user.id, periode, type_periode:type, statut, date_limite:getDateLimite(periode,type), date_declaration:statut==='faite'?new Date().toLocaleDateString('fr-FR'):null, ca_declare:0 }
-    const existing = declarations.find(d=>d.periode===periode)
-    if (existing) {
-      await supabase.from('ae_declarations').update({statut,date_declaration:data.date_declaration}).eq('id',existing.id)
-      setDecl(prev=>prev.map(d=>d.periode===periode?{...d,statut}:d))
-    } else {
-      const { data:inserted } = await supabase.from('ae_declarations').insert(data).select().single()
-      if (inserted) setDecl(prev=>[inserted,...prev])
+    if (!user?.id) {
+      alert('Utilisateur non connecté')
+      return
+    }
+
+    const payload = {
+      user_id: user.id,
+      periode,
+      type_periode: type,
+      statut,
+      date_limite: getDateLimite(periode, type),
+      date_declaration: statut === 'faite' ? new Date().toLocaleDateString('fr-FR') : null,
+      ca_declare: 0,
+    }
+
+    try {
+      const existing = declarations.find((d) => d.periode === periode)
+
+      if (existing) {
+        const { error } = await supabase
+          .from('ae_declarations')
+          .update({
+            statut,
+            date_declaration: payload.date_declaration,
+          })
+          .eq('id', existing.id)
+
+        if (error) {
+          console.error('Erreur update déclaration:', error)
+          alert(`Erreur déclaration : ${error.message}`)
+          return
+        }
+
+        setDecl((prev) =>
+          prev.map((d) =>
+            d.periode === periode
+              ? { ...d, statut, date_declaration: payload.date_declaration }
+              : d
+          )
+        )
+      } else {
+        const { data: inserted, error } = await supabase
+          .from('ae_declarations')
+          .insert(payload)
+          .select()
+          .single()
+
+        if (error) {
+          console.error('Erreur insert déclaration:', error)
+          alert(`Erreur déclaration : ${error.message}`)
+          return
+        }
+
+        if (inserted) {
+          setDecl((prev) => [inserted, ...prev])
+        }
+      }
+    } catch (err) {
+      console.error('Erreur marquerDeclaration:', err)
+      alert(`Erreur déclaration : ${err.message}`)
     }
   }
 
   const poserQuestion = async () => {
     if (!question.trim()) return
-    setAsking(true); setReponse('')
+
+    setAsking(true)
+    setReponse('')
+
     try {
-      const res = await fetch('/api/assistant',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question,profil}) })
+      const res = await fetch('/api/assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, profil }),
+      })
+
       const data = await res.json()
+
       if (data.reponse) {
         setReponse(data.reponse)
-        const row = { user_id:user.id, question, reponse:data.reponse }
-        const { data:saved } = await supabase.from('ae_questions').insert(row).select().single()
-        if (saved) setHistoQ(prev=>[saved,...prev.slice(0,19)])
+
+        const row = {
+          user_id: user.id,
+          question,
+          reponse: data.reponse,
+        }
+
+        const { data: saved, error } = await supabase
+          .from('ae_questions')
+          .insert(row)
+          .select()
+          .single()
+
+        if (error) {
+          console.error('Erreur sauvegarde question:', error)
+        }
+
+        if (saved) {
+          setHistoQ((prev) => [saved, ...prev.slice(0, 19)])
+        }
+      } else {
+        setReponse("Je n'ai pas pu générer de réponse.")
       }
-    } catch(e) { setReponse('Erreur : '+e.message) }
-    setAsking(false)
+    } catch (e) {
+      console.error('Erreur poserQuestion:', e)
+      setReponse('Erreur : ' + e.message)
+    } finally {
+      setAsking(false)
+    }
   }
 
   const calculer = () => {
-    const ca = parseFloat(calcCA)||0
-    if (!ca||!profil) return
+    const ca = parseFloat(calcCA) || 0
+    if (!ca || !profil) return
+
     const taux = profil.acre ? TAUX_ACRE[profil.secteur] : TAUX[profil.secteur]
-    const cotisations = ca*taux
-    const impots_estimes = ca*0.14
-    const seuil_tva = profil.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services
-    const plafond = profil.secteur==='ventes'?SEUILS.plafond_ventes:SEUILS.plafond_services
-    const caAnnuel = revenus.slice(0,12).reduce((s,r)=>s+r.montant,0)+ca
-    setCalcResult({ ca, cotisations, impots_estimes, taux, a_mettre_de_cote:cotisations+impots_estimes, net_estime:ca-cotisations-impots_estimes, seuil_tva, plafond, caAnnuel, alerte_tva:caAnnuel>seuil_tva*0.85, alerte_plafond:caAnnuel>plafond*0.85 })
+    const cotisations = ca * taux
+    const impots_estimes = ca * 0.14
+    const seuil_tva = profil.secteur === 'ventes' ? SEUILS.tva_ventes : SEUILS.tva_services
+    const plafond = profil.secteur === 'ventes' ? SEUILS.plafond_ventes : SEUILS.plafond_services
+    const caAnnuel = revenus.slice(0, 12).reduce((s, r) => s + r.montant, 0) + ca
+
+    setCalcResult({
+      ca,
+      cotisations,
+      impots_estimes,
+      taux,
+      a_mettre_de_cote: cotisations + impots_estimes,
+      net_estime: ca - cotisations - impots_estimes,
+      seuil_tva,
+      plafond,
+      caAnnuel,
+      alerte_tva: caAnnuel > seuil_tva * 0.85,
+      alerte_plafond: caAnnuel > plafond * 0.85,
+    })
   }
 
   const { year, month } = getNow()
-  const caAnnuel      = revenus.filter(r=>r.mois.startsWith(String(year))).reduce((s,r)=>s+r.montant,0)
-  const caMois        = revenus.find(r=>r.mois===`${year}-${String(month).padStart(2,'0')}`)?.montant||0
-  const taux          = profil?(profil.acre?TAUX_ACRE[profil.secteur]:TAUX[profil.secteur]):0
-  const cotisAnnuel   = caAnnuel*taux
-  const seuil_tva     = profil?.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services
-  const plafond       = profil?.secteur==='ventes'?SEUILS.plafond_ventes:SEUILS.plafond_services
-  const pctTVA        = Math.min((caAnnuel/seuil_tva)*100,100)
-  const pctPlafond    = Math.min((caAnnuel/plafond)*100,100)
-  const calendrier    = profil?genererCalendrier(profil):[]
-  const prochaineDecl = calendrier.find(e=>!e.past&&!e.special)
+  const caAnnuel = revenus
+    .filter((r) => r.mois.startsWith(String(year)))
+    .reduce((s, r) => s + r.montant, 0)
 
-  if (loading) return (
-    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh'}}>
-      <div style={{width:28,height:28,border:'2.5px solid #E2D8C4',borderTopColor:'#B5792A',borderRadius:'50%',animation:'spin .7s linear infinite'}}/>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  )
+  const caMois =
+    revenus.find((r) => r.mois === `${year}-${String(month).padStart(2, '0')}`)?.montant || 0
+
+  const taux = profil ? (profil.acre ? TAUX_ACRE[profil.secteur] : TAUX[profil.secteur]) : 0
+  const cotisAnnuel = caAnnuel * taux
+  const seuil_tva = profil?.secteur === 'ventes' ? SEUILS.tva_ventes : SEUILS.tva_services
+  const plafond = profil?.secteur === 'ventes' ? SEUILS.plafond_ventes : SEUILS.plafond_services
+  const pctTVA = seuil_tva ? Math.min((caAnnuel / seuil_tva) * 100, 100) : 0
+  const pctPlafond = plafond ? Math.min((caAnnuel / plafond) * 100, 100) : 0
+  const calendrier = profil ? genererCalendrier(profil) : []
+  const prochaineDecl = calendrier.find((e) => !e.past && !e.special)
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+        <div
+          style={{
+            width: 28,
+            height: 28,
+            border: '2.5px solid #E2D8C4',
+            borderTopColor: '#B5792A',
+            borderRadius: '50%',
+            animation: 'spin .7s linear infinite',
+          }}
+        />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    )
+  }
 
   return (
     <>
       <style>{CSS}</style>
 
-      {/* APP BAR */}
       <div className="app-bar">
         <div className="logo">Assistant Serelyo</div>
         <div className="bar-right">
-          <span className="user-tag">{profil?`${profil.prenom} ${profil.nom}`:user.email}</span>
-          <button className="btn-profile" onClick={()=>setShowOnboarding(true)}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <span className="user-tag">{profil ? `${profil.prenom} ${profil.nom}` : user?.email}</span>
+          <button className="btn-profile" onClick={() => setShowOnboarding(true)}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+            </svg>
             Mon profil
           </button>
           <button className="btn-logout" onClick={onLogout}>Déconnexion</button>
         </div>
       </div>
 
-      {/* NAV */}
       <div className="nav-tabs">
-        {[['dashboard','🏠 Tableau de bord'],['calendrier','📅 Calendrier'],['revenus','💶 Mes revenus'],['calculateur','🧮 Calculateur'],['assistant','💬 Assistant IA'],['ressources','📚 Ressources']].map(([v,l])=>(
-          <button key={v} className={`nav-tab ${view===v?'active':''}`} onClick={()=>setView(v)}>{l}</button>
+        {[
+          ['dashboard', '🏠 Tableau de bord'],
+          ['calendrier', '📅 Calendrier'],
+          ['revenus', '💶 Mes revenus'],
+          ['calculateur', '🧮 Calculateur'],
+          ['assistant', '💬 Assistant IA'],
+          ['ressources', '📚 Ressources'],
+        ].map(([v, l]) => (
+          <button
+            key={v}
+            className={`nav-tab ${view === v ? 'active' : ''}`}
+            onClick={() => setView(v)}
+          >
+            {l}
+          </button>
         ))}
       </div>
 
-      {/* ONBOARDING */}
       {showOnboarding && (
-        <div className="overlay show" onClick={e=>{if(profil&&e.target.className.includes('overlay'))setShowOnboarding(false)}}>
-          <div className="modal" style={{maxWidth:560}}>
-            <div className="modal-title">{profil?'Mon profil':'Bienvenue ! Configurons ton profil 👋'}</div>
-            <p className="modal-sub">{profil?'Modifie tes informations ci-dessous.':'Ces infos permettent de personnaliser tes rappels et calculs.'}</p>
+        <div
+          className="overlay show"
+          onClick={(e) => {
+            if (profil && e.target.className.includes('overlay')) {
+              setShowOnboarding(false)
+            }
+          }}
+        >
+          <div className="modal" style={{ maxWidth: 560 }}>
+            <div className="modal-title">{profil ? 'Mon profil' : 'Bienvenue ! Configurons ton profil 👋'}</div>
+            <p className="modal-sub">
+              {profil
+                ? 'Modifie tes informations ci-dessous.'
+                : 'Ces infos permettent de personnaliser tes rappels et calculs.'}
+            </p>
+
             <div className="form-grid">
-              <div className="field"><label>Prénom *</label><input value={oForm.prenom} onChange={e=>setOForm(p=>({...p,prenom:e.target.value}))} placeholder="Sophie"/></div>
-              <div className="field"><label>Nom *</label><input value={oForm.nom} onChange={e=>setOForm(p=>({...p,nom:e.target.value}))} placeholder="Martin"/></div>
-              <div className="field full"><label>Activité *</label><input value={oForm.activite} onChange={e=>setOForm(p=>({...p,activite:e.target.value}))} placeholder="Développeuse web freelance, graphiste, plombier…"/></div>
+              <div className="field">
+                <label>Prénom *</label>
+                <input
+                  value={oForm.prenom}
+                  onChange={(e) => setOForm((p) => ({ ...p, prenom: e.target.value }))}
+                  placeholder="Sophie"
+                />
+              </div>
+
+              <div className="field">
+                <label>Nom *</label>
+                <input
+                  value={oForm.nom}
+                  onChange={(e) => setOForm((p) => ({ ...p, nom: e.target.value }))}
+                  placeholder="Martin"
+                />
+              </div>
+
+              <div className="field full">
+                <label>Activité *</label>
+                <input
+                  value={oForm.activite}
+                  onChange={(e) => setOForm((p) => ({ ...p, activite: e.target.value }))}
+                  placeholder="Développeuse web freelance, graphiste, plombier…"
+                />
+              </div>
+
               <div className="field full">
                 <label>Secteur d'activité *</label>
-                <select value={oForm.secteur} onChange={e=>setOForm(p=>({...p,secteur:e.target.value}))}>
-                  {SECTEURS.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
+                <select
+                  value={oForm.secteur}
+                  onChange={(e) => setOForm((p) => ({ ...p, secteur: e.target.value }))}
+                >
+                  {SECTEURS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
                 </select>
               </div>
-              <div className="field"><label>Date de création *</label><input type="date" value={oForm.date_creation} onChange={e=>setOForm(p=>({...p,date_creation:e.target.value}))}/></div>
+
+              <div className="field">
+                <label>Date de création *</label>
+                <input
+                  type="date"
+                  value={oForm.date_creation}
+                  onChange={(e) => setOForm((p) => ({ ...p, date_creation: e.target.value }))}
+                />
+              </div>
+
               <div className="field">
                 <label>Régime déclaration URSSAF</label>
-                <select value={oForm.regime_declaration} onChange={e=>setOForm(p=>({...p,regime_declaration:e.target.value}))}>
+                <select
+                  value={oForm.regime_declaration}
+                  onChange={(e) => setOForm((p) => ({ ...p, regime_declaration: e.target.value }))}
+                >
                   <option value="mensuel">Mensuel</option>
                   <option value="trimestriel">Trimestriel (défaut)</option>
                 </select>
               </div>
-              <div className="field"><label>Objectif CA annuel (€)</label><input type="number" value={oForm.objectif_ca} onChange={e=>setOForm(p=>({...p,objectif_ca:e.target.value}))} placeholder="30000"/></div>
+
+              <div className="field">
+                <label>Objectif CA annuel (€)</label>
+                <input
+                  type="number"
+                  value={oForm.objectif_ca}
+                  onChange={(e) => setOForm((p) => ({ ...p, objectif_ca: e.target.value }))}
+                  placeholder="30000"
+                />
+              </div>
+
               <div className="field">
                 <label>ACRE (exonération 1ère année) ?</label>
-                <select value={oForm.acre?'oui':'non'} onChange={e=>setOForm(p=>({...p,acre:e.target.value==='oui'}))}>
+                <select
+                  value={oForm.acre ? 'oui' : 'non'}
+                  onChange={(e) => setOForm((p) => ({ ...p, acre: e.target.value === 'oui' }))}
+                >
                   <option value="non">Non</option>
                   <option value="oui">Oui</option>
                 </select>
               </div>
-              {oForm.acre&&<div className="field full"><label>Date de fin ACRE</label><input type="date" value={oForm.acre_fin} onChange={e=>setOForm(p=>({...p,acre_fin:e.target.value}))}/></div>}
+
+              {oForm.acre && (
+                <div className="field full">
+                  <label>Date de fin ACRE</label>
+                  <input
+                    type="date"
+                    value={oForm.acre_fin}
+                    onChange={(e) => setOForm((p) => ({ ...p, acre_fin: e.target.value }))}
+                  />
+                </div>
+              )}
             </div>
+
             <div className="modal-actions">
-              {profil&&<button className="btn btn-ghost" onClick={()=>setShowOnboarding(false)}>Annuler</button>}
-              <button className="btn btn-dark" onClick={saveProfil}>Enregistrer →</button>
+              {profil && (
+                <button className="btn btn-ghost" onClick={() => setShowOnboarding(false)}>
+                  Annuler
+                </button>
+              )}
+              <button className="btn btn-dark" onClick={saveProfil} disabled={savingProfile}>
+                {savingProfile ? 'Enregistrement…' : 'Enregistrer →'}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── DASHBOARD ── */}
-      {view==='dashboard' && (
+      {view === 'dashboard' && (
         <div className="main">
           {profil && (
             <div className="welcome-bar">
@@ -242,6 +730,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 <h1 className="welcome-title">Bonjour {profil.prenom} 👋</h1>
                 <p className="welcome-sub">{profil.activite}</p>
               </div>
+
               {prochaineDecl && (
                 <div className="next-decl">
                   <span className="next-decl-label">Prochaine déclaration</span>
@@ -250,194 +739,395 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               )}
             </div>
           )}
+
           <div className="metrics-grid">
             <div className="metric-card">
               <div className="metric-label">CA ce mois</div>
               <div className="metric-value">{caMois.toLocaleString('fr-FR')} €</div>
-              <div className="metric-sub">Cotisations : ~{(caMois*taux).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+              <div className="metric-sub">
+                Cotisations : ~{(caMois * taux).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+              </div>
             </div>
+
             <div className="metric-card">
               <div className="metric-label">CA {year}</div>
               <div className="metric-value">{caAnnuel.toLocaleString('fr-FR')} €</div>
-              <div className="metric-sub">Cotisations : ~{cotisAnnuel.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+              <div className="metric-sub">
+                Cotisations : ~{cotisAnnuel.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+              </div>
             </div>
+
             <div className="metric-card">
               <div className="metric-label">Taux URSSAF</div>
-              <div className="metric-value" style={{color:'#B5792A'}}>{profil?(taux*100).toFixed(1):'—'} %</div>
-              <div className="metric-sub">{profil?.acre?'✓ ACRE actif':'Taux normal'}</div>
+              <div className="metric-value" style={{ color: '#B5792A' }}>
+                {profil ? (taux * 100).toFixed(1) : '—'} %
+              </div>
+              <div className="metric-sub">{profil?.acre ? '✓ ACRE actif' : 'Taux normal'}</div>
             </div>
+
             <div className="metric-card">
               <div className="metric-label">À mettre de côté</div>
-              <div className="metric-value" style={{color:'#2D7A4F'}}>{(caMois*(taux+0.14)).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+              <div className="metric-value" style={{ color: '#2D7A4F' }}>
+                {(caMois * (taux + 0.14)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+              </div>
               <div className="metric-sub">URSSAF + impôts estimés</div>
             </div>
           </div>
-          <div className="card" style={{marginBottom:'1.5rem'}}>
+
+          <div className="card" style={{ marginBottom: '1.5rem' }}>
             <div className="card-title">Progression vers les seuils {year}</div>
+
             <div className="seuil-item">
-              <div className="seuil-top"><span className="seuil-label">Seuil TVA</span><span className="seuil-val">{caAnnuel.toLocaleString('fr-FR')} € / {seuil_tva.toLocaleString('fr-FR')} €</span></div>
-              <div className="progress-bar"><div className="progress-fill" style={{width:pctTVA+'%',background:pctTVA>85?'#C0392B':pctTVA>60?'#B5792A':'#2D7A4F'}}/></div>
-              {pctTVA>85&&<div className="seuil-alert">⚠️ Attention — tu approches du seuil de TVA. Consulte un comptable.</div>}
+              <div className="seuil-top">
+                <span className="seuil-label">Seuil TVA</span>
+                <span className="seuil-val">
+                  {caAnnuel.toLocaleString('fr-FR')} € / {seuil_tva?.toLocaleString('fr-FR')} €
+                </span>
+              </div>
+              <div className="progress-bar">
+                <div
+                  className="progress-fill"
+                  style={{
+                    width: pctTVA + '%',
+                    background: pctTVA > 85 ? '#C0392B' : pctTVA > 60 ? '#B5792A' : '#2D7A4F',
+                  }}
+                />
+              </div>
+              {pctTVA > 85 && (
+                <div className="seuil-alert">
+                  ⚠️ Attention — tu approches du seuil de TVA. Consulte un comptable.
+                </div>
+              )}
             </div>
-            <div className="seuil-item" style={{marginTop:'1rem'}}>
-              <div className="seuil-top"><span className="seuil-label">Plafond micro-entreprise</span><span className="seuil-val">{caAnnuel.toLocaleString('fr-FR')} € / {plafond.toLocaleString('fr-FR')} €</span></div>
-              <div className="progress-bar"><div className="progress-fill" style={{width:pctPlafond+'%',background:pctPlafond>85?'#C0392B':pctPlafond>60?'#B5792A':'#2D7A4F'}}/></div>
-              {pctPlafond>85&&<div className="seuil-alert">⚠️ Tu approches du plafond ! Au-delà tu bascules en régime réel.</div>}
+
+            <div className="seuil-item" style={{ marginTop: '1rem' }}>
+              <div className="seuil-top">
+                <span className="seuil-label">Plafond micro-entreprise</span>
+                <span className="seuil-val">
+                  {caAnnuel.toLocaleString('fr-FR')} € / {plafond?.toLocaleString('fr-FR')} €
+                </span>
+              </div>
+              <div className="progress-bar">
+                <div
+                  className="progress-fill"
+                  style={{
+                    width: pctPlafond + '%',
+                    background: pctPlafond > 85 ? '#C0392B' : pctPlafond > 60 ? '#B5792A' : '#2D7A4F',
+                  }}
+                />
+              </div>
+              {pctPlafond > 85 && (
+                <div className="seuil-alert">
+                  ⚠️ Tu approches du plafond ! Au-delà tu bascules en régime réel.
+                </div>
+              )}
             </div>
           </div>
-          {histoQ.length>0&&(
+
+          {histoQ.length > 0 && (
             <div className="card">
               <div className="card-title">Dernières questions à l'assistant</div>
-              {histoQ.slice(0,3).map(q=>(
-                <div key={q.id} className="question-preview" onClick={()=>{setQuestion(q.question);setReponse(q.reponse);setView('assistant')}}>
+              {histoQ.slice(0, 3).map((q) => (
+                <div
+                  key={q.id}
+                  className="question-preview"
+                  onClick={() => {
+                    setQuestion(q.question)
+                    setReponse(q.reponse)
+                    setView('assistant')
+                  }}
+                >
                   <div className="question-text">💬 {q.question}</div>
                   <div className="question-date">{new Date(q.created_at).toLocaleDateString('fr-FR')}</div>
                 </div>
               ))}
-              <button className="link-btn" onClick={()=>setView('assistant')}>Poser une nouvelle question →</button>
+              <button className="link-btn" onClick={() => setView('assistant')}>
+                Poser une nouvelle question →
+              </button>
             </div>
           )}
         </div>
       )}
 
-      {/* ── CALENDRIER ── */}
-      {view==='calendrier' && (
+      {view === 'calendrier' && (
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Calendrier administratif</h2>
             <p className="page-sub">Toutes tes échéances au même endroit</p>
           </div>
+
           {!profil ? (
-            <div className="empty-state"><h3>Configure ton profil d'abord</h3><button className="btn btn-dark" onClick={()=>setShowOnboarding(true)}>Configurer →</button></div>
+            <div className="empty-state">
+              <h3>Configure ton profil d'abord</h3>
+              <button className="btn btn-dark" onClick={() => setShowOnboarding(true)}>
+                Configurer →
+              </button>
+            </div>
           ) : (
             <div className="cal-list">
-              {calendrier.map(ev=>{
-                const decl = declarations.find(d=>d.periode===ev.id)
-                const statut = decl?.statut||(ev.past?'a_verifier':'a_faire')
+              {calendrier.map((ev) => {
+                const decl = declarations.find((d) => d.periode === ev.id)
+                const statut = decl?.statut || (ev.past ? 'a_verifier' : 'a_faire')
+
                 return (
-                  <div key={ev.id} className={`cal-card ${ev.current?'cal-current':''} ${ev.special?'cal-special':''} ${ev.past&&statut!=='faite'?'cal-past':''}`}>
+                  <div
+                    key={ev.id}
+                    className={`cal-card ${ev.current ? 'cal-current' : ''} ${ev.special ? 'cal-special' : ''} ${
+                      ev.past && statut !== 'faite' ? 'cal-past' : ''
+                    }`}
+                  >
                     <div className="cal-left">
-                      <div className={`cal-dot ${statut==='faite'?'dot-done':ev.past?'dot-late':'dot-pending'}`}/>
+                      <div
+                        className={`cal-dot ${
+                          statut === 'faite' ? 'dot-done' : ev.past ? 'dot-late' : 'dot-pending'
+                        }`}
+                      />
                       <div>
                         <div className="cal-label">{ev.label}</div>
                         <div className="cal-date">Avant le {ev.date_limite}</div>
-                        {ev.current&&<span className="badge-current">Période en cours</span>}
+                        {ev.current && <span className="badge-current">Période en cours</span>}
                       </div>
                     </div>
+
                     <div className="cal-right">
-                      {statut==='faite'
-                        ? <span className="badge-done">✓ Faite</span>
-                        : <button className="btn btn-sm btn-amber" onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')}>Marquer comme faite</button>
-                      }
+                      {statut === 'faite' ? (
+                        <span className="badge-done">✓ Faite</span>
+                      ) : (
+                        <button
+                          className="btn btn-sm btn-amber"
+                          onClick={() => marquerDeclaration(ev.id, ev.type, 'faite')}
+                        >
+                          Marquer comme faite
+                        </button>
+                      )}
                     </div>
                   </div>
                 )
               })}
             </div>
           )}
-          <div className="info-box" style={{marginTop:'1.5rem'}}>
+
+          <div className="info-box" style={{ marginTop: '1.5rem' }}>
             <div className="info-title">📌 Comment déclarer sur autoentrepreneur.urssaf.fr</div>
             <div className="info-text">
-              1. Va sur <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" style={{color:'#1A4A8A',fontWeight:600}}>autoentrepreneur.urssaf.fr</a><br/>
-              2. Connecte-toi avec ton numéro SIRET<br/>
-              3. Clique sur "Déclarer et payer"<br/>
-              4. Saisis ton CA de la période<br/>
+              1. Va sur{' '}
+              <a
+                href="https://www.autoentrepreneur.urssaf.fr"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#1A4A8A', fontWeight: 600 }}
+              >
+                autoentrepreneur.urssaf.fr
+              </a>
+              <br />
+              2. Connecte-toi avec ton numéro SIRET
+              <br />
+              3. Clique sur "Déclarer et payer"
+              <br />
+              4. Saisis ton CA de la période
+              <br />
               5. Valide — le montant à payer est calculé automatiquement
             </div>
           </div>
         </div>
       )}
 
-      {/* ── REVENUS ── */}
-      {view==='revenus' && (
+      {view === 'revenus' && (
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Mes revenus</h2>
             <p className="page-sub">Saisir ton chiffre d'affaires mois par mois</p>
           </div>
-          <div className="card" style={{marginBottom:'1.5rem'}}>
+
+          <div className="card" style={{ marginBottom: '1.5rem' }}>
             <div className="card-title">Ajouter / modifier un mois</div>
-            <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'flex-end'}}>
-              <div><span className="mini-label">Mois</span><input className="mini-input" type="month" value={revMois} onChange={e=>setRevMois(e.target.value)}/></div>
-              <div><span className="mini-label">CA encaissé (€ HT)</span><input className="mini-input" type="number" value={revMontant} onChange={e=>setRevMontant(e.target.value)} placeholder="3 500" style={{width:160}}/></div>
-              <button className="btn btn-dark" onClick={saveRevenu} disabled={savingRev}>{savingRev?'Sauvegarde…':'Enregistrer →'}</button>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              <div>
+                <span className="mini-label">Mois</span>
+                <input className="mini-input" type="month" value={revMois} onChange={(e) => setRevMois(e.target.value)} />
+              </div>
+              <div>
+                <span className="mini-label">CA encaissé (€ HT)</span>
+                <input
+                  className="mini-input"
+                  type="number"
+                  value={revMontant}
+                  onChange={(e) => setRevMontant(e.target.value)}
+                  placeholder="3 500"
+                  style={{ width: 160 }}
+                />
+              </div>
+              <button className="btn btn-dark" onClick={saveRevenu} disabled={savingRev}>
+                {savingRev ? 'Sauvegarde…' : 'Enregistrer →'}
+              </button>
             </div>
           </div>
+
           <div className="card">
             <div className="card-title">Historique {year}</div>
-            {revenus.filter(r=>r.mois.startsWith(String(year))).length===0
-              ? <p style={{fontSize:13,color:'#A89878',padding:'1rem 0'}}>Aucun revenu saisi pour {year}.</p>
-              : (
-                <table className="rev-table">
-                  <thead><tr><th>Mois</th><th>CA</th><th>URSSAF ({(taux*100).toFixed(1)}%)</th><th>Impôts (~14%)</th><th>Net estimé</th></tr></thead>
-                  <tbody>
-                    {revenus.filter(r=>r.mois.startsWith(String(year))).map(r=>{
-                      const cotis=r.montant*taux, impots=r.montant*0.14, net=r.montant-cotis-impots
+
+            {revenus.filter((r) => r.mois.startsWith(String(year))).length === 0 ? (
+              <p style={{ fontSize: 13, color: '#A89878', padding: '1rem 0' }}>
+                Aucun revenu saisi pour {year}.
+              </p>
+            ) : (
+              <table className="rev-table">
+                <thead>
+                  <tr>
+                    <th>Mois</th>
+                    <th>CA</th>
+                    <th>URSSAF ({(taux * 100).toFixed(1)}%)</th>
+                    <th>Impôts (~14%)</th>
+                    <th>Net estimé</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {revenus
+                    .filter((r) => r.mois.startsWith(String(year)))
+                    .map((r) => {
+                      const cotis = r.montant * taux
+                      const impots = r.montant * 0.14
+                      const net = r.montant - cotis - impots
+
                       return (
                         <tr key={r.mois}>
                           <td>{formatMois(r.mois)}</td>
                           <td><strong>{r.montant.toLocaleString('fr-FR')} €</strong></td>
-                          <td style={{color:'#8B1A1A'}}>{cotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                          <td style={{color:'#7A3A0A'}}>{impots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                          <td style={{color:'#2D7A4F',fontWeight:600}}>{net.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                          <td style={{ color: '#8B1A1A' }}>
+                            {cotis.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                          </td>
+                          <td style={{ color: '#7A3A0A' }}>
+                            {impots.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                          </td>
+                          <td style={{ color: '#2D7A4F', fontWeight: 600 }}>
+                            {net.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                          </td>
                         </tr>
                       )
                     })}
-                    <tr className="rev-total">
-                      <td>Total {year}</td>
-                      <td>{caAnnuel.toLocaleString('fr-FR')} €</td>
-                      <td style={{color:'#8B1A1A'}}>{(caAnnuel*taux).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                      <td style={{color:'#7A3A0A'}}>{(caAnnuel*0.14).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                      <td style={{color:'#2D7A4F'}}>{(caAnnuel*(1-taux-0.14)).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                    </tr>
-                  </tbody>
-                </table>
-              )
-            }
+
+                  <tr className="rev-total">
+                    <td>Total {year}</td>
+                    <td>{caAnnuel.toLocaleString('fr-FR')} €</td>
+                    <td style={{ color: '#8B1A1A' }}>
+                      {(caAnnuel * taux).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                    </td>
+                    <td style={{ color: '#7A3A0A' }}>
+                      {(caAnnuel * 0.14).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                    </td>
+                    <td style={{ color: '#2D7A4F' }}>
+                      {(caAnnuel * (1 - taux - 0.14)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       )}
 
-      {/* ── CALCULATEUR ── */}
-      {view==='calculateur' && (
+      {view === 'calculateur' && (
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Calculateur</h2>
             <p className="page-sub">Combien dois-je payer et mettre de côté ?</p>
           </div>
+
           {!profil ? (
-            <div className="empty-state"><h3>Configure ton profil d'abord</h3><button className="btn btn-dark" onClick={()=>setShowOnboarding(true)}>Configurer →</button></div>
+            <div className="empty-state">
+              <h3>Configure ton profil d'abord</h3>
+              <button className="btn btn-dark" onClick={() => setShowOnboarding(true)}>
+                Configurer →
+              </button>
+            </div>
           ) : (
             <>
-              <div className="card" style={{marginBottom:'1.5rem'}}>
+              <div className="card" style={{ marginBottom: '1.5rem' }}>
                 <div className="card-title">Simuler un encaissement</div>
-                <div style={{display:'flex',gap:12,alignItems:'flex-end',flexWrap:'wrap'}}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
                   <div>
                     <span className="mini-label">Montant encaissé (€ HT)</span>
-                    <input className="mini-input" type="number" value={calcCA} onChange={e=>setCalcCA(e.target.value)} onKeyDown={e=>e.key==='Enter'&&calculer()} placeholder="2 500" style={{width:200,fontSize:18,padding:'12px 14px'}}/>
+                    <input
+                      className="mini-input"
+                      type="number"
+                      value={calcCA}
+                      onChange={(e) => setCalcCA(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && calculer()}
+                      placeholder="2 500"
+                      style={{ width: 200, fontSize: 18, padding: '12px 14px' }}
+                    />
                   </div>
-                  <button className="btn btn-dark" style={{padding:'12px 24px'}} onClick={calculer}>Calculer →</button>
+                  <button className="btn btn-dark" style={{ padding: '12px 24px' }} onClick={calculer}>
+                    Calculer →
+                  </button>
                 </div>
               </div>
+
               {calcResult && (
                 <div className="calc-result">
                   <div className="calc-grid">
-                    <div className="calc-card main-card"><div className="calc-label">CA encaissé</div><div className="calc-big">{calcResult.ca.toLocaleString('fr-FR')} €</div></div>
-                    <div className="calc-card red-card"><div className="calc-label">URSSAF à payer ({(calcResult.taux*100).toFixed(1)}%)</div><div className="calc-big">{calcResult.cotisations.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div><div className="calc-sub">À déclarer sur autoentrepreneur.urssaf.fr</div></div>
-                    <div className="calc-card orange-card"><div className="calc-label">Impôts estimés (~14%)</div><div className="calc-big">{calcResult.impots_estimes.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div><div className="calc-sub">À mettre de côté pour la déclaration IR</div></div>
-                    <div className="calc-card amber-card"><div className="calc-label">Total à mettre de côté</div><div className="calc-big">{calcResult.a_mettre_de_cote.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div><div className="calc-sub">{((calcResult.taux+0.14)*100).toFixed(0)}% du CA</div></div>
-                    <div className="calc-card green-card"><div className="calc-label">Net estimé (ce qui reste)</div><div className="calc-big">{calcResult.net_estime.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div><div className="calc-sub">Après URSSAF et impôts</div></div>
+                    <div className="calc-card main-card">
+                      <div className="calc-label">CA encaissé</div>
+                      <div className="calc-big">{calcResult.ca.toLocaleString('fr-FR')} €</div>
+                    </div>
+
+                    <div className="calc-card red-card">
+                      <div className="calc-label">URSSAF à payer ({(calcResult.taux * 100).toFixed(1)}%)</div>
+                      <div className="calc-big">
+                        {calcResult.cotisations.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                      </div>
+                      <div className="calc-sub">À déclarer sur autoentrepreneur.urssaf.fr</div>
+                    </div>
+
+                    <div className="calc-card orange-card">
+                      <div className="calc-label">Impôts estimés (~14%)</div>
+                      <div className="calc-big">
+                        {calcResult.impots_estimes.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                      </div>
+                      <div className="calc-sub">À mettre de côté pour la déclaration IR</div>
+                    </div>
+
+                    <div className="calc-card amber-card">
+                      <div className="calc-label">Total à mettre de côté</div>
+                      <div className="calc-big">
+                        {calcResult.a_mettre_de_cote.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                      </div>
+                      <div className="calc-sub">{((calcResult.taux + 0.14) * 100).toFixed(0)}% du CA</div>
+                    </div>
+
+                    <div className="calc-card green-card">
+                      <div className="calc-label">Net estimé (ce qui reste)</div>
+                      <div className="calc-big">
+                        {calcResult.net_estime.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                      </div>
+                      <div className="calc-sub">Après URSSAF et impôts</div>
+                    </div>
                   </div>
-                  {(calcResult.alerte_tva||calcResult.alerte_plafond)&&(
-                    <div style={{marginTop:'1rem'}}>
-                      {calcResult.alerte_tva&&<div className="seuil-alert">⚠️ Attention : avec ce CA annuel estimé ({calcResult.caAnnuel.toLocaleString('fr-FR')} €), tu approches du seuil de TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €).</div>}
-                      {calcResult.alerte_plafond&&<div className="seuil-alert" style={{marginTop:8}}>⚠️ Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €). Consulte un comptable.</div>}
+
+                  {(calcResult.alerte_tva || calcResult.alerte_plafond) && (
+                    <div style={{ marginTop: '1rem' }}>
+                      {calcResult.alerte_tva && (
+                        <div className="seuil-alert">
+                          ⚠️ Attention : avec ce CA annuel estimé ({calcResult.caAnnuel.toLocaleString('fr-FR')} €), tu approches du seuil de TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €).
+                        </div>
+                      )}
+                      {calcResult.alerte_plafond && (
+                        <div className="seuil-alert" style={{ marginTop: 8 }}>
+                          ⚠️ Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €). Consulte un comptable.
+                        </div>
+                      )}
                     </div>
                   )}
-                  <div className="info-box" style={{marginTop:'1rem'}}>
-                    <div className="info-text">💡 <strong>Conseil :</strong> Dès que tu reçois un virement client, mets <strong>{((calcResult.taux+0.14)*100).toFixed(0)}%</strong> de côté immédiatement sur un compte séparé. Tu ne seras jamais pris au dépourvu.</div>
+
+                  <div className="info-box" style={{ marginTop: '1rem' }}>
+                    <div className="info-text">
+                      💡 <strong>Conseil :</strong> Dès que tu reçois un virement client, mets <strong>{((calcResult.taux + 0.14) * 100).toFixed(0)}%</strong> de côté immédiatement sur un compte séparé. Tu ne seras jamais pris au dépourvu.
+                    </div>
                   </div>
-                  <div style={{marginTop:'8px',fontSize:11,color:'#A89878'}}>⚠️ Les impôts estimés (~14%) sont indicatifs. Le taux réel dépend de ta situation personnelle. Consulte un comptable pour une simulation précise.</div>
+
+                  <div style={{ marginTop: '8px', fontSize: 11, color: '#A89878' }}>
+                    ⚠️ Les impôts estimés (~14%) sont indicatifs. Le taux réel dépend de ta situation personnelle. Consulte un comptable pour une simulation précise.
+                  </div>
                 </div>
               )}
             </>
@@ -445,43 +1135,84 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
         </div>
       )}
 
-      {/* ── ASSISTANT IA ── */}
-      {view==='assistant' && (
+      {view === 'assistant' && (
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Assistant IA</h2>
             <p className="page-sub">Pose tes questions en français simple — comme à un ami comptable</p>
           </div>
-          <div className="card" style={{marginBottom:'1.5rem'}}>
+
+          <div className="card" style={{ marginBottom: '1.5rem' }}>
             <span className="chips-hint">Questions fréquentes ↓</span>
             <div className="chips">
-              {["Quand dois-je déclarer mon CA à l'URSSAF ?","Comment calculer mes cotisations ?","Qu'est-ce que le seuil de TVA ?","C'est quoi la CFE et quand la payer ?","J'ai oublié de déclarer, que faire ?","Puis-je me verser un salaire ?"].map(q=>(
-                <span key={q} className="chip" onClick={()=>setQuestion(q)}>{q}</span>
+              {[
+                "Quand dois-je déclarer mon CA à l'URSSAF ?",
+                'Comment calculer mes cotisations ?',
+                "Qu'est-ce que le seuil de TVA ?",
+                "C'est quoi la CFE et quand la payer ?",
+                "J'ai oublié de déclarer, que faire ?",
+                'Puis-je me verser un salaire ?',
+              ].map((q) => (
+                <span key={q} className="chip" onClick={() => setQuestion(q)}>
+                  {q}
+                </span>
               ))}
             </div>
-            <div className="input-wrap" style={{marginTop:'1rem'}}>
-              <textarea value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))poserQuestion()}} placeholder="Ex : J'ai encaissé 4 200€ ce mois, combien je vais payer à l'URSSAF ?" style={{minHeight:80}}/>
-              <button className="btn-gen" onClick={poserQuestion} disabled={asking||!question.trim()}>{asking?'Réflexion…':'Envoyer →'}</button>
+
+            <div className="input-wrap" style={{ marginTop: '1rem' }}>
+              <textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) poserQuestion()
+                }}
+                placeholder="Ex : J'ai encaissé 4 200€ ce mois, combien je vais payer à l'URSSAF ?"
+                style={{ minHeight: 80 }}
+              />
+              <button className="btn-gen" onClick={poserQuestion} disabled={asking || !question.trim()}>
+                {asking ? 'Réflexion…' : 'Envoyer →'}
+              </button>
             </div>
+
             <div className="hint-text">⌘ + Entrée pour envoyer</div>
           </div>
-          {(reponse||asking)&&(
-            <div className="card" style={{marginBottom:'1.5rem'}}>
+
+          {(reponse || asking) && (
+            <div className="card" style={{ marginBottom: '1.5rem' }}>
               <div className="reponse-header">
                 <div className="reponse-avatar">IA</div>
-                <span style={{fontSize:13,color:'#6B5E45',fontWeight:500}}>Assistant AutoIA</span>
+                <span style={{ fontSize: 13, color: '#6B5E45', fontWeight: 500 }}>Assistant AutoIA</span>
               </div>
-              {asking
-                ? <div style={{display:'flex',alignItems:'center',gap:10,padding:'1rem 0',color:'#A89878'}}><div className="ring"/>Je réfléchis à ta question…</div>
-                : <div className="reponse-text">{reponse.split('\n').map((line,i)=><p key={i} style={{marginBottom:line?'0.75rem':0}}>{line}</p>)}</div>
-              }
+
+              {asking ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '1rem 0', color: '#A89878' }}>
+                  <div className="ring" />
+                  Je réfléchis à ta question…
+                </div>
+              ) : (
+                <div className="reponse-text">
+                  {reponse.split('\n').map((line, i) => (
+                    <p key={i} style={{ marginBottom: line ? '0.75rem' : 0 }}>
+                      {line}
+                    </p>
+                  ))}
+                </div>
+              )}
             </div>
           )}
-          {histoQ.length>0&&(
+
+          {histoQ.length > 0 && (
             <div>
-              <div className="card-title" style={{marginBottom:12}}>Questions précédentes</div>
-              {histoQ.slice(0,10).map(q=>(
-                <div key={q.id} className="question-preview" onClick={()=>{setQuestion(q.question);setReponse(q.reponse)}}>
+              <div className="card-title" style={{ marginBottom: 12 }}>Questions précédentes</div>
+              {histoQ.slice(0, 10).map((q) => (
+                <div
+                  key={q.id}
+                  className="question-preview"
+                  onClick={() => {
+                    setQuestion(q.question)
+                    setReponse(q.reponse)
+                  }}
+                >
                   <div className="question-text">💬 {q.question}</div>
                   <div className="question-date">{new Date(q.created_at).toLocaleDateString('fr-FR')}</div>
                 </div>
@@ -491,8 +1222,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
         </div>
       )}
 
-      {/* ── RESSOURCES ── */}
-      {view==='ressources' && (
+      {view === 'ressources' && (
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Ressources officielles</h2>
@@ -500,127 +1230,233 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           </div>
 
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'#FAF3E0',color:'#B5792A'}}>📋</span>Déclarations & paiements</div>
+            <div className="res-section-title">
+              <span className="res-icon" style={{ background: '#FAF3E0', color: '#B5792A' }}>📋</span>
+              Déclarations & paiements
+            </div>
+
             <div className="res-grid">
               <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-urssaf">URSSAF</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-urssaf">URSSAF</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Déclarer & payer mes cotisations</div>
-                <div className="res-card-desc">Le site officiel pour déclarer ton chiffre d'affaires et payer tes cotisations sociales chaque mois ou trimestre.</div>
+                <div className="res-card-desc">
+                  Le site officiel pour déclarer ton chiffre d'affaires et payer tes cotisations sociales chaque mois ou trimestre.
+                </div>
                 <div className="res-card-url">autoentrepreneur.urssaf.fr</div>
               </a>
+
               <a href="https://www.impots.gouv.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-impots">Impôts</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-impots">Impôts</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Déclaration de revenus (IR)</div>
-                <div className="res-card-desc">Pour déclarer tes revenus chaque année (avant fin mai). Tu y trouves aussi le versement libératoire et la gestion de TVA.</div>
+                <div className="res-card-desc">
+                  Pour déclarer tes revenus chaque année (avant fin mai). Tu y trouves aussi le versement libératoire et la gestion de TVA.
+                </div>
                 <div className="res-card-url">impots.gouv.fr</div>
               </a>
+
               <a href="https://www.urssaf.fr/portail/home/espaces-dedies/auto-entrepreneur.html" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-urssaf">URSSAF</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-urssaf">URSSAF</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Payer la CFE</div>
-                <div className="res-card-desc">La Cotisation Foncière des Entreprises est due chaque année en décembre. Paiement en ligne sur le portail URSSAF.</div>
+                <div className="res-card-desc">
+                  La Cotisation Foncière des Entreprises est due chaque année en décembre. Paiement en ligne sur le portail URSSAF.
+                </div>
                 <div className="res-card-url">urssaf.fr</div>
               </a>
             </div>
           </div>
 
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'#EDFAF3',color:'#2D7A4F'}}>🏢</span>Gérer mon auto-entreprise</div>
+            <div className="res-section-title">
+              <span className="res-icon" style={{ background: '#EDFAF3', color: '#2D7A4F' }}>🏢</span>
+              Gérer mon auto-entreprise
+            </div>
+
             <div className="res-grid">
               <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F24023" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-gouv">Officiel</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Modifier ou fermer mon auto-entreprise</div>
-                <div className="res-card-desc">Changer d'adresse, modifier ton activité, déclarer une cessation d'activité. Toutes les démarches en un seul endroit.</div>
+                <div className="res-card-desc">
+                  Changer d'adresse, modifier ton activité, déclarer une cessation d'activité. Toutes les démarches en un seul endroit.
+                </div>
                 <div className="res-card-url">guichet-entreprises.fr</div>
               </a>
+
               <a href="https://www.infogreffe.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-gouv">Officiel</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Obtenir mon Kbis / extrait RCS</div>
-                <div className="res-card-desc">Télécharge ton extrait Kbis ou vérifie les informations d'une autre entreprise. Souvent demandé par les clients professionnels.</div>
+                <div className="res-card-desc">
+                  Télécharge ton extrait Kbis ou vérifie les informations d'une autre entreprise. Souvent demandé par les clients professionnels.
+                </div>
                 <div className="res-card-url">infogreffe.fr</div>
               </a>
+
               <a href="https://www.service-public.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-gouv">Officiel</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Mon espace personnel État</div>
-                <div className="res-card-desc">Espace centralisé pour accéder à tous les services publics en ligne : URSSAF, impôts, retraite, santé…</div>
+                <div className="res-card-desc">
+                  Espace centralisé pour accéder à tous les services publics en ligne : URSSAF, impôts, retraite, santé…
+                </div>
                 <div className="res-card-url">mon.service-public.fr</div>
               </a>
             </div>
           </div>
 
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'#EEF4FF',color:'#1A4A8A'}}>💰</span>Aides & financement</div>
+            <div className="res-section-title">
+              <span className="res-icon" style={{ background: '#EEF4FF', color: '#1A4A8A' }}>💰</span>
+              Aides & financement
+            </div>
+
             <div className="res-grid">
               <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F36613" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-aide">Aide</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-aide">Aide</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Cumul chômage & auto-entreprise (ARE)</div>
-                <div className="res-card-desc">Tu peux cumuler allocations chômage et revenus d'auto-entrepreneur sous conditions. Calcul et démarches sur France Travail.</div>
+                <div className="res-card-desc">
+                  Tu peux cumuler allocations chômage et revenus d'auto-entrepreneur sous conditions. Calcul et démarches sur France Travail.
+                </div>
                 <div className="res-card-url">francetravail.fr</div>
               </a>
+
               <a href="https://www.bpifrance.fr/nos-solutions/financement" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-aide">Financement</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-aide">Financement</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Aides et prêts BPI France</div>
-                <div className="res-card-desc">Prêts, garanties et subventions pour développer ton activité. Certains dispositifs sont accessibles dès le statut auto-entrepreneur.</div>
+                <div className="res-card-desc">
+                  Prêts, garanties et subventions pour développer ton activité. Certains dispositifs sont accessibles dès le statut auto-entrepreneur.
+                </div>
                 <div className="res-card-url">bpifrance.fr</div>
               </a>
+
               <a href="https://www.aides-entreprises.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-aide">Aide</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-aide">Aide</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Toutes les aides disponibles</div>
-                <div className="res-card-desc">Moteur de recherche officiel pour trouver toutes les aides locales, régionales et nationales selon ton activité et ta situation.</div>
+                <div className="res-card-desc">
+                  Moteur de recherche officiel pour trouver toutes les aides locales, régionales et nationales selon ton activité et ta situation.
+                </div>
                 <div className="res-card-url">aides-entreprises.fr</div>
               </a>
             </div>
           </div>
 
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'#FFF4E6',color:'#7A3A0A'}}>🏥</span>Protection sociale & retraite</div>
+            <div className="res-section-title">
+              <span className="res-icon" style={{ background: '#FFF4E6', color: '#7A3A0A' }}>🏥</span>
+              Protection sociale & retraite
+            </div>
+
             <div className="res-grid">
               <a href="https://www.ameli.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-social">Santé</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-social">Santé</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Assurance maladie (Ameli)</div>
-                <div className="res-card-desc">Gère ta couverture maladie, tes remboursements et ton attestation de droits. En tant qu'auto-entrepreneur tu es affilié à la SSI.</div>
+                <div className="res-card-desc">
+                  Gère ta couverture maladie, tes remboursements et ton attestation de droits. En tant qu'auto-entrepreneur tu es affilié à la SSI.
+                </div>
                 <div className="res-card-url">ameli.fr</div>
               </a>
+
               <a href="https://www.lassuranceretraite.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-social">Retraite</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-social">Retraite</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Mes droits à la retraite</div>
-                <div className="res-card-desc">Vérifie tes trimestres validés, simule ta future retraite et consulte ton relevé de carrière. Important à surveiller régulièrement.</div>
+                <div className="res-card-desc">
+                  Vérifie tes trimestres validés, simule ta future retraite et consulte ton relevé de carrière. Important à surveiller régulièrement.
+                </div>
                 <div className="res-card-url">lassuranceretraite.fr</div>
               </a>
+
               <a href="https://www.net-entreprises.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-social">Social</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-social">Social</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Portail déclarations sociales</div>
-                <div className="res-card-desc">Pour les auto-entrepreneurs qui ont des salariés : déclarations sociales nominatives et autres obligations employeur.</div>
+                <div className="res-card-desc">
+                  Pour les auto-entrepreneurs qui ont des salariés : déclarations sociales nominatives et autres obligations employeur.
+                </div>
                 <div className="res-card-url">net-entreprises.fr</div>
               </a>
             </div>
           </div>
 
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'#F5F0FF',color:'#6B2D7A'}}>📖</span>Se former & s'informer</div>
+            <div className="res-section-title">
+              <span className="res-icon" style={{ background: '#F5F0FF', color: '#6B2D7A' }}>📖</span>
+              Se former & s'informer
+            </div>
+
             <div className="res-grid">
               <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F23282" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-gouv">Officiel</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Guide officiel auto-entrepreneur</div>
-                <div className="res-card-desc">Le guide complet du gouvernement sur le statut auto-entrepreneur : droits, obligations, seuils, démarches. La référence officielle.</div>
+                <div className="res-card-desc">
+                  Le guide complet du gouvernement sur le statut auto-entrepreneur : droits, obligations, seuils, démarches. La référence officielle.
+                </div>
                 <div className="res-card-url">entreprises.gouv.fr</div>
               </a>
+
               <a href="https://www.service-public.fr/professionnels-entreprises/vosdroits/F23961" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-gouv">Officiel</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Vos droits en tant qu'auto-entrepreneur</div>
-                <div className="res-card-desc">Fiche complète sur les obligations, les cotisations, la TVA et tout ce qu'il faut savoir sur le régime micro-entreprise.</div>
+                <div className="res-card-desc">
+                  Fiche complète sur les obligations, les cotisations, la TVA et tout ce qu'il faut savoir sur le régime micro-entreprise.
+                </div>
                 <div className="res-card-url">service-public.fr</div>
               </a>
+
               <a href="https://www.moncompteformation.gouv.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top"><span className="res-tag res-tag-aide">Formation</span><span className="res-arrow">→</span></div>
+                <div className="res-card-top">
+                  <span className="res-tag res-tag-aide">Formation</span>
+                  <span className="res-arrow">→</span>
+                </div>
                 <div className="res-card-title">Mon Compte Formation (CPF)</div>
-                <div className="res-card-desc">Utilise ton Compte Personnel de Formation pour te former. En tant qu'auto-entrepreneur tu cotises et tu as des droits à la formation.</div>
+                <div className="res-card-desc">
+                  Utilise ton Compte Personnel de Formation pour te former. En tant qu'auto-entrepreneur tu cotises et tu as des droits à la formation.
+                </div>
                 <div className="res-card-url">moncompteformation.gouv.fr</div>
               </a>
             </div>
           </div>
 
           <div className="res-disclaimer">
-            <strong>ℹ️ Information importante</strong><br/>
+            <strong>ℹ️ Information importante</strong>
+            <br />
             Ces liens pointent vers des sites officiels du gouvernement français. Les informations présentées dans AutoIA (taux, seuils, dates) sont basées sur la législation en vigueur en 2025 et peuvent évoluer. En cas de doute, consulte toujours les sites officiels ou un expert-comptable.
           </div>
         </div>
@@ -732,6 +1568,7 @@ textarea:focus{outline:none;border-color:#B5792A;background:#fff} textarea::plac
 .btn{padding:10px 20px;font-size:13px;font-weight:500;border-radius:10px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .17s}
 .btn-ghost{background:transparent;border:1px solid #E2D8C4;color:#6B5E45} .btn-ghost:hover{background:#F6F0E4}
 .btn-dark{background:#1C1710;border:none;color:#fff} .btn-dark:hover{background:#B5792A}
+.btn-dark:disabled{opacity:.7;cursor:not-allowed}
 .btn-amber{background:#FAF3E0;border:1px solid #E8D5A8;color:#B5792A} .btn-amber:hover{background:#B5792A;color:#fff}
 .btn-sm{padding:7px 14px;font-size:12px}
 .res-section{margin-bottom:2rem}
