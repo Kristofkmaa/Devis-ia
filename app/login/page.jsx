@@ -25,12 +25,10 @@ export default function Login() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <div style={styles.logo}>Devis<em style={{ color: '#E8D5A8', fontStyle: 'normal' }}>IA</em>
+        <div style={styles.logo}>Serelyo</div>
         <h1 style={styles.title}>Connexion</h1>
         <p style={styles.sub}>Bon retour 👋</p>
-
         {error && <div style={styles.error}>{error}</div>}
-
         <form onSubmit={handleLogin}>
           <div style={styles.field}>
             <label style={styles.label}>Email</label>
@@ -46,7 +44,6 @@ export default function Login() {
             {loading ? 'Connexion…' : 'Se connecter →'}
           </button>
         </form>
-
         <p style={styles.footer}>
           Pas encore de compte ?{' '}
           <Link href="/signup" style={{ color: '#B5792A', fontWeight: 500 }}>Créer un compte</Link>
