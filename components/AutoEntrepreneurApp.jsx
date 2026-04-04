@@ -150,7 +150,6 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   if (error) { alert('Erreur : ' + error.message); setSavingRev(false); return }
   setRevenus(prev => [{ user_id: user.id, mois: revMois, montant: parseFloat(revMontant) }, ...prev.filter(r => r.mois !== revMois)].sort((a, b) => b.mois.localeCompare(a.mois)))
   setRevMois(''); setRevMontant(''); setSavingRev(false)
-}
   }
 
   const marquerDeclaration = async (periode, type, statut) => {
