@@ -173,7 +173,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
       {/* APP BAR */}
       <div className="app-bar">
-        <div className="logo">Auto<em>IA</em></div>
+        <div className="logo">Assistant Serelyo</div>
         <div className="bar-right">
           <span className="user-tag">{profil?`${profil.prenom} ${profil.nom}`:user.email}</span>
           <button className="btn-profile" onClick={()=>setShowOnboarding(true)}>
