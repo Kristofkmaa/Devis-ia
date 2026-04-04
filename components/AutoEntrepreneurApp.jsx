@@ -579,17 +579,34 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         )
                       })}
                     </tbody>
-                    <tfoot>
-                      <tr className="rev-total">
-                        <td>Total {histoAnnee}</td>
-                        <td>{revenus.filter(r=>r.mois.startsWith(histoAnnee)).reduce((s,r)=>s+r.montant,0).toLocaleString('fr-FR')} €</td>
-                        <td style={{color:'#8B1A1A'}}>{(revenus.filter(r=>r.mois.startsWith(histoAnnee)).reduce((s,r)=>s+r.montant,0)*taux).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                        <td style={{color:'#7A3A0A'}}>{(revenus.filter(r=>r.mois.startsWith(histoAnnee)).reduce((s,r)=>s+r.montant,0)*tauxImpot).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                        <td style={{color:'#2D7A4F'}}>{(revenus.filter(r=>r.mois.startsWith(histoAnnee)).reduce((s,r)=>s+r.montant,0)*(1-taux-tauxImpot)).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                        <td></td>
-                      </tr>
-                    </tfoot>
-                  </table>
+                    </table>
+                  {/* Total récap */}
+                  {(() => {
+                    const totalCA = revenus.filter(r=>r.mois.startsWith(histoAnnee)).reduce((s,r)=>s+r.montant,0)
+                    const totalCotis = totalCA*taux
+                    const totalImpots = totalCA*tauxImpot
+                    const totalNet = totalCA*(1-taux-tauxImpot)
+                    return (
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginTop:'1.25rem'}}>
+                        <div style={{background:'#1C1710',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.5)',marginBottom:6}}>CA Total {histoAnnee}</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#fff'}}>{totalCA.toLocaleString('fr-FR')} €</div>
+                        </div>
+                        <div style={{background:'#FFF3F3',border:'1px solid #FFCACA',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>URSSAF ({(taux*100).toFixed(1)}%)</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#8B1A1A'}}>{totalCotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                        </div>
+                        <div style={{background:'#FFF4E6',border:'1px solid #FFD5A0',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>Impôts ({profil?.taux_impot_perso||14}%)</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#7A3A0A'}}>{totalImpots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                        </div>
+                        <div style={{background:'#EDFAF3',border:'1px solid #9CDBB8',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>Net estimé</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#2D7A4F'}}>{totalNet.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                        </div>
+                      </div>
+                    )
+                  })()}
                 </>
               )
             }
