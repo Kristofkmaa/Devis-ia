@@ -139,13 +139,18 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   }
 
   const saveRevenu = async () => {
-    if (!revMois||!revMontant) { alert('Remplis le mois et le montant'); return }
-    setSavingRev(true)
-    const data = { user_id:user.id, mois:revMois, montant:parseFloat(revMontant)||0 }
-    const { error } = await supabase.from('ae_revenus').upsert(data,{onConflict:'user_id,mois'})
-    if (error) { alert('Erreur Supabase : '+error.message); setSavingRev(false); return }
-    setRevenus(prev=>[data,...prev.filter(r=>r.mois!==revMois)].sort((a,b)=>b.mois.localeCompare(a.mois)))
-    setRevMois(''); setRevMontant(''); setSavingRev(false)
+  if (!revMois || !revMontant) { alert('Remplis le mois et le montant'); return }
+  setSavingRev(true)
+  console.log('Tentative sauvegarde:', { user_id: user.id, mois: revMois, montant: parseFloat(revMontant) })
+  const { data, error } = await supabase
+    .from('ae_revenus')
+    .upsert({ user_id: user.id, mois: revMois, montant: parseFloat(revMontant) || 0 }, { onConflict: 'user_id,mois' })
+    .select()
+  console.log('Résultat:', data, 'Erreur:', error)
+  if (error) { alert('Erreur : ' + error.message); setSavingRev(false); return }
+  setRevenus(prev => [{ user_id: user.id, mois: revMois, montant: parseFloat(revMontant) }, ...prev.filter(r => r.mois !== revMois)].sort((a, b) => b.mois.localeCompare(a.mois)))
+  setRevMois(''); setRevMontant(''); setSavingRev(false)
+}
   }
 
   const marquerDeclaration = async (periode, type, statut) => {
