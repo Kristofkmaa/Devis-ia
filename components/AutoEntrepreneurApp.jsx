@@ -526,7 +526,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           <div className="res-section">
             <div className="res-section-title"><span className="res-icon" style={{background:'#EDFAF3',color:'#2D7A4F'}}>🏢</span>Gérer mon auto-entreprise</div>
             <div className="res-grid">
-              <a href="https://www.guichet-entreprises.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+              <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F24023" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
                 <div className="res-card-title">Modifier ou fermer mon auto-entreprise</div>
                 <div className="res-card-desc">Changer d'adresse, modifier ton activité, déclarer une cessation d'activité. Toutes les démarches en un seul endroit.</div>
@@ -538,7 +538,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 <div className="res-card-desc">Télécharge ton extrait Kbis ou vérifie les informations d'une autre entreprise. Souvent demandé par les clients professionnels.</div>
                 <div className="res-card-url">infogreffe.fr</div>
               </a>
-              <a href="https://www.mon.service-public.fr" target="_blank" rel="noopener noreferrer" className="res-card">
+              <a href="https://www.service-public.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
                 <div className="res-card-title">Mon espace personnel État</div>
                 <div className="res-card-desc">Espace centralisé pour accéder à tous les services publics en ligne : URSSAF, impôts, retraite, santé…</div>
@@ -550,7 +550,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           <div className="res-section">
             <div className="res-section-title"><span className="res-icon" style={{background:'#EEF4FF',color:'#1A4A8A'}}>💰</span>Aides & financement</div>
             <div className="res-grid">
-              <a href="https://www.francetravail.fr/independants" target="_blank" rel="noopener noreferrer" className="res-card">
+              <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F36613" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-aide">Aide</span><span className="res-arrow">→</span></div>
                 <div className="res-card-title">Cumul chômage & auto-entreprise (ARE)</div>
                 <div className="res-card-desc">Tu peux cumuler allocations chômage et revenus d'auto-entrepreneur sous conditions. Calcul et démarches sur France Travail.</div>
@@ -598,7 +598,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           <div className="res-section">
             <div className="res-section-title"><span className="res-icon" style={{background:'#F5F0FF',color:'#6B2D7A'}}>📖</span>Se former & s'informer</div>
             <div className="res-grid">
-              <a href="https://www.entreprises.gouv.fr/fr/auto-entrepreneur" target="_blank" rel="noopener noreferrer" className="res-card">
+              <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F23282" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
                 <div className="res-card-title">Guide officiel auto-entrepreneur</div>
                 <div className="res-card-desc">Le guide complet du gouvernement sur le statut auto-entrepreneur : droits, obligations, seuils, démarches. La référence officielle.</div>
