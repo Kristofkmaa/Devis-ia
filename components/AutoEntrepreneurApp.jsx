@@ -2,14 +2,39 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '../lib/supabase'
 
-const TAUX = { services_bnc:0.212, services_bic:0.212, liberal:0.212, ventes:0.123 }
-const TAUX_ACRE = { services_bnc:0.106, services_bic:0.106, liberal:0.106, ventes:0.0615 }
-const SEUILS = { tva_services:36800, tva_ventes:91900, plafond_services:77700, plafond_ventes:188700 }
+// ─── Taux URSSAF officiels 2025/2026 (source : autoentrepreneur.urssaf.fr) ───
+const TAUX = {
+  ventes:          0.123,  // Vente de marchandises (BIC) — 12,3%
+  services_bic:    0.212,  // Services commerciaux/artisanaux (BIC) — 21,2%
+  services_bnc:    0.212,  // Services (BNC) — 21,2%
+  liberal_ssi:     0.256,  // Libéral non réglementé régime général (SSI) — 25,6% depuis 2026
+  liberal_cipav:   0.232,  // Libéral réglementé CIPAV (architecte, consultant…) — 23,2%
+  lmtc:            0.060,  // Location meublée tourisme classée — 6%
+}
+// ACRE : exonération 50% jusqu'au 30/06/2026, puis 25% à partir du 01/07/2026
+const TAUX_ACRE = {
+  ventes:          0.0615,
+  services_bic:    0.106,
+  services_bnc:    0.106,
+  liberal_ssi:     0.128,
+  liberal_cipav:   0.116,
+  lmtc:            0.030,
+}
+// Seuils 2026 (mis à jour)
+const SEUILS = {
+  tva_services:      36800,   // Franchise TVA services
+  tva_ventes:        91900,   // Franchise TVA ventes
+  plafond_services:  83600,   // Plafond micro services 2026
+  plafond_ventes:   203100,   // Plafond micro ventes 2026
+  plafond_lmtc:      15000,   // Location meublée tourisme non classé 2026
+}
 const SECTEURS = [
-  { value:'services_bnc', label:'Prestation de services (BNC) — consultant, freelance, coach…' },
-  { value:'services_bic', label:'Prestation de services (BIC) — artisan, réparation…' },
-  { value:'liberal',      label:'Profession libérale réglementée — médecin, avocat, kiné…' },
-  { value:'ventes',       label:'Vente de marchandises — e-commerce, produits…' },
+  { value:'ventes',        label:'🛍 Vente de marchandises — e-commerce, boutique, revendeur…', taux:'12,3%' },
+  { value:'services_bic',  label:'🔧 Services commerciaux/artisanaux (BIC) — artisan, réparateur, restaurateur…', taux:'21,2%' },
+  { value:'services_bnc',  label:'💼 Services (BNC) — freelance, formateur, rédacteur, photographe…', taux:'21,2%' },
+  { value:'liberal_ssi',   label:'🎓 Profession libérale non réglementée (SSI) — coach, consultant, développeur…', taux:'25,6%' },
+  { value:'liberal_cipav', label:'🏛 Profession libérale réglementée (CIPAV) — architecte, expert-comptable, géomètre…', taux:'23,2%' },
+  { value:'lmtc',          label:'🏠 Location meublée tourisme classée (LMTC) — chambre d'hôtes, gîte classé…', taux:'6%' },
 ]
 const MOIS_NOMS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
 
@@ -197,7 +222,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     const cotisations = ca*taux
     const impots_estimes = ca*tauxImpot
     const seuil_tva = profil.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services
-    const plafond = profil.secteur==='ventes'?SEUILS.plafond_ventes:SEUILS.plafond_services
+    const plafond = profil.secteur==='ventes'?SEUILS.plafond_ventes:profil.secteur==='lmtc'?SEUILS.plafond_lmtc:SEUILS.plafond_services
     const caAnnuel = revenus.slice(0,12).reduce((s,r)=>s+r.montant,0)+ca
     setCalcResult({ ca, cotisations, impots_estimes, taux, tauxImpot, a_mettre_de_cote:cotisations+impots_estimes, net_estime:ca-cotisations-impots_estimes, seuil_tva, plafond, caAnnuel, alerte_tva:caAnnuel>seuil_tva*0.85, alerte_plafond:caAnnuel>plafond*0.85 })
   }
@@ -208,7 +233,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const taux          = profil?(profil.acre?TAUX_ACRE[profil.secteur]:TAUX[profil.secteur]):0
   const cotisAnnuel   = caAnnuel*taux
   const seuil_tva     = profil?.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services
-  const plafond       = profil?.secteur==='ventes'?SEUILS.plafond_ventes:SEUILS.plafond_services
+  const plafond       = profil?.secteur==='ventes'?SEUILS.plafond_ventes:profil?.secteur==='lmtc'?SEUILS.plafond_lmtc:SEUILS.plafond_services
   const pctTVA        = Math.min((caAnnuel/seuil_tva)*100,100)
   const pctPlafond    = Math.min((caAnnuel/plafond)*100,100)
   const calendrier    = profil?genererCalendrier(profil):[]
@@ -262,10 +287,14 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               <div className="field"><label>Nom *</label><input value={oForm.nom} onChange={set('nom')} placeholder="Dupont"/></div>
               <div className="field full"><label>Activité *</label><input value={oForm.activite} onChange={set('activite')} placeholder="Plombier, graphiste freelance, coach…"/></div>
               <div className="field full">
-                <label>Secteur d'activité *</label>
+                <label>Secteur d'activité * <span style={{fontWeight:400,color:'#A89878'}}>(détermine ton taux URSSAF)</span></label>
                 <select value={oForm.secteur} onChange={set('secteur')}>
-                  {SECTEURS.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
+                  {SECTEURS.map(s=><option key={s.value} value={s.value}>{s.label} → {s.taux}</option>)}
                 </select>
+                <div style={{marginTop:6,fontSize:12,color:'#B5792A',background:'#FAF3E0',borderRadius:8,padding:'6px 10px'}}>
+                  ⚠️ Ton taux URSSAF : <strong>{TAUX[oForm.secteur]*100}%</strong>
+                  {oForm.acre && <span> → avec ACRE : <strong>{TAUX_ACRE[oForm.secteur]*100}%</strong></span>}
+                </div>
               </div>
               <div className="field"><label>Date de création *</label><input type="date" value={oForm.date_creation} onChange={set('date_creation')}/></div>
               <div className="field">
@@ -278,10 +307,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               <div className="field"><label>Objectif CA annuel (€)</label><input type="number" value={oForm.objectif_ca} onChange={set('objectif_ca')} placeholder="24000"/></div>
               <div className="field"><label>Objectif CA mensuel (€)</label><input type="number" value={oForm.objectif_ca_mensuel} onChange={set('objectif_ca_mensuel')} placeholder="2000"/></div>
               <div className="field">
-                <label>ACRE ?</label>
+                <label>ACRE ? <span style={{fontWeight:400,color:'#A89878'}}>(exonération 1ère année)</span></label>
                 <select value={oForm.acre?'oui':'non'} onChange={setBool('acre')}>
                   <option value="non">Non</option>
-                  <option value="oui">Oui</option>
+                  <option value="oui">Oui — 50% du taux (jusqu'au 30/06/2026)</option>
                 </select>
               </div>
               {oForm.acre&&<div className="field"><label>Date de fin ACRE</label><input type="date" value={oForm.acre_fin} onChange={set('acre_fin')}/></div>}
@@ -404,7 +433,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <div className="metric-card">
               <div className="metric-label">Taux URSSAF</div>
               <div className="metric-value" style={{color:'#B5792A'}}>{profil?(taux*100).toFixed(1):'—'} %</div>
-              <div className="metric-sub">{profil?.acre?'✓ ACRE actif':'Taux normal'}</div>
+              <div className="metric-sub">{profil?.acre?'✓ ACRE actif (→ 25% juil. 2026)':'Taux normal'}</div>
             </div>
             <div className="metric-card">
               <div className="metric-label">À mettre de côté</div>
