@@ -654,6 +654,36 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <div className="empty-state"><h3>Configure ton profil d'abord</h3><button className="btn btn-dark" onClick={()=>setShowOnboarding(true)}>Configurer →</button></div>
           ) : (
             <>
+              {/* Infos secteur */}
+              <div className="card" style={{marginBottom:'1rem',background:'#FAF3E0',border:'1px solid #E8D5A8'}}>
+                <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
+                  <div>
+                    <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Ton secteur</span>
+                    <span style={{fontSize:14,color:'#1C1710',fontWeight:500}}>{SECTEURS.find(s=>s.value===profil.secteur)?.label||profil.secteur}</span>
+                  </div>
+                  <div style={{display:'flex',gap:16,flexWrap:'wrap'}}>
+                    <div style={{textAlign:'center'}}>
+                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Taux URSSAF</span>
+                      <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#B5792A'}}>{(TAUX[profil.secteur]*100).toFixed(1)}%</span>
+                    </div>
+                    {profil.acre && (
+                      <div style={{textAlign:'center'}}>
+                        <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Avec ACRE</span>
+                        <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#2D7A4F'}}>{(TAUX_ACRE[profil.secteur]*100).toFixed(1)}%</span>
+                      </div>
+                    )}
+                    <div style={{textAlign:'center'}}>
+                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Taux impôt perso</span>
+                      <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#7A3A0A'}}>{profil.taux_impot_perso||14}%</span>
+                    </div>
+                    <div style={{textAlign:'center'}}>
+                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Total à prévoir</span>
+                      <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#1C1710'}}>~{((TAUX[profil.secteur]+(parseFloat(profil.taux_impot_perso)||14)/100)*100).toFixed(0)}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="card" style={{marginBottom:'1.5rem'}}>
                 <div className="card-title">Simuler un encaissement</div>
                 <div style={{display:'flex',gap:12,alignItems:'flex-end',flexWrap:'wrap'}}>
@@ -663,24 +693,47 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   </div>
                   <button className="btn btn-dark" style={{padding:'12px 24px'}} onClick={calculer}>Calculer →</button>
                 </div>
+                <div style={{marginTop:10,fontSize:12,color:'#A89878'}}>
+                  Les calculs utilisent ton secteur et taux personnalisés du profil. <button className="link-btn" onClick={()=>setShowOnboarding(true)}>Modifier mon profil →</button>
+                </div>
               </div>
+
               {calcResult && (
                 <div className="calc-result">
                   <div className="calc-grid">
                     <div className="calc-card main-card"><div className="calc-label">CA encaissé</div><div className="calc-big">{calcResult.ca.toLocaleString('fr-FR')} €</div></div>
-                    <div className="calc-card red-card"><div className="calc-label">URSSAF à payer ({(calcResult.taux*100).toFixed(1)}%)</div><div className="calc-big">{calcResult.cotisations.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div><div className="calc-sub">À déclarer sur autoentrepreneur.urssaf.fr</div></div>
-                    <div className="calc-card orange-card"><div className="calc-label">Impôts estimés ({profil.taux_impot_perso||14}%)</div><div className="calc-big">{calcResult.impots_estimes.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div><div className="calc-sub">Basé sur ton taux perso dans le profil</div></div>
-                    <div className="calc-card amber-card"><div className="calc-label">Total à mettre de côté</div><div className="calc-big">{calcResult.a_mettre_de_cote.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div><div className="calc-sub">{((calcResult.taux+calcResult.tauxImpot)*100).toFixed(0)}% du CA</div></div>
-                    <div className="calc-card green-card"><div className="calc-label">Net estimé (ce qui reste)</div><div className="calc-big">{calcResult.net_estime.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div><div className="calc-sub">Après URSSAF et impôts</div></div>
+                    <div className="calc-card red-card">
+                      <div className="calc-label">URSSAF ({(calcResult.taux*100).toFixed(1)}%{profil.acre?' — ACRE':' — taux normal'})</div>
+                      <div className="calc-big">{calcResult.cotisations.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                      <div className="calc-sub">À déclarer sur autoentrepreneur.urssaf.fr</div>
+                    </div>
+                    <div className="calc-card orange-card">
+                      <div className="calc-label">Impôts ({profil.taux_impot_perso||14}% — taux perso)</div>
+                      <div className="calc-big">{calcResult.impots_estimes.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                      <div className="calc-sub">Estimation — varie selon ta situation fiscale</div>
+                    </div>
+                    <div className="calc-card amber-card">
+                      <div className="calc-label">Total à mettre de côté</div>
+                      <div className="calc-big">{calcResult.a_mettre_de_cote.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                      <div className="calc-sub">{((calcResult.taux+calcResult.tauxImpot)*100).toFixed(0)}% du CA</div>
+                    </div>
+                    <div className="calc-card green-card">
+                      <div className="calc-label">Net estimé (ce qui reste)</div>
+                      <div className="calc-big">{calcResult.net_estime.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                      <div className="calc-sub">Après URSSAF et impôts estimés</div>
+                    </div>
                   </div>
                   {(calcResult.alerte_tva||calcResult.alerte_plafond)&&(
                     <div style={{marginTop:'1rem'}}>
-                      {calcResult.alerte_tva&&<div className="seuil-alert">⚠️ Attention : avec ce CA annuel estimé ({calcResult.caAnnuel.toLocaleString('fr-FR')} €), tu approches du seuil de TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €).</div>}
-                      {calcResult.alerte_plafond&&<div className="seuil-alert" style={{marginTop:8}}>⚠️ Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €). Consulte un comptable.</div>}
+                      {calcResult.alerte_tva&&<div className="seuil-alert">⚠️ Attention : avec ce CA annuel estimé ({calcResult.caAnnuel.toLocaleString('fr-FR')} €), tu approches du seuil de TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €). Renseigne-toi sur tes obligations TVA.</div>}
+                      {calcResult.alerte_plafond&&<div className="seuil-alert" style={{marginTop:8}}>⚠️ Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €). Au-delà tu bascules au régime réel — consulte un comptable.</div>}
                     </div>
                   )}
                   <div className="info-box" style={{marginTop:'1rem'}}>
-                    <div className="info-text">💡 <strong>Conseil :</strong> Dès que tu reçois un virement client, mets <strong>{((calcResult.taux+calcResult.tauxImpot)*100).toFixed(0)}%</strong> de côté immédiatement sur un compte séparé. Tu ne seras jamais pris au dépourvu.</div>
+                    <div className="info-text">💡 <strong>Conseil :</strong> Dès que tu encaisses un paiement client, mets <strong>{((calcResult.taux+calcResult.tauxImpot)*100).toFixed(0)}%</strong> de côté immédiatement sur un compte séparé. Tu ne seras jamais pris au dépourvu.</div>
+                  </div>
+                  <div style={{marginTop:8,fontSize:11,color:'#A89878',lineHeight:1.6}}>
+                    ⚠️ <strong>Avertissement :</strong> Ces calculs sont des estimations basées sur les taux officiels URSSAF 2025/2026. Le taux d'imposition réel dépend de ta situation fiscale globale. Ces informations ne constituent pas un conseil comptable ou fiscal. En cas de doute, consulte un expert-comptable.
                   </div>
                 </div>
               )}
