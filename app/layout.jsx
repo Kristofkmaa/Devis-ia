@@ -1,7 +1,7 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'DevisIA — Générateur de devis professionnel',
+  title: 'Serelyo — Ton copilote administratif',
   description: 'Créez des devis et factures en quelques secondes grâce à l\'IA',
 }
 
