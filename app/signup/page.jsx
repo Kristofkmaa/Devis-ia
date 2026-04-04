@@ -47,7 +47,7 @@ export default function Signup() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <div style={styles.logo}>Serelyo</div>
+        <div style={styles.logo}>Devis<em style={{ color: '#E8D5A8', fontStyle: 'normal' }}>IA</em></div>
         <h1 style={styles.title}>Créer un compte</h1>
         <p style={styles.sub}>Gratuit pour démarrer, sans carte bancaire</p>
 
