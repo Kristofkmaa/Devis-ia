@@ -25,7 +25,7 @@ export default function Login() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <div style={styles.logo}>Devis<em style={{ color: '#E8D5A8', fontStyle: 'normal' }}>IA</em>
+        <div style={styles.logo}>Serelyo
         <h1 style={styles.title}>Connexion</h1>
         <p style={styles.sub}>Bon retour 👋</p>
 
