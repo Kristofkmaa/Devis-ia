@@ -139,10 +139,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   }
 
   const saveRevenu = async () => {
-    if (!revMois||!revMontant) return
+    if (!revMois||!revMontant) { alert('Remplis le mois et le montant'); return }
     setSavingRev(true)
     const data = { user_id:user.id, mois:revMois, montant:parseFloat(revMontant)||0 }
-    await supabase.from('ae_revenus').upsert(data,{onConflict:'user_id,mois'})
+    const { error } = await supabase.from('ae_revenus').upsert(data,{onConflict:'user_id,mois'})
+    if (error) { alert('Erreur Supabase : '+error.message); setSavingRev(false); return }
     setRevenus(prev=>[data,...prev.filter(r=>r.mois!==revMois)].sort((a,b)=>b.mois.localeCompare(a.mois)))
     setRevMois(''); setRevMontant(''); setSavingRev(false)
   }
