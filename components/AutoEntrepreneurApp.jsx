@@ -86,9 +86,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [reponse, setReponse]       = useState('')
   const [asking, setAsking]         = useState(false)
   const [histoQ, setHistoQ]         = useState([])
-  const [revMois, setRevMois]       = useState('')
+  const [revMoisNum, setRevMoisNum] = useState(String(new Date().getMonth()+1).padStart(2,'0'))
+  const [revAnnee, setRevAnnee]     = useState(String(new Date().getFullYear()))
   const [revMontant, setRevMontant] = useState('')
   const [savingRev, setSavingRev]   = useState(false)
+  const [histoAnnee, setHistoAnnee] = useState(String(new Date().getFullYear()))
 
   useEffect(() => { if (user) loadAll() }, [user])
 
@@ -139,31 +141,24 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   }
 
   const saveRevenu = async () => {
-  if (!revMois || !revMontant) { alert('Remplis le mois et le montant'); return }
-  setSavingRev(true)
-  const montant = parseFloat(revMontant) || 0
-
-  // Vérifier si ce mois existe déjà
-  const { data: existing } = await supabase
-    .from('ae_revenus')
-    .select('id')
-    .eq('user_id', user.id)
-    .eq('mois', revMois)
-    .single()
-
-  let error
-  if (existing) {
-    const res = await supabase.from('ae_revenus').update({ montant }).eq('id', existing.id)
-    error = res.error
-  } else {
-    const res = await supabase.from('ae_revenus').insert({ user_id: user.id, mois: revMois, montant })
-    error = res.error
+    if (!revMontant) { alert('Remplis le montant'); return }
+    const moisKey = revAnnee + '-' + revMoisNum
+    setSavingRev(true)
+    // Vérifier si ce mois existe déjà
+    const { data: existing } = await supabase.from('ae_revenus').select('id').eq('user_id',user.id).eq('mois',moisKey).single()
+    let error
+    if (existing) {
+      const res = await supabase.from('ae_revenus').update({ montant: parseFloat(revMontant)||0 }).eq('id',existing.id)
+      error = res.error
+    } else {
+      const res = await supabase.from('ae_revenus').insert({ user_id:user.id, mois:moisKey, montant:parseFloat(revMontant)||0 })
+      error = res.error
+    }
+    if (error) { alert('Erreur : '+error.message); setSavingRev(false); return }
+    const newEntry = { user_id:user.id, mois:moisKey, montant:parseFloat(revMontant)||0 }
+    setRevenus(prev=>[newEntry,...prev.filter(r=>r.mois!==moisKey)].sort((a,b)=>b.mois.localeCompare(a.mois)))
+    setRevMontant(''); setSavingRev(false)
   }
-
-  if (error) { alert('Erreur : ' + error.message); setSavingRev(false); return }
-  setRevenus(prev => [{ user_id: user.id, mois: revMois, montant }, ...prev.filter(r => r.mois !== revMois)].sort((a, b) => b.mois.localeCompare(a.mois)))
-  setRevMois(''); setRevMontant(''); setSavingRev(false)
-}
 
   const marquerDeclaration = async (periode, type, statut) => {
     const data = { user_id:user.id, periode, type_periode:type, statut, date_limite:getDateLimite(periode,type), date_declaration:statut==='faite'?new Date().toLocaleDateString('fr-FR'):null, ca_declare:0 }
@@ -500,43 +495,102 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <h2 className="page-title">Mes revenus</h2>
             <p className="page-sub">Saisir ton chiffre d'affaires mois par mois</p>
           </div>
+
+          {/* Formulaire saisie */}
           <div className="card" style={{marginBottom:'1.5rem'}}>
-            <div className="card-title">Ajouter / modifier un mois</div>
-            <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'flex-end'}}>
-              <div><span className="mini-label">Mois</span><input className="mini-input" type="month" value={revMois} onChange={e=>setRevMois(e.target.value)}/></div>
-              <div><span className="mini-label">CA encaissé (€ HT)</span><input className="mini-input" type="number" value={revMontant} onChange={e=>setRevMontant(e.target.value)} placeholder="3 500" style={{width:160}}/></div>
-              <button className="btn btn-dark" onClick={saveRevenu} disabled={savingRev}>{savingRev?'Sauvegarde…':'Enregistrer →'}</button>
+            <div className="card-title">Saisir un mois</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr auto',gap:12,alignItems:'flex-end',flexWrap:'wrap'}}>
+              <div>
+                <span className="mini-label">Mois</span>
+                <select className="mini-input" value={revMoisNum} onChange={e=>setRevMoisNum(e.target.value)}>
+                  {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m,i)=>(
+                    <option key={m} value={m}>{['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][i]}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <span className="mini-label">Année</span>
+                <select className="mini-input" value={revAnnee} onChange={e=>setRevAnnee(e.target.value)}>
+                  {[year-2, year-1, year, year+1].map(y=>(
+                    <option key={y} value={String(y)}>{y}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <span className="mini-label">CA encaissé (€ HT)</span>
+                <input className="mini-input" type="number" value={revMontant}
+                  onChange={e=>setRevMontant(e.target.value)}
+                  onKeyDown={e=>e.key==='Enter'&&saveRevenu()}
+                  placeholder="3 500"/>
+              </div>
+              <button className="btn btn-dark" onClick={saveRevenu} disabled={savingRev} style={{whiteSpace:'nowrap'}}>
+                {savingRev?'Sauvegarde…':'Enregistrer →'}
+              </button>
+            </div>
+            <div style={{marginTop:10,fontSize:12,color:'#A89878'}}>
+              Tu saisis pour : <strong style={{color:'#1C1710'}}>{['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][parseInt(revMoisNum)-1]} {revAnnee}</strong>
             </div>
           </div>
+
+          {/* Historique */}
           <div className="card">
-            <div className="card-title">Historique {year}</div>
-            {revenus.filter(r=>r.mois.startsWith(String(year))).length===0
-              ? <p style={{fontSize:13,color:'#A89878',padding:'1rem 0'}}>Aucun revenu saisi pour {year}.</p>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:8}}>
+              <div className="card-title" style={{marginBottom:0}}>Historique</div>
+              <select className="mini-input" style={{width:'auto'}} value={histoAnnee} onChange={e=>setHistoAnnee(e.target.value)}>
+                {[year-2, year-1, year, year+1].map(y=>(
+                  <option key={y} value={String(y)}>{y}</option>
+                ))}
+              </select>
+            </div>
+            {revenus.filter(r=>r.mois.startsWith(histoAnnee)).length===0
+              ? <p style={{fontSize:13,color:'#A89878',padding:'1rem 0'}}>Aucun revenu saisi pour {histoAnnee}.</p>
               : (
-                <table className="rev-table">
-                  <thead><tr><th>Mois</th><th>CA</th><th>URSSAF ({(taux*100).toFixed(1)}%)</th><th>Impôts (~{profil?.taux_impot_perso||14}%)</th><th>Net estimé</th></tr></thead>
-                  <tbody>
-                    {revenus.filter(r=>r.mois.startsWith(String(year))).map(r=>{
-                      const cotis=r.montant*taux, impots=r.montant*tauxImpot, net=r.montant-cotis-impots
-                      return (
-                        <tr key={r.mois}>
-                          <td>{formatMois(r.mois)}</td>
-                          <td><strong>{r.montant.toLocaleString('fr-FR')} €</strong></td>
-                          <td style={{color:'#8B1A1A'}}>{cotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                          <td style={{color:'#7A3A0A'}}>{impots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                          <td style={{color:'#2D7A4F',fontWeight:600}}>{net.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                        </tr>
-                      )
-                    })}
-                    <tr className="rev-total">
-                      <td>Total {year}</td>
-                      <td>{caAnnuel.toLocaleString('fr-FR')} €</td>
-                      <td style={{color:'#8B1A1A'}}>{(caAnnuel*taux).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                      <td style={{color:'#7A3A0A'}}>{(caAnnuel*tauxImpot).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                      <td style={{color:'#2D7A4F'}}>{(caAnnuel*(1-taux-tauxImpot)).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <>
+                  <table className="rev-table">
+                    <thead>
+                      <tr>
+                        <th>Mois</th>
+                        <th>CA</th>
+                        <th>URSSAF ({(taux*100).toFixed(1)}%)</th>
+                        <th>Impôts ({profil?.taux_impot_perso||14}%)</th>
+                        <th>Net estimé</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {revenus.filter(r=>r.mois.startsWith(histoAnnee)).map(r=>{
+                        const cotis=r.montant*taux, impots=r.montant*tauxImpot, net=r.montant-cotis-impots
+                        return (
+                          <tr key={r.mois}>
+                            <td>{formatMois(r.mois)}</td>
+                            <td><strong>{r.montant.toLocaleString('fr-FR')} €</strong></td>
+                            <td style={{color:'#8B1A1A'}}>{cotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                            <td style={{color:'#7A3A0A'}}>{impots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                            <td style={{color:'#2D7A4F',fontWeight:600}}>{net.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                            <td>
+                              <button style={{background:'none',border:'none',cursor:'pointer',color:'#A89878',fontSize:16}} onClick={async()=>{
+                                if(!confirm('Supprimer ce mois ?')) return
+                                const {data:ex} = await supabase.from('ae_revenus').select('id').eq('user_id',user.id).eq('mois',r.mois).single()
+                                if(ex) await supabase.from('ae_revenus').delete().eq('id',ex.id)
+                                setRevenus(prev=>prev.filter(x=>x.mois!==r.mois))
+                              }}>🗑</button>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr className="rev-total">
+                        <td>Total {histoAnnee}</td>
+                        <td>{revenus.filter(r=>r.mois.startsWith(histoAnnee)).reduce((s,r)=>s+r.montant,0).toLocaleString('fr-FR')} €</td>
+                        <td style={{color:'#8B1A1A'}}>{(revenus.filter(r=>r.mois.startsWith(histoAnnee)).reduce((s,r)=>s+r.montant,0)*taux).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                        <td style={{color:'#7A3A0A'}}>{(revenus.filter(r=>r.mois.startsWith(histoAnnee)).reduce((s,r)=>s+r.montant,0)*tauxImpot).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                        <td style={{color:'#2D7A4F'}}>{(revenus.filter(r=>r.mois.startsWith(histoAnnee)).reduce((s,r)=>s+r.montant,0)*(1-taux-tauxImpot)).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </>
               )
             }
           </div>
