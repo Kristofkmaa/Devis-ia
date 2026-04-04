@@ -17,6 +17,17 @@ const TAUX_ACRE = {
   ventes: 0.0615,
 }
 
+/**
+ * Valeurs par défaut dans l'app.
+ * Si tu veux des calculs plus personnalisés, utilise taux_impot_personnalise dans le profil.
+ */
+const TAUX_VL = {
+  services_bnc: 0.022,
+  services_bic: 0.017,
+  liberal: 0.022,
+  ventes: 0.01,
+}
+
 const SEUILS = {
   tva_services: 36800,
   tva_ventes: 91900,
@@ -167,6 +178,26 @@ const defaultForm = {
   acre: false,
   acre_fin: '',
   objectif_ca: '',
+
+  versement_liberatoire: false,
+  taux_impot_personnalise: '',
+
+  tva_actif: false,
+  numero_tva: '',
+  regime_tva: 'franchise_base',
+
+  iban: '',
+  compte_dedie: false,
+
+  revenu_type: 'irrégulier',
+  objectif_mensuel: '',
+  objectif_type: 'complément_revenu',
+
+  statut_complementaire: 'aucun',
+  niveau_experience: 'debutant',
+
+  prix_moyen_prestation: '',
+  clients_mois: '',
 }
 
 export default function AutoEntrepreneurApp({ user, onLogout }) {
@@ -203,6 +234,26 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     acre: Boolean(p?.acre),
     acre_fin: p?.acre_fin || '',
     objectif_ca: p?.objectif_ca ?? '',
+
+    versement_liberatoire: Boolean(p?.versement_liberatoire),
+    taux_impot_personnalise: p?.taux_impot_personnalise ?? '',
+
+    tva_actif: Boolean(p?.tva_actif),
+    numero_tva: p?.numero_tva || '',
+    regime_tva: p?.regime_tva || 'franchise_base',
+
+    iban: p?.iban || '',
+    compte_dedie: Boolean(p?.compte_dedie),
+
+    revenu_type: p?.revenu_type || 'irrégulier',
+    objectif_mensuel: p?.objectif_mensuel ?? '',
+    objectif_type: p?.objectif_type || 'complément_revenu',
+
+    statut_complementaire: p?.statut_complementaire || 'aucun',
+    niveau_experience: p?.niveau_experience || 'debutant',
+
+    prix_moyen_prestation: p?.prix_moyen_prestation ?? '',
+    clients_mois: p?.clients_mois ?? '',
   })
 
   const loadAll = useCallback(async () => {
@@ -211,53 +262,17 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     setLoading(true)
 
     try {
-      const [
-        profileRes,
-        revenusRes,
-        declarationsRes,
-        questionsRes,
-      ] = await Promise.all([
-        supabase
-          .from('ae_profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle(),
-
-        supabase
-          .from('ae_revenus')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('mois', { ascending: false }),
-
-        supabase
-          .from('ae_declarations')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false }),
-
-        supabase
-          .from('ae_questions')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(20),
+      const [profileRes, revenusRes, declarationsRes, questionsRes] = await Promise.all([
+        supabase.from('ae_profiles').select('*').eq('user_id', user.id).maybeSingle(),
+        supabase.from('ae_revenus').select('*').eq('user_id', user.id).order('mois', { ascending: false }),
+        supabase.from('ae_declarations').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('ae_questions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
       ])
 
-      if (profileRes.error) {
-        console.error('Erreur chargement profil:', profileRes.error)
-      }
-
-      if (revenusRes.error) {
-        console.error('Erreur chargement revenus:', revenusRes.error)
-      }
-
-      if (declarationsRes.error) {
-        console.error('Erreur chargement déclarations:', declarationsRes.error)
-      }
-
-      if (questionsRes.error) {
-        console.error('Erreur chargement questions:', questionsRes.error)
-      }
+      if (profileRes.error) console.error('Erreur chargement profil:', profileRes.error)
+      if (revenusRes.error) console.error('Erreur chargement revenus:', revenusRes.error)
+      if (declarationsRes.error) console.error('Erreur chargement déclarations:', declarationsRes.error)
+      if (questionsRes.error) console.error('Erreur chargement questions:', questionsRes.error)
 
       const p = profileRes.data
 
@@ -283,9 +298,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   }, [supabase, user])
 
   useEffect(() => {
-    if (user?.id) {
-      loadAll()
-    }
+    if (user?.id) loadAll()
   }, [user?.id, loadAll])
 
   const saveProfil = async () => {
@@ -313,6 +326,29 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
         acre: Boolean(oForm.acre),
         acre_fin: oForm.acre ? (oForm.acre_fin || null) : null,
         objectif_ca: parseFloat(oForm.objectif_ca) || 0,
+
+        versement_liberatoire: Boolean(oForm.versement_liberatoire),
+        taux_impot_personnalise:
+          oForm.taux_impot_personnalise === ''
+            ? null
+            : parseFloat(oForm.taux_impot_personnalise),
+
+        tva_actif: Boolean(oForm.tva_actif),
+        numero_tva: oForm.tva_actif ? (oForm.numero_tva || null) : null,
+        regime_tva: oForm.regime_tva,
+
+        iban: oForm.iban || null,
+        compte_dedie: Boolean(oForm.compte_dedie),
+
+        revenu_type: oForm.revenu_type,
+        objectif_mensuel: parseFloat(oForm.objectif_mensuel) || 0,
+        objectif_type: oForm.objectif_type,
+
+        statut_complementaire: oForm.statut_complementaire,
+        niveau_experience: oForm.niveau_experience,
+
+        prix_moyen_prestation: parseFloat(oForm.prix_moyen_prestation) || 0,
+        clients_mois: parseInt(oForm.clients_mois || '0', 10) || 0,
       }
 
       const { data: saved, error } = await supabase
@@ -439,9 +475,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           return
         }
 
-        if (inserted) {
-          setDecl((prev) => [inserted, ...prev])
-        }
+        if (inserted) setDecl((prev) => [inserted, ...prev])
       }
     } catch (err) {
       console.error('Erreur marquerDeclaration:', err)
@@ -479,13 +513,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           .select()
           .single()
 
-        if (error) {
-          console.error('Erreur sauvegarde question:', error)
-        }
-
-        if (saved) {
-          setHistoQ((prev) => [saved, ...prev.slice(0, 19)])
-        }
+        if (error) console.error('Erreur sauvegarde question:', error)
+        if (saved) setHistoQ((prev) => [saved, ...prev.slice(0, 19)])
       } else {
         setReponse("Je n'ai pas pu générer de réponse.")
       }
@@ -501,18 +530,31 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     const ca = parseFloat(calcCA) || 0
     if (!ca || !profil) return
 
-    const taux = profil.acre ? TAUX_ACRE[profil.secteur] : TAUX[profil.secteur]
-    const cotisations = ca * taux
-    const impots_estimes = ca * 0.14
+    const tauxUrssaf = profil.acre ? TAUX_ACRE[profil.secteur] : TAUX[profil.secteur]
+    const cotisations = ca * tauxUrssaf
+
+    let tauxImpot = 0.14
+    if (profil.versement_liberatoire) {
+      tauxImpot = TAUX_VL[profil.secteur] || 0
+    } else if (profil.taux_impot_personnalise !== null && profil.taux_impot_personnalise !== undefined) {
+      if (Number(profil.taux_impot_personnalise) > 0) {
+        tauxImpot = Number(profil.taux_impot_personnalise) / 100
+      }
+    }
+
+    const impots_estimes = ca * tauxImpot
     const seuil_tva = profil.secteur === 'ventes' ? SEUILS.tva_ventes : SEUILS.tva_services
     const plafond = profil.secteur === 'ventes' ? SEUILS.plafond_ventes : SEUILS.plafond_services
-    const caAnnuel = revenus.slice(0, 12).reduce((s, r) => s + r.montant, 0) + ca
+    const caAnnuel = revenus
+      .filter((r) => r.mois.startsWith(String(getNow().year)))
+      .reduce((s, r) => s + r.montant, 0) + ca
 
     setCalcResult({
       ca,
       cotisations,
       impots_estimes,
-      taux,
+      tauxUrssaf,
+      tauxImpot,
       a_mettre_de_cote: cotisations + impots_estimes,
       net_estime: ca - cotisations - impots_estimes,
       seuil_tva,
@@ -531,14 +573,27 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const caMois =
     revenus.find((r) => r.mois === `${year}-${String(month).padStart(2, '0')}`)?.montant || 0
 
-  const taux = profil ? (profil.acre ? TAUX_ACRE[profil.secteur] : TAUX[profil.secteur]) : 0
-  const cotisAnnuel = caAnnuel * taux
+  const tauxUrssaf = profil ? (profil.acre ? TAUX_ACRE[profil.secteur] : TAUX[profil.secteur]) : 0
+
+  let tauxImpotDashboard = 0.14
+  if (profil?.versement_liberatoire) {
+    tauxImpotDashboard = TAUX_VL[profil.secteur] || 0
+  } else if (profil?.taux_impot_personnalise) {
+    tauxImpotDashboard = Number(profil.taux_impot_personnalise) / 100
+  }
+
+  const cotisAnnuel = caAnnuel * tauxUrssaf
   const seuil_tva = profil?.secteur === 'ventes' ? SEUILS.tva_ventes : SEUILS.tva_services
   const plafond = profil?.secteur === 'ventes' ? SEUILS.plafond_ventes : SEUILS.plafond_services
   const pctTVA = seuil_tva ? Math.min((caAnnuel / seuil_tva) * 100, 100) : 0
   const pctPlafond = plafond ? Math.min((caAnnuel / plafond) * 100, 100) : 0
   const calendrier = profil ? genererCalendrier(profil) : []
   const prochaineDecl = calendrier.find((e) => !e.past && !e.special)
+
+  const objectifMensuel = Number(profil?.objectif_mensuel || 0)
+  const prixMoyen = Number(profil?.prix_moyen_prestation || 0)
+  const clientsMois = Number(profil?.clients_mois || 0)
+  const projectionMensuelle = prixMoyen * clientsMois
 
   if (loading) {
     return (
@@ -605,107 +660,202 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             }
           }}
         >
-          <div className="modal" style={{ maxWidth: 560 }}>
+          <div className="modal" style={{ maxWidth: 860 }}>
             <div className="modal-title">{profil ? 'Mon profil' : 'Bienvenue ! Configurons ton profil 👋'}</div>
             <p className="modal-sub">
-              {profil
-                ? 'Modifie tes informations ci-dessous.'
-                : 'Ces infos permettent de personnaliser tes rappels et calculs.'}
+              Plus ton profil est complet, plus les calculs, alertes et réponses IA seront utiles.
             </p>
 
+            <div className="section-title">Informations de base</div>
             <div className="form-grid">
               <div className="field">
                 <label>Prénom *</label>
-                <input
-                  value={oForm.prenom}
-                  onChange={(e) => setOForm((p) => ({ ...p, prenom: e.target.value }))}
-                  placeholder="Sophie"
-                />
+                <input value={oForm.prenom} onChange={(e) => setOForm((p) => ({ ...p, prenom: e.target.value }))} placeholder="Sophie" />
               </div>
 
               <div className="field">
                 <label>Nom *</label>
-                <input
-                  value={oForm.nom}
-                  onChange={(e) => setOForm((p) => ({ ...p, nom: e.target.value }))}
-                  placeholder="Martin"
-                />
+                <input value={oForm.nom} onChange={(e) => setOForm((p) => ({ ...p, nom: e.target.value }))} placeholder="Martin" />
               </div>
 
               <div className="field full">
                 <label>Activité *</label>
-                <input
-                  value={oForm.activite}
-                  onChange={(e) => setOForm((p) => ({ ...p, activite: e.target.value }))}
-                  placeholder="Développeuse web freelance, graphiste, plombier…"
-                />
+                <input value={oForm.activite} onChange={(e) => setOForm((p) => ({ ...p, activite: e.target.value }))} placeholder="Développeuse web freelance, graphiste, plombier…" />
               </div>
 
               <div className="field full">
                 <label>Secteur d'activité *</label>
-                <select
-                  value={oForm.secteur}
-                  onChange={(e) => setOForm((p) => ({ ...p, secteur: e.target.value }))}
-                >
+                <select value={oForm.secteur} onChange={(e) => setOForm((p) => ({ ...p, secteur: e.target.value }))}>
                   {SECTEURS.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
+                    <option key={s.value} value={s.value}>{s.label}</option>
                   ))}
                 </select>
               </div>
 
               <div className="field">
                 <label>Date de création *</label>
-                <input
-                  type="date"
-                  value={oForm.date_creation}
-                  onChange={(e) => setOForm((p) => ({ ...p, date_creation: e.target.value }))}
-                />
+                <input type="date" value={oForm.date_creation} onChange={(e) => setOForm((p) => ({ ...p, date_creation: e.target.value }))} />
               </div>
 
               <div className="field">
                 <label>Régime déclaration URSSAF</label>
-                <select
-                  value={oForm.regime_declaration}
-                  onChange={(e) => setOForm((p) => ({ ...p, regime_declaration: e.target.value }))}
-                >
+                <select value={oForm.regime_declaration} onChange={(e) => setOForm((p) => ({ ...p, regime_declaration: e.target.value }))}>
                   <option value="mensuel">Mensuel</option>
-                  <option value="trimestriel">Trimestriel (défaut)</option>
+                  <option value="trimestriel">Trimestriel</option>
                 </select>
               </div>
 
               <div className="field">
                 <label>Objectif CA annuel (€)</label>
-                <input
-                  type="number"
-                  value={oForm.objectif_ca}
-                  onChange={(e) => setOForm((p) => ({ ...p, objectif_ca: e.target.value }))}
-                  placeholder="30000"
-                />
+                <input type="number" value={oForm.objectif_ca} onChange={(e) => setOForm((p) => ({ ...p, objectif_ca: e.target.value }))} placeholder="30000" />
               </div>
 
               <div className="field">
-                <label>ACRE (exonération 1ère année) ?</label>
-                <select
-                  value={oForm.acre ? 'oui' : 'non'}
-                  onChange={(e) => setOForm((p) => ({ ...p, acre: e.target.value === 'oui' }))}
-                >
+                <label>Objectif CA mensuel (€)</label>
+                <input type="number" value={oForm.objectif_mensuel} onChange={(e) => setOForm((p) => ({ ...p, objectif_mensuel: e.target.value }))} placeholder="2500" />
+              </div>
+
+              <div className="field">
+                <label>ACRE ?</label>
+                <select value={oForm.acre ? 'oui' : 'non'} onChange={(e) => setOForm((p) => ({ ...p, acre: e.target.value === 'oui' }))}>
                   <option value="non">Non</option>
                   <option value="oui">Oui</option>
                 </select>
               </div>
 
               {oForm.acre && (
-                <div className="field full">
+                <div className="field">
                   <label>Date de fin ACRE</label>
+                  <input type="date" value={oForm.acre_fin} onChange={(e) => setOForm((p) => ({ ...p, acre_fin: e.target.value }))} />
+                </div>
+              )}
+            </div>
+
+            <div className="section-title">Fiscalité & TVA</div>
+            <div className="form-grid">
+              <div className="field">
+                <label>Versement libératoire</label>
+                <select
+                  value={oForm.versement_liberatoire ? 'oui' : 'non'}
+                  onChange={(e) => setOForm((p) => ({ ...p, versement_liberatoire: e.target.value === 'oui' }))}
+                >
+                  <option value="non">Non</option>
+                  <option value="oui">Oui</option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label>Taux d'impôt perso (%)</label>
+                <input
+                  type="number"
+                  value={oForm.taux_impot_personnalise}
+                  onChange={(e) => setOForm((p) => ({ ...p, taux_impot_personnalise: e.target.value }))}
+                  placeholder="14"
+                />
+              </div>
+
+              <div className="field">
+                <label>TVA active ?</label>
+                <select
+                  value={oForm.tva_actif ? 'oui' : 'non'}
+                  onChange={(e) => setOForm((p) => ({ ...p, tva_actif: e.target.value === 'oui' }))}
+                >
+                  <option value="non">Non</option>
+                  <option value="oui">Oui</option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label>Régime TVA</label>
+                <select
+                  value={oForm.regime_tva}
+                  onChange={(e) => setOForm((p) => ({ ...p, regime_tva: e.target.value }))}
+                >
+                  <option value="franchise_base">Franchise en base</option>
+                  <option value="reel_simplifie">Réel simplifié</option>
+                  <option value="reel_normal">Réel normal</option>
+                </select>
+              </div>
+
+              {oForm.tva_actif && (
+                <div className="field full">
+                  <label>Numéro de TVA</label>
                   <input
-                    type="date"
-                    value={oForm.acre_fin}
-                    onChange={(e) => setOForm((p) => ({ ...p, acre_fin: e.target.value }))}
+                    value={oForm.numero_tva}
+                    onChange={(e) => setOForm((p) => ({ ...p, numero_tva: e.target.value }))}
+                    placeholder="FRXX999999999"
                   />
                 </div>
               )}
+            </div>
+
+            <div className="section-title">Banque & organisation</div>
+            <div className="form-grid">
+              <div className="field">
+                <label>Compte bancaire dédié ?</label>
+                <select
+                  value={oForm.compte_dedie ? 'oui' : 'non'}
+                  onChange={(e) => setOForm((p) => ({ ...p, compte_dedie: e.target.value === 'oui' }))}
+                >
+                  <option value="non">Non</option>
+                  <option value="oui">Oui</option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label>IBAN</label>
+                <input value={oForm.iban} onChange={(e) => setOForm((p) => ({ ...p, iban: e.target.value }))} placeholder="FR76..." />
+              </div>
+            </div>
+
+            <div className="section-title">Objectifs & activité</div>
+            <div className="form-grid">
+              <div className="field">
+                <label>Revenus</label>
+                <select value={oForm.revenu_type} onChange={(e) => setOForm((p) => ({ ...p, revenu_type: e.target.value }))}>
+                  <option value="régulier">Réguliers</option>
+                  <option value="irrégulier">Irréguliers</option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label>Objectif</label>
+                <select value={oForm.objectif_type} onChange={(e) => setOForm((p) => ({ ...p, objectif_type: e.target.value }))}>
+                  <option value="complément_revenu">Complément de revenu</option>
+                  <option value="activité_principale">Activité principale</option>
+                  <option value="croissance">Croissance</option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label>Statut complémentaire</label>
+                <select value={oForm.statut_complementaire} onChange={(e) => setOForm((p) => ({ ...p, statut_complementaire: e.target.value }))}>
+                  <option value="aucun">Aucun</option>
+                  <option value="salarié">Salarié en parallèle</option>
+                  <option value="chomage">Chômage / ARE</option>
+                  <option value="étudiant">Étudiant</option>
+                  <option value="retraite">Retraite</option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label>Niveau</label>
+                <select value={oForm.niveau_experience} onChange={(e) => setOForm((p) => ({ ...p, niveau_experience: e.target.value }))}>
+                  <option value="debutant">Débutant</option>
+                  <option value="intermediaire">Intermédiaire</option>
+                  <option value="confirme">Confirmé</option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label>Prix moyen prestation (€)</label>
+                <input type="number" value={oForm.prix_moyen_prestation} onChange={(e) => setOForm((p) => ({ ...p, prix_moyen_prestation: e.target.value }))} placeholder="250" />
+              </div>
+
+              <div className="field">
+                <label>Clients / mois</label>
+                <input type="number" value={oForm.clients_mois} onChange={(e) => setOForm((p) => ({ ...p, clients_mois: e.target.value }))} placeholder="8" />
+              </div>
             </div>
 
             <div className="modal-actions">
@@ -745,7 +895,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               <div className="metric-label">CA ce mois</div>
               <div className="metric-value">{caMois.toLocaleString('fr-FR')} €</div>
               <div className="metric-sub">
-                Cotisations : ~{(caMois * taux).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                Cotisations : ~{(caMois * tauxUrssaf).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
               </div>
             </div>
 
@@ -760,7 +910,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <div className="metric-card">
               <div className="metric-label">Taux URSSAF</div>
               <div className="metric-value" style={{ color: '#B5792A' }}>
-                {profil ? (taux * 100).toFixed(1) : '—'} %
+                {profil ? (tauxUrssaf * 100).toFixed(1) : '—'} %
               </div>
               <div className="metric-sub">{profil?.acre ? '✓ ACRE actif' : 'Taux normal'}</div>
             </div>
@@ -768,9 +918,51 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <div className="metric-card">
               <div className="metric-label">À mettre de côté</div>
               <div className="metric-value" style={{ color: '#2D7A4F' }}>
-                {(caMois * (taux + 0.14)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                {(caMois * (tauxUrssaf + tauxImpotDashboard)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
               </div>
-              <div className="metric-sub">URSSAF + impôts estimés</div>
+              <div className="metric-sub">
+                {profil?.versement_liberatoire ? 'URSSAF + versement libératoire' : 'URSSAF + impôts estimés'}
+              </div>
+            </div>
+          </div>
+
+          <div className="metrics-grid" style={{ marginTop: '-0.25rem' }}>
+            <div className="metric-card">
+              <div className="metric-label">Objectif mensuel</div>
+              <div className="metric-value">{objectifMensuel.toLocaleString('fr-FR')} €</div>
+              <div className="metric-sub">
+                {objectifMensuel > 0
+                  ? caMois >= objectifMensuel
+                    ? '✓ Objectif atteint ce mois'
+                    : `Manque ${(objectifMensuel - caMois).toLocaleString('fr-FR')} €`
+                  : 'Non renseigné'}
+              </div>
+            </div>
+
+            <div className="metric-card">
+              <div className="metric-label">TVA</div>
+              <div className="metric-value" style={{ color: profil?.tva_actif ? '#B5792A' : '#2D7A4F' }}>
+                {profil?.tva_actif ? 'Active' : 'Inactive'}
+              </div>
+              <div className="metric-sub">{profil?.regime_tva || '—'}</div>
+            </div>
+
+            <div className="metric-card">
+              <div className="metric-label">Projection mensuelle</div>
+              <div className="metric-value">{projectionMensuelle.toLocaleString('fr-FR')} €</div>
+              <div className="metric-sub">
+                {prixMoyen > 0 && clientsMois > 0
+                  ? `${clientsMois} clients × ${prixMoyen.toLocaleString('fr-FR')} €`
+                  : 'Prix moyen / clients non renseignés'}
+              </div>
+            </div>
+
+            <div className="metric-card">
+              <div className="metric-label">Profil</div>
+              <div className="metric-value" style={{ color: '#1C1710', fontSize: 18 }}>
+                {profil?.niveau_experience || '—'}
+              </div>
+              <div className="metric-sub">{profil?.objectif_type || '—'}</div>
             </div>
           </div>
 
@@ -795,7 +987,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
               {pctTVA > 85 && (
                 <div className="seuil-alert">
-                  ⚠️ Attention — tu approches du seuil de TVA. Consulte un comptable.
+                  ⚠️ Attention — tu approches du seuil de TVA.
                 </div>
               )}
             </div>
@@ -818,7 +1010,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
               {pctPlafond > 85 && (
                 <div className="seuil-alert">
-                  ⚠️ Tu approches du plafond ! Au-delà tu bascules en régime réel.
+                  ⚠️ Tu approches du plafond micro-entreprise.
                 </div>
               )}
             </div>
@@ -893,10 +1085,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       {statut === 'faite' ? (
                         <span className="badge-done">✓ Faite</span>
                       ) : (
-                        <button
-                          className="btn btn-sm btn-amber"
-                          onClick={() => marquerDeclaration(ev.id, ev.type, 'faite')}
-                        >
+                        <button className="btn btn-sm btn-amber" onClick={() => marquerDeclaration(ev.id, ev.type, 'faite')}>
                           Marquer comme faite
                         </button>
                       )}
@@ -910,23 +1099,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           <div className="info-box" style={{ marginTop: '1.5rem' }}>
             <div className="info-title">📌 Comment déclarer sur autoentrepreneur.urssaf.fr</div>
             <div className="info-text">
-              1. Va sur{' '}
-              <a
-                href="https://www.autoentrepreneur.urssaf.fr"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: '#1A4A8A', fontWeight: 600 }}
-              >
-                autoentrepreneur.urssaf.fr
-              </a>
-              <br />
-              2. Connecte-toi avec ton numéro SIRET
-              <br />
-              3. Clique sur "Déclarer et payer"
-              <br />
-              4. Saisis ton CA de la période
-              <br />
-              5. Valide — le montant à payer est calculé automatiquement
+              1. Va sur autoentrepreneur.urssaf.fr<br />
+              2. Connecte-toi avec ton numéro SIRET<br />
+              3. Clique sur "Déclarer et payer"<br />
+              4. Saisis ton CA de la période<br />
+              5. Valide
             </div>
           </div>
         </div>
@@ -948,14 +1125,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
               <div>
                 <span className="mini-label">CA encaissé (€ HT)</span>
-                <input
-                  className="mini-input"
-                  type="number"
-                  value={revMontant}
-                  onChange={(e) => setRevMontant(e.target.value)}
-                  placeholder="3 500"
-                  style={{ width: 160 }}
-                />
+                <input className="mini-input" type="number" value={revMontant} onChange={(e) => setRevMontant(e.target.value)} placeholder="3500" style={{ width: 160 }} />
               </div>
               <button className="btn btn-dark" onClick={saveRevenu} disabled={savingRev}>
                 {savingRev ? 'Sauvegarde…' : 'Enregistrer →'}
@@ -976,8 +1146,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   <tr>
                     <th>Mois</th>
                     <th>CA</th>
-                    <th>URSSAF ({(taux * 100).toFixed(1)}%)</th>
-                    <th>Impôts (~14%)</th>
+                    <th>URSSAF ({(tauxUrssaf * 100).toFixed(1)}%)</th>
+                    <th>Impôts (~{(tauxImpotDashboard * 100).toFixed(1)}%)</th>
                     <th>Net estimé</th>
                   </tr>
                 </thead>
@@ -985,23 +1155,17 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   {revenus
                     .filter((r) => r.mois.startsWith(String(year)))
                     .map((r) => {
-                      const cotis = r.montant * taux
-                      const impots = r.montant * 0.14
+                      const cotis = r.montant * tauxUrssaf
+                      const impots = r.montant * tauxImpotDashboard
                       const net = r.montant - cotis - impots
 
                       return (
                         <tr key={r.mois}>
                           <td>{formatMois(r.mois)}</td>
                           <td><strong>{r.montant.toLocaleString('fr-FR')} €</strong></td>
-                          <td style={{ color: '#8B1A1A' }}>
-                            {cotis.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                          </td>
-                          <td style={{ color: '#7A3A0A' }}>
-                            {impots.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                          </td>
-                          <td style={{ color: '#2D7A4F', fontWeight: 600 }}>
-                            {net.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                          </td>
+                          <td style={{ color: '#8B1A1A' }}>{cotis.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</td>
+                          <td style={{ color: '#7A3A0A' }}>{impots.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</td>
+                          <td style={{ color: '#2D7A4F', fontWeight: 600 }}>{net.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</td>
                         </tr>
                       )
                     })}
@@ -1009,15 +1173,9 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   <tr className="rev-total">
                     <td>Total {year}</td>
                     <td>{caAnnuel.toLocaleString('fr-FR')} €</td>
-                    <td style={{ color: '#8B1A1A' }}>
-                      {(caAnnuel * taux).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                    </td>
-                    <td style={{ color: '#7A3A0A' }}>
-                      {(caAnnuel * 0.14).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                    </td>
-                    <td style={{ color: '#2D7A4F' }}>
-                      {(caAnnuel * (1 - taux - 0.14)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                    </td>
+                    <td style={{ color: '#8B1A1A' }}>{(caAnnuel * tauxUrssaf).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</td>
+                    <td style={{ color: '#7A3A0A' }}>{(caAnnuel * tauxImpotDashboard).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</td>
+                    <td style={{ color: '#2D7A4F' }}>{(caAnnuel * (1 - tauxUrssaf - tauxImpotDashboard)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</td>
                   </tr>
                 </tbody>
               </table>
@@ -1053,7 +1211,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       value={calcCA}
                       onChange={(e) => setCalcCA(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && calculer()}
-                      placeholder="2 500"
+                      placeholder="2500"
                       style={{ width: 200, fontSize: 18, padding: '12px 14px' }}
                     />
                   </div>
@@ -1072,35 +1230,27 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     </div>
 
                     <div className="calc-card red-card">
-                      <div className="calc-label">URSSAF à payer ({(calcResult.taux * 100).toFixed(1)}%)</div>
-                      <div className="calc-big">
-                        {calcResult.cotisations.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                      </div>
-                      <div className="calc-sub">À déclarer sur autoentrepreneur.urssaf.fr</div>
+                      <div className="calc-label">URSSAF à payer ({(calcResult.tauxUrssaf * 100).toFixed(1)}%)</div>
+                      <div className="calc-big">{calcResult.cotisations.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</div>
                     </div>
 
                     <div className="calc-card orange-card">
-                      <div className="calc-label">Impôts estimés (~14%)</div>
-                      <div className="calc-big">
-                        {calcResult.impots_estimes.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
+                      <div className="calc-label">
+                        {profil.versement_liberatoire
+                          ? `Versement libératoire (${(calcResult.tauxImpot * 100).toFixed(1)}%)`
+                          : `Impôts estimés (~${(calcResult.tauxImpot * 100).toFixed(1)}%)`}
                       </div>
-                      <div className="calc-sub">À mettre de côté pour la déclaration IR</div>
+                      <div className="calc-big">{calcResult.impots_estimes.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</div>
                     </div>
 
                     <div className="calc-card amber-card">
                       <div className="calc-label">Total à mettre de côté</div>
-                      <div className="calc-big">
-                        {calcResult.a_mettre_de_cote.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                      </div>
-                      <div className="calc-sub">{((calcResult.taux + 0.14) * 100).toFixed(0)}% du CA</div>
+                      <div className="calc-big">{calcResult.a_mettre_de_cote.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</div>
                     </div>
 
                     <div className="calc-card green-card">
-                      <div className="calc-label">Net estimé (ce qui reste)</div>
-                      <div className="calc-big">
-                        {calcResult.net_estime.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €
-                      </div>
-                      <div className="calc-sub">Après URSSAF et impôts</div>
+                      <div className="calc-label">Net estimé</div>
+                      <div className="calc-big">{calcResult.net_estime.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €</div>
                     </div>
                   </div>
 
@@ -1108,26 +1258,16 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     <div style={{ marginTop: '1rem' }}>
                       {calcResult.alerte_tva && (
                         <div className="seuil-alert">
-                          ⚠️ Attention : avec ce CA annuel estimé ({calcResult.caAnnuel.toLocaleString('fr-FR')} €), tu approches du seuil de TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €).
+                          ⚠️ Avec ce CA annuel estimé ({calcResult.caAnnuel.toLocaleString('fr-FR')} €), tu approches du seuil TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €).
                         </div>
                       )}
                       {calcResult.alerte_plafond && (
                         <div className="seuil-alert" style={{ marginTop: 8 }}>
-                          ⚠️ Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €). Consulte un comptable.
+                          ⚠️ Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €).
                         </div>
                       )}
                     </div>
                   )}
-
-                  <div className="info-box" style={{ marginTop: '1rem' }}>
-                    <div className="info-text">
-                      💡 <strong>Conseil :</strong> Dès que tu reçois un virement client, mets <strong>{((calcResult.taux + 0.14) * 100).toFixed(0)}%</strong> de côté immédiatement sur un compte séparé. Tu ne seras jamais pris au dépourvu.
-                    </div>
-                  </div>
-
-                  <div style={{ marginTop: '8px', fontSize: 11, color: '#A89878' }}>
-                    ⚠️ Les impôts estimés (~14%) sont indicatifs. Le taux réel dépend de ta situation personnelle. Consulte un comptable pour une simulation précise.
-                  </div>
                 </div>
               )}
             </>
@@ -1139,7 +1279,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Assistant IA</h2>
-            <p className="page-sub">Pose tes questions en français simple — comme à un ami comptable</p>
+            <p className="page-sub">Pose tes questions en français simple</p>
           </div>
 
           <div className="card" style={{ marginBottom: '1.5rem' }}>
@@ -1166,7 +1306,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) poserQuestion()
                 }}
-                placeholder="Ex : J'ai encaissé 4 200€ ce mois, combien je vais payer à l'URSSAF ?"
+                placeholder="Ex : J'ai encaissé 4200€ ce mois, combien je vais payer ?"
                 style={{ minHeight: 80 }}
               />
               <button className="btn-gen" onClick={poserQuestion} disabled={asking || !question.trim()}>
@@ -1226,238 +1366,18 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Ressources officielles</h2>
-            <p className="page-sub">Tous les liens utiles pour gérer ton auto-entreprise — directs, officiels, gratuits</p>
+            <p className="page-sub">Tous les liens utiles pour gérer ton auto-entreprise</p>
           </div>
 
-          <div className="res-section">
-            <div className="res-section-title">
-              <span className="res-icon" style={{ background: '#FAF3E0', color: '#B5792A' }}>📋</span>
-              Déclarations & paiements
+          <div className="card">
+            <div className="card-title">Liens utiles</div>
+            <div className="reponse-text">
+              <p>• autoentrepreneur.urssaf.fr</p>
+              <p>• impots.gouv.fr</p>
+              <p>• service-public.fr</p>
+              <p>• ameli.fr</p>
+              <p>• lassuranceretraite.fr</p>
             </div>
-
-            <div className="res-grid">
-              <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-urssaf">URSSAF</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Déclarer & payer mes cotisations</div>
-                <div className="res-card-desc">
-                  Le site officiel pour déclarer ton chiffre d'affaires et payer tes cotisations sociales chaque mois ou trimestre.
-                </div>
-                <div className="res-card-url">autoentrepreneur.urssaf.fr</div>
-              </a>
-
-              <a href="https://www.impots.gouv.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-impots">Impôts</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Déclaration de revenus (IR)</div>
-                <div className="res-card-desc">
-                  Pour déclarer tes revenus chaque année (avant fin mai). Tu y trouves aussi le versement libératoire et la gestion de TVA.
-                </div>
-                <div className="res-card-url">impots.gouv.fr</div>
-              </a>
-
-              <a href="https://www.urssaf.fr/portail/home/espaces-dedies/auto-entrepreneur.html" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-urssaf">URSSAF</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Payer la CFE</div>
-                <div className="res-card-desc">
-                  La Cotisation Foncière des Entreprises est due chaque année en décembre. Paiement en ligne sur le portail URSSAF.
-                </div>
-                <div className="res-card-url">urssaf.fr</div>
-              </a>
-            </div>
-          </div>
-
-          <div className="res-section">
-            <div className="res-section-title">
-              <span className="res-icon" style={{ background: '#EDFAF3', color: '#2D7A4F' }}>🏢</span>
-              Gérer mon auto-entreprise
-            </div>
-
-            <div className="res-grid">
-              <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F24023" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-gouv">Officiel</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Modifier ou fermer mon auto-entreprise</div>
-                <div className="res-card-desc">
-                  Changer d'adresse, modifier ton activité, déclarer une cessation d'activité. Toutes les démarches en un seul endroit.
-                </div>
-                <div className="res-card-url">guichet-entreprises.fr</div>
-              </a>
-
-              <a href="https://www.infogreffe.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-gouv">Officiel</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Obtenir mon Kbis / extrait RCS</div>
-                <div className="res-card-desc">
-                  Télécharge ton extrait Kbis ou vérifie les informations d'une autre entreprise. Souvent demandé par les clients professionnels.
-                </div>
-                <div className="res-card-url">infogreffe.fr</div>
-              </a>
-
-              <a href="https://www.service-public.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-gouv">Officiel</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Mon espace personnel État</div>
-                <div className="res-card-desc">
-                  Espace centralisé pour accéder à tous les services publics en ligne : URSSAF, impôts, retraite, santé…
-                </div>
-                <div className="res-card-url">mon.service-public.fr</div>
-              </a>
-            </div>
-          </div>
-
-          <div className="res-section">
-            <div className="res-section-title">
-              <span className="res-icon" style={{ background: '#EEF4FF', color: '#1A4A8A' }}>💰</span>
-              Aides & financement
-            </div>
-
-            <div className="res-grid">
-              <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F36613" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-aide">Aide</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Cumul chômage & auto-entreprise (ARE)</div>
-                <div className="res-card-desc">
-                  Tu peux cumuler allocations chômage et revenus d'auto-entrepreneur sous conditions. Calcul et démarches sur France Travail.
-                </div>
-                <div className="res-card-url">francetravail.fr</div>
-              </a>
-
-              <a href="https://www.bpifrance.fr/nos-solutions/financement" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-aide">Financement</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Aides et prêts BPI France</div>
-                <div className="res-card-desc">
-                  Prêts, garanties et subventions pour développer ton activité. Certains dispositifs sont accessibles dès le statut auto-entrepreneur.
-                </div>
-                <div className="res-card-url">bpifrance.fr</div>
-              </a>
-
-              <a href="https://www.aides-entreprises.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-aide">Aide</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Toutes les aides disponibles</div>
-                <div className="res-card-desc">
-                  Moteur de recherche officiel pour trouver toutes les aides locales, régionales et nationales selon ton activité et ta situation.
-                </div>
-                <div className="res-card-url">aides-entreprises.fr</div>
-              </a>
-            </div>
-          </div>
-
-          <div className="res-section">
-            <div className="res-section-title">
-              <span className="res-icon" style={{ background: '#FFF4E6', color: '#7A3A0A' }}>🏥</span>
-              Protection sociale & retraite
-            </div>
-
-            <div className="res-grid">
-              <a href="https://www.ameli.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-social">Santé</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Assurance maladie (Ameli)</div>
-                <div className="res-card-desc">
-                  Gère ta couverture maladie, tes remboursements et ton attestation de droits. En tant qu'auto-entrepreneur tu es affilié à la SSI.
-                </div>
-                <div className="res-card-url">ameli.fr</div>
-              </a>
-
-              <a href="https://www.lassuranceretraite.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-social">Retraite</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Mes droits à la retraite</div>
-                <div className="res-card-desc">
-                  Vérifie tes trimestres validés, simule ta future retraite et consulte ton relevé de carrière. Important à surveiller régulièrement.
-                </div>
-                <div className="res-card-url">lassuranceretraite.fr</div>
-              </a>
-
-              <a href="https://www.net-entreprises.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-social">Social</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Portail déclarations sociales</div>
-                <div className="res-card-desc">
-                  Pour les auto-entrepreneurs qui ont des salariés : déclarations sociales nominatives et autres obligations employeur.
-                </div>
-                <div className="res-card-url">net-entreprises.fr</div>
-              </a>
-            </div>
-          </div>
-
-          <div className="res-section">
-            <div className="res-section-title">
-              <span className="res-icon" style={{ background: '#F5F0FF', color: '#6B2D7A' }}>📖</span>
-              Se former & s'informer
-            </div>
-
-            <div className="res-grid">
-              <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F23282" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-gouv">Officiel</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Guide officiel auto-entrepreneur</div>
-                <div className="res-card-desc">
-                  Le guide complet du gouvernement sur le statut auto-entrepreneur : droits, obligations, seuils, démarches. La référence officielle.
-                </div>
-                <div className="res-card-url">entreprises.gouv.fr</div>
-              </a>
-
-              <a href="https://www.service-public.fr/professionnels-entreprises/vosdroits/F23961" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-gouv">Officiel</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Vos droits en tant qu'auto-entrepreneur</div>
-                <div className="res-card-desc">
-                  Fiche complète sur les obligations, les cotisations, la TVA et tout ce qu'il faut savoir sur le régime micro-entreprise.
-                </div>
-                <div className="res-card-url">service-public.fr</div>
-              </a>
-
-              <a href="https://www.moncompteformation.gouv.fr" target="_blank" rel="noopener noreferrer" className="res-card">
-                <div className="res-card-top">
-                  <span className="res-tag res-tag-aide">Formation</span>
-                  <span className="res-arrow">→</span>
-                </div>
-                <div className="res-card-title">Mon Compte Formation (CPF)</div>
-                <div className="res-card-desc">
-                  Utilise ton Compte Personnel de Formation pour te former. En tant qu'auto-entrepreneur tu cotises et tu as des droits à la formation.
-                </div>
-                <div className="res-card-url">moncompteformation.gouv.fr</div>
-              </a>
-            </div>
-          </div>
-
-          <div className="res-disclaimer">
-            <strong>ℹ️ Information importante</strong>
-            <br />
-            Ces liens pointent vers des sites officiels du gouvernement français. Les informations présentées dans AutoIA (taux, seuils, dates) sont basées sur la législation en vigueur en 2025 et peuvent évoluer. En cas de doute, consulte toujours les sites officiels ou un expert-comptable.
           </div>
         </div>
       )}
@@ -1467,7 +1387,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
 const CSS = `
 .app-bar{background:#1C1710;height:58px;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
-.logo{font-family:'Playfair Display',serif;font-size:21px;color:#fff}.logo em{color:#E8D5A8;font-style:normal}
+.logo{font-family:'Playfair Display',serif;font-size:21px;color:#fff}
 .bar-right{display:flex;align-items:center;gap:10px}
 .user-tag{font-size:12px;color:rgba(255,255,255,0.5)}
 .btn-profile{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:6px 14px;cursor:pointer;color:#fff;font-size:12px;font-family:'Outfit',sans-serif;font-weight:500}
@@ -1478,7 +1398,7 @@ const CSS = `
 .nav-tab{padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;color:rgba(255,255,255,0.5);border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;transition:all 0.15s;white-space:nowrap}
 .nav-tab.active{color:#fff;border-bottom-color:#E8D5A8}
 .nav-tab:hover{color:rgba(255,255,255,0.8)}
-.main{max-width:900px;margin:0 auto;padding:2rem 1.5rem 5rem}
+.main{max-width:980px;margin:0 auto;padding:2rem 1.5rem 5rem}
 .welcome-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.75rem;flex-wrap:wrap;gap:1rem}
 .welcome-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:600;color:#1C1710}
 .welcome-sub{font-size:14px;color:#6B5E45;margin-top:4px}
@@ -1486,15 +1406,17 @@ const CSS = `
 .next-decl-label{font-size:11px;color:#A89878;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
 .next-decl-date{font-family:'Playfair Display',serif;font-size:16px;color:#B5792A}
 .metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
-@media(max-width:700px){.metrics-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.metrics-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.metrics-grid{grid-template-columns:1fr}}
 .metric-card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1.1rem 1.25rem}
 .metric-label{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#A89878;margin-bottom:8px}
 .metric-value{font-family:'Playfair Display',serif;font-size:24px;color:#1C1710;margin-bottom:4px}
 .metric-sub{font-size:11px;color:#A89878}
 .card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:20px;padding:1.5rem;box-shadow:0 2px 16px rgba(28,23,16,.06)}
 .card-title{font-family:'Playfair Display',serif;font-size:17px;margin-bottom:1rem;color:#1C1710}
-.seuil-item{} .seuil-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.seuil-label{font-size:13px;color:#6B5E45;font-weight:500} .seuil-val{font-size:12px;color:#A89878}
+.seuil-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.seuil-label{font-size:13px;color:#6B5E45;font-weight:500}
+.seuil-val{font-size:12px;color:#A89878}
 .progress-bar{height:10px;background:#F6F0E4;border-radius:20px;overflow:hidden}
 .progress-fill{height:100%;border-radius:20px;transition:width .5s ease}
 .seuil-alert{font-size:12px;color:#8B1A1A;background:#FFF3F3;border:1px solid #FFCACA;border-radius:8px;padding:8px 12px;margin-top:8px}
@@ -1503,15 +1425,22 @@ const CSS = `
 .page-sub{font-size:14px;color:#6B5E45}
 .cal-list{display:flex;flex-direction:column;gap:10px}
 .cal-card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1.1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
-.cal-current{border-color:#B5792A;background:#FAF3E0} .cal-special{border-style:dashed} .cal-past{opacity:.65}
-.cal-left{display:flex;align-items:center;gap:14px} .cal-right{flex-shrink:0}
+.cal-current{border-color:#B5792A;background:#FAF3E0}
+.cal-special{border-style:dashed}
+.cal-past{opacity:.65}
+.cal-left{display:flex;align-items:center;gap:14px}
+.cal-right{flex-shrink:0}
 .cal-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
-.dot-done{background:#2D7A4F} .dot-late{background:#C0392B} .dot-pending{background:#E2D8C4}
-.cal-label{font-size:14px;font-weight:500;color:#1C1710;margin-bottom:3px} .cal-date{font-size:12px;color:#A89878}
+.dot-done{background:#2D7A4F}
+.dot-late{background:#C0392B}
+.dot-pending{background:#E2D8C4}
+.cal-label{font-size:14px;font-weight:500;color:#1C1710;margin-bottom:3px}
+.cal-date{font-size:12px;color:#A89878}
 .badge-current{display:inline-block;font-size:10px;font-weight:600;background:#B5792A;color:#fff;padding:3px 9px;border-radius:20px;margin-top:5px}
 .badge-done{font-size:12px;font-weight:600;color:#2D7A4F;background:#EDFAF3;padding:6px 14px;border-radius:20px}
 .info-box{background:#EEF4FF;border:1px solid #C3D8F8;border-radius:14px;padding:1.1rem 1.25rem}
-.info-title{font-size:13px;font-weight:600;color:#1A4A8A;margin-bottom:8px} .info-text{font-size:13px;color:#1A4A8A;line-height:1.8}
+.info-title{font-size:13px;font-weight:600;color:#1A4A8A;margin-bottom:8px}
+.info-text{font-size:13px;color:#1A4A8A;line-height:1.8}
 .mini-label{font-size:11px;font-weight:600;letter-spacing:.5px;color:#6B5E45;display:block;margin-bottom:5px;text-transform:uppercase}
 .mini-input{padding:9px 12px;border-radius:10px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;font-family:'Outfit',sans-serif;font-size:13px;width:100%}
 .mini-input:focus{outline:none;border-color:#B5792A;background:#fff}
@@ -1522,70 +1451,70 @@ const CSS = `
 .rev-table tbody td{padding:11px 0;color:#1C1710;vertical-align:top}
 .rev-table tbody td:not(:first-child){text-align:right}
 .rev-total{border-top:1.5px solid #1C1710!important;font-weight:600}
-.calc-result{} .calc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1rem}
+.calc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1rem}
 @media(max-width:700px){.calc-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.calc-grid{grid-template-columns:1fr}}
 .calc-card{border-radius:16px;padding:1.1rem 1.25rem;border:1px solid transparent}
-.main-card{background:#1C1710;color:#fff;border-color:#1C1710} .main-card .calc-label{color:rgba(255,255,255,.6)} .main-card .calc-big{color:#fff}
-.red-card{background:#FFF3F3;border-color:#FFCACA} .red-card .calc-big{color:#8B1A1A}
-.orange-card{background:#FFF4E6;border-color:#FFD5A0} .orange-card .calc-big{color:#7A3A0A}
-.amber-card{background:#FAF3E0;border-color:#E8D5A8} .amber-card .calc-big{color:#B5792A}
-.green-card{background:#EDFAF3;border-color:#9CDBB8} .green-card .calc-big{color:#2D7A4F}
+.main-card{background:#1C1710;color:#fff;border-color:#1C1710}
+.main-card .calc-label{color:rgba(255,255,255,.6)}
+.main-card .calc-big{color:#fff}
+.red-card{background:#FFF3F3;border-color:#FFCACA}
+.red-card .calc-big{color:#8B1A1A}
+.orange-card{background:#FFF4E6;border-color:#FFD5A0}
+.orange-card .calc-big{color:#7A3A0A}
+.amber-card{background:#FAF3E0;border-color:#E8D5A8}
+.amber-card .calc-big{color:#B5792A}
+.green-card{background:#EDFAF3;border-color:#9CDBB8}
+.green-card .calc-big{color:#2D7A4F}
 .calc-label{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;color:#6B5E45}
 .calc-big{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;margin-bottom:4px}
-.calc-sub{font-size:11px;color:#A89878;line-height:1.5}
 .chips-hint{font-size:11px;color:#A89878;font-weight:500;margin-bottom:10px;display:block}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .chip{font-size:12px;padding:5px 14px;border-radius:30px;border:1px solid #E2D8C4;background:#FBF8F1;color:#6B5E45;cursor:pointer;transition:all .16s}
 .chip:hover{background:#FAF3E0;border-color:#E8D5A8;color:#B5792A}
 .input-wrap{position:relative}
 textarea{width:100%;resize:none;font-family:'Outfit',sans-serif;font-size:14px;font-weight:300;padding:13px 15px 52px;border-radius:13px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;line-height:1.65;min-height:95px}
-textarea:focus{outline:none;border-color:#B5792A;background:#fff} textarea::placeholder{color:#A89878}
+textarea:focus{outline:none;border-color:#B5792A;background:#fff}
 .btn-gen{position:absolute;bottom:11px;right:11px;padding:9px 20px;border-radius:10px;border:none;background:#1C1710;color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif}
-.btn-gen:hover{background:#B5792A} .btn-gen:disabled{background:#ccc;cursor:not-allowed}
+.btn-gen:hover{background:#B5792A}
+.btn-gen:disabled{background:#ccc;cursor:not-allowed}
 .hint-text{font-size:11px;color:#A89878;margin-top:9px}
 .reponse-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
 .reponse-avatar{width:32px;height:32px;border-radius:50%;background:#1C1710;color:#E8D5A8;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'Playfair Display',serif}
-.reponse-text{font-size:14px;color:#1C1710;line-height:1.7} .reponse-text p{margin-bottom:.75rem} .reponse-text p:last-child{margin-bottom:0}
+.reponse-text{font-size:14px;color:#1C1710;line-height:1.7}
+.reponse-text p{margin-bottom:.75rem}
+.reponse-text p:last-child{margin-bottom:0}
 .ring{width:20px;height:20px;flex-shrink:0;border:2px solid #E2D8C4;border-top-color:#B5792A;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .question-preview{background:#FBF8F1;border:1px solid #E2D8C4;border-radius:12px;padding:.9rem 1rem;margin-bottom:8px;cursor:pointer;transition:all .15s}
 .question-preview:hover{border-color:#E8D5A8;background:#FAF3E0}
-.question-text{font-size:13px;color:#1C1710;margin-bottom:4px} .question-date{font-size:11px;color:#A89878}
+.question-text{font-size:13px;color:#1C1710;margin-bottom:4px}
+.question-date{font-size:11px;color:#A89878}
 .link-btn{background:none;border:none;color:#B5792A;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:8px;padding:0}
 .link-btn:hover{text-decoration:underline}
-.empty-state{text-align:center;padding:4rem 2rem} .empty-state h3{font-family:'Playfair Display',serif;font-size:20px;color:#6B5E45;margin-bottom:1rem}
+.empty-state{text-align:center;padding:4rem 2rem}
+.empty-state h3{font-family:'Playfair Display',serif;font-size:20px;color:#6B5E45;margin-bottom:1rem}
 .overlay{display:none;position:fixed;inset:0;background:rgba(28,23,16,.6);z-index:300;align-items:center;justify-content:center;padding:1rem;overflow-y:auto}
 .overlay.show{display:flex}
-.modal{background:#FFFDF8;border-radius:20px;padding:2rem;width:100%;max-width:560px;box-shadow:0 20px 60px rgba(28,23,16,.25);animation:pop .3s cubic-bezier(.16,1,.3,1);margin:auto}
+.modal{background:#FFFDF8;border-radius:20px;padding:2rem;width:100%;max-width:860px;box-shadow:0 20px 60px rgba(28,23,16,.25);animation:pop .3s cubic-bezier(.16,1,.3,1);margin:auto}
 @keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 .modal-title{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:6px;color:#1C1710}
-.modal-sub{font-size:13px;color:#6B5E45;margin-bottom:1.75rem;line-height:1.5}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.5rem} .form-grid .full{grid-column:1/-1}
+.modal-sub{font-size:13px;color:#6B5E45;margin-bottom:1.2rem;line-height:1.5}
+.section-title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#B5792A;margin:1rem 0 .8rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1rem}
+@media(max-width:700px){.form-grid{grid-template-columns:1fr}}
+.form-grid .full{grid-column:1/-1}
 .field label{font-size:11px;font-weight:600;letter-spacing:.6px;color:#6B5E45;display:block;margin-bottom:5px;text-transform:uppercase}
 .field input,.field select{width:100%;padding:10px 13px;border-radius:10px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;font-family:'Outfit',sans-serif;font-size:13px}
-.field input:focus,.field select:focus{outline:none;border-color:#B5792A;background:#fff} .field input::placeholder{color:#A89878}
+.field input:focus,.field select:focus{outline:none;border-color:#B5792A;background:#fff}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px}
 .btn{padding:10px 20px;font-size:13px;font-weight:500;border-radius:10px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .17s}
-.btn-ghost{background:transparent;border:1px solid #E2D8C4;color:#6B5E45} .btn-ghost:hover{background:#F6F0E4}
-.btn-dark{background:#1C1710;border:none;color:#fff} .btn-dark:hover{background:#B5792A}
+.btn-ghost{background:transparent;border:1px solid #E2D8C4;color:#6B5E45}
+.btn-ghost:hover{background:#F6F0E4}
+.btn-dark{background:#1C1710;border:none;color:#fff}
+.btn-dark:hover{background:#B5792A}
 .btn-dark:disabled{opacity:.7;cursor:not-allowed}
-.btn-amber{background:#FAF3E0;border:1px solid #E8D5A8;color:#B5792A} .btn-amber:hover{background:#B5792A;color:#fff}
+.btn-amber{background:#FAF3E0;border:1px solid #E8D5A8;color:#B5792A}
+.btn-amber:hover{background:#B5792A;color:#fff}
 .btn-sm{padding:7px 14px;font-size:12px}
-.res-section{margin-bottom:2rem}
-.res-section-title{display:flex;align-items:center;gap:12px;font-family:'Playfair Display',serif;font-size:18px;color:#1C1710;margin-bottom:1rem;font-weight:600}
-.res-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media(max-width:700px){.res-grid{grid-template-columns:1fr}}
-.res-card{display:block;background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1.1rem 1.25rem;text-decoration:none;color:inherit;transition:all .18s}
-.res-card:hover{border-color:#B5792A;box-shadow:0 4px 20px rgba(181,121,42,.12);transform:translateY(-2px)}
-.res-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.res-tag{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:.3px}
-.res-tag-urssaf{background:#FAF3E0;color:#B5792A} .res-tag-impots{background:#EEF4FF;color:#1A4A8A}
-.res-tag-gouv{background:#EDFAF3;color:#2D7A4F} .res-tag-aide{background:#F5F0FF;color:#6B2D7A} .res-tag-social{background:#FFF4E6;color:#7A3A0A}
-.res-arrow{font-size:16px;color:#E2D8C4;transition:all .18s} .res-card:hover .res-arrow{color:#B5792A}
-.res-card-title{font-family:'Playfair Display',serif;font-size:15px;color:#1C1710;margin-bottom:8px;line-height:1.3}
-.res-card-desc{font-size:12px;color:#6B5E45;line-height:1.65;margin-bottom:10px}
-.res-card-url{font-size:11px;color:#A89878;font-family:monospace} .res-card:hover .res-card-url{color:#B5792A}
-.res-disclaimer{background:#F6F0E4;border:1px solid #E2D8C4;border-radius:14px;padding:1rem 1.25rem;font-size:12px;color:#6B5E45;line-height:1.7;margin-top:1rem}
-.res-disclaimer strong{color:#1C1710}
 `
