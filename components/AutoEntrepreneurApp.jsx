@@ -34,7 +34,7 @@ const SECTEURS = [
   { value:'services_bnc',  label:'💼 Services (BNC) — freelance, formateur, rédacteur, photographe…', taux:'21,2%' },
   { value:'liberal_ssi',   label:'🎓 Profession libérale non réglementée (SSI) — coach, consultant, développeur…', taux:'25,6%' },
   { value:'liberal_cipav', label:'🏛 Profession libérale réglementée (CIPAV) — architecte, expert-comptable, géomètre…', taux:'23,2%' },
-  { value:'lmtc',          label:'🏠 Location meublée tourisme classée (LMTC) — chambre d'hôtes, gîte classé…', taux:'6%' },
+  { value:"lmtc",          label:"🏠 Location meublée tourisme classée (LMTC) — chambre d'hôtes, gîte classé…", taux:"6%" },
 ]
 const MOIS_NOMS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
 
