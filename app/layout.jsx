@@ -2,7 +2,7 @@ import './globals.css'
 
 export const metadata = {
   title: 'Serelyo — Ton copilote administratif',
-  description: 'Créez des devis et factures en quelques secondes grâce à l\'IA',
+  description: 'Calendrier des déclarations, calcul des cotisations, assistant et ressources officielles — tout ce dont l\'auto-entrepreneur a besoin au même endroit.',
 }
 
 export default function RootLayout({ children }) {
