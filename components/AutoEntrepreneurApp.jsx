@@ -2219,6 +2219,14 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           </div>
         </div>
       )}
+      {/* FOOTER LÉGAL */}
+      <div className="app-footer">
+        © 2026 Serelyo &nbsp;·&nbsp;
+        <a href="/cgu">CGU</a>
+        <a href="/confidentialite">Confidentialité</a>
+        <a href="/mentions-legales">Mentions légales</a>
+        <a href="mailto:contact@serelyo.fr">Contact</a>
+      </div>
     </>
   )
 }
@@ -2346,4 +2354,6 @@ textarea:focus{outline:none;border-color:#B5792A;background:#fff} textarea::plac
 .res-card-url{font-size:11px;color:#A89878;font-family:monospace} .res-card:hover .res-card-url{color:#B5792A}
 .res-disclaimer{background:#F6F0E4;border:1px solid #E2D8C4;border-radius:14px;padding:1rem 1.25rem;font-size:12px;color:#6B5E45;line-height:1.7;margin-top:1rem}
 .res-disclaimer strong{color:#1C1710}
+.app-footer{text-align:center;padding:24px 20px;font-size:11px;color:#A89878;border-top:1px solid #F0EBE0;margin-top:2rem}
+.app-footer a{color:#A89878;text-decoration:none;margin:0 10px}.app-footer a:hover{color:#B5792A}
 `
