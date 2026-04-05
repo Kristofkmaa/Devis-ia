@@ -120,6 +120,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   // Devis
   const [devis, setDevis]           = useState([])
   const [showDevisForm, setShowDevisForm] = useState(false)
+  const [devisPreview, setDevisPreview]   = useState(null) // devis en aperçu
+  const [devisFiltre, setDevisFiltre]     = useState('tous')
   const [devisClient, setDevisClient] = useState({ nom:'', adresse:'', email:'', type:'entreprise' })
   const [devisLignes, setDevisLignes] = useState([
     { id:1, designation:'', detail:'', quantite:1, unite:'heure', prix:0 },
@@ -292,8 +294,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     setDevisLignes([{id:1,designation:'',detail:'',quantite:1,unite:'heure',prix:0},{id:2,designation:'',detail:'',quantite:1,unite:'heure',prix:0}])
     setDevisLigneId(2)
     setDevisNotes('')
-    // Imprimer
-    if (saved) imprimerDevis(saved, profil)
+    // Ouvrir aperçu
+    if (saved) { setDevisPreview(saved); imprimerDevis(saved, profil) }
   }
 
   const updateStatutDevis = async (id, statut) => {
@@ -308,7 +310,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   }
 
   const imprimerDevis = (d, em) => {
-    const lignes = JSON.parse(d.lignes||'[]')
+    const lignes = typeof d.lignes === 'string' ? JSON.parse(d.lignes||'[]') : (d.lignes||[])
     const ht = lignes.reduce((s,l)=>s+(l.quantite*l.prix),0)
     const tva = ht*(d.tva_taux/100)
     const ttc = ht+tva
@@ -323,6 +325,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
         <td style="padding:10px 8px;border-bottom:1px solid #F6F0E4;text-align:right">${fmt(l.prix)} €</td>
         <td style="padding:10px 8px;border-bottom:1px solid #F6F0E4;text-align:right;font-weight:600">${fmt(l.quantite*l.prix)} €</td>
       </tr>`).join('')
+    const tvaNote = d.tva_taux===0 ? '<p style="margin-top:12px;font-size:10px;color:#A89878">TVA non applicable en vertu de l&#39;article 293B du CGI.</p>' : ''
     const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
     <title>Devis ${d.numero}</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
@@ -353,24 +356,25 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       .footer-box p{font-size:11px;color:#6B5E45;line-height:1.8;margin-bottom:4px}
       .footer-box strong{color:#1C1710}
       .legal{margin-top:24px;font-size:10px;color:#A89878;text-align:center;line-height:1.7;border-top:1px solid #E2D8C4;padding-top:16px}
-      @media print{body{padding:0}@page{margin:12mm 10mm}}
+      @media print{.no-print{display:none!important}body{padding:0}@page{margin:12mm 10mm}}
     </style></head><body>
+    <div class="no-print" style="background:#1C1710;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;margin:-40px -50px 30px;position:sticky;top:0;z-index:10">
+      <span style="color:#E8D5A8;font-family:'Playfair Display',serif;font-size:16px">Serelyo — Aperçu du devis</span>
+      <button onclick="window.print()" style="background:#B5792A;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-family:Outfit,sans-serif;font-size:13px;font-weight:600">🖨 Imprimer / Sauvegarder PDF</button>
+    </div>
     <div class="stripe"></div>
     <div class="head">
-      <div>
-        <h1>Devis</h1>
-        <div class="badge">En attente de validation</div>
-      </div>
+      <div><h1>Devis</h1><div class="badge">En attente de validation</div></div>
       <div class="ref">
         <strong>${d.numero}</strong>
-        Émis le ${d.date_emission}<br>
+        Emis le ${d.date_emission}<br>
         Valable jusqu'au <strong style="color:#1C1710">${d.date_validite}</strong>
       </div>
     </div>
     <div class="sep"></div>
     <div class="parties">
       <div>
-        <div class="plbl">Émetteur</div>
+        <div class="plbl">Emetteur</div>
         <div class="pname">${em?.nom||'—'}</div>
         <div class="psub">${[em?.activite,em?.adresse,em?.email,em?.tel].filter(Boolean).join('<br>')}</div>
         ${em?.siret?`<div class="psub" style="margin-top:6px">SIRET : ${em.siret}</div>`:''}
@@ -386,34 +390,29 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       </div>
     </div>
     <table>
-      <thead><tr><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:right">Prix unitaire HT</th><th style="text-align:right">Total HT</th></tr></thead>
+      <thead><tr><th>Designation</th><th style="text-align:center">Qte</th><th style="text-align:right">Prix unitaire HT</th><th style="text-align:right">Total HT</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
     <div class="totals">
       <div class="trow"><span>Total HT</span><span>${fmt(ht)} €</span></div>
-      <div class="trow"><span>TVA ${d.tva_taux > 0 ? d.tva_taux+'%' : '(non applicable — art. 293B CGI)'}</span><span>${fmt(tva)} €</span></div>
+      <div class="trow"><span>TVA ${d.tva_taux > 0 ? d.tva_taux+'%' : '(non applicable)'}</span><span>${fmt(tva)} €</span></div>
       <div class="tgrand"><span>${d.tva_taux>0?'Total TTC':'Total net HT'}</span><span>${fmt(ttc)} €</span></div>
     </div>
     <div class="footer-box">
-      ${d.conditions?`<p><strong>Conditions de règlement :</strong> ${d.conditions}</p>`:''}
-      <p><strong>Validité :</strong> Ce devis est valable ${d.validite_jours} jours à compter de sa date d'émission.</p>
+      ${d.conditions?`<p><strong>Conditions :</strong> ${d.conditions}</p>`:''}
+      <p><strong>Validite :</strong> Ce devis est valable ${d.validite_jours} jours a compter de sa date d&#39;emission.</p>
       ${d.notes?`<p><strong>Notes :</strong> ${d.notes}</p>`:''}
       <p style="margin-top:8px;font-size:10px;color:#A89878">Bon pour accord — Date et signature du client :</p>
       <div style="border:1px solid #E2D8C4;border-radius:8px;height:50px;margin-top:6px"></div>
     </div>
-    ${d.tva_taux===0?'<p style="margin-top:12px;font-size:10px;color:#A89878">TVA non applicable en vertu de l&#39;article 293B du Code General des Impots.</p>':''}
+    ${tvaNote}
     <div class="legal">
       ${em?.nom||''} ${em?.forme_juridique?'— '+em.forme_juridique:''} ${em?.siret?'— SIRET : '+em.siret:''}<br>
-      Document généré par Serelyo — serelyo.fr
+      Document genere par Serelyo — serelyo.fr
     </div>
-    <script>document.title="Devis ${d.numero} — ${d.client_nom}";window.onload=()=>setTimeout(window.print,500)<\/script>
     </body></html>`
-    const blob = new Blob([html],{type:'text/html;charset=utf-8'})
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href=url; a.download=`Devis-${d.numero}-${d.client_nom.replace(/[^\w]/g,'-')}.html`
-    document.body.appendChild(a); a.click(); document.body.removeChild(a)
-    setTimeout(()=>URL.revokeObjectURL(url),5000)
+    const w = window.open('','_blank','width=900,height=700,scrollbars=yes')
+    if (w) { w.document.write(html); w.document.close() }
   }
 
   const tauxImpot = profil ? (parseFloat(profil.taux_impot_perso)||14) / 100 : 0.14
@@ -1024,6 +1023,23 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           )}
 
+          {/* Filtres */}
+          {devis.length > 0 && (
+            <div style={{display:'flex',gap:8,marginBottom:'1rem',flexWrap:'wrap'}}>
+              {[['tous','Tous',devis.length],['en_attente','En attente',devis.filter(d=>d.statut==='en_attente').length],['accepte','Acceptés',devis.filter(d=>d.statut==='accepte').length],['refuse','Refusés',devis.filter(d=>d.statut==='refuse').length],['expire','Expirés',devis.filter(d=>d.statut==='expire').length]].map(([val,label,count])=>(
+                <button key={val} onClick={()=>setDevisFiltre(val)} style={{
+                  padding:'6px 14px',borderRadius:30,fontSize:12,fontWeight:500,cursor:'pointer',
+                  fontFamily:'Outfit,sans-serif',border:'1.5px solid',transition:'all .15s',
+                  background:devisFiltre===val?'#1C1710':'transparent',
+                  color:devisFiltre===val?'#fff':'#6B5E45',
+                  borderColor:devisFiltre===val?'#1C1710':'#E2D8C4'
+                }}>
+                  {label} <span style={{opacity:.6}}>({count})</span>
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Liste devis */}
           {devis.length === 0 ? (
             <div className="empty-state">
@@ -1033,44 +1049,59 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           ) : (
             <div style={{display:'flex',flexDirection:'column',gap:10}}>
-              {devis.map(d=>(
-                <div key={d.id} className="card" style={{padding:'1rem 1.25rem'}}>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:10}}>
-                    <div style={{display:'flex',gap:14,alignItems:'center'}}>
-                      <div style={{width:42,height:42,background:'#FAF3E0',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>📄</div>
-                      <div>
-                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
-                          <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:600,color:'#1C1710'}}>{d.numero}</span>
-                          <span style={{
-                            fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,
-                            background:d.statut==='accepte'?'#EDFAF3':d.statut==='refuse'?'#FFF3F3':'#FAF3E0',
-                            color:d.statut==='accepte'?'#2D7A4F':d.statut==='refuse'?'#8B1A1A':'#B5792A'
-                          }}>{d.statut==='accepte'?'Accepté':d.statut==='refuse'?'Refusé':'En attente'}</span>
+              {devis.filter(d=>devisFiltre==='tous'||d.statut===devisFiltre).length===0 ? (
+                <div style={{textAlign:'center',padding:'2rem',color:'#A89878',fontSize:13}}>Aucun devis dans cette catégorie</div>
+              ) : (
+                devis.filter(d=>devisFiltre==='tous'||d.statut===devisFiltre).map(d=>{
+                  const statutLabel = {en_attente:'En attente',accepte:'Accepté',refuse:'Refusé',expire:'Expiré'}
+                  const statutColor = {en_attente:{bg:'#FAF3E0',color:'#B5792A'},accepte:{bg:'#EDFAF3',color:'#2D7A4F'},refuse:{bg:'#FFF3F3',color:'#8B1A1A'},expire:{bg:'#F5F5F5',color:'#666'}}
+                  const sc = statutColor[d.statut]||statutColor.en_attente
+                  return (
+                    <div key={d.id} className="card" style={{padding:'1rem 1.25rem',cursor:'pointer',transition:'all .15s'}}
+                      onMouseEnter={e=>e.currentTarget.style.borderColor='#E8D5A8'}
+                      onMouseLeave={e=>e.currentTarget.style.borderColor='#E2D8C4'}
+                    >
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10}}>
+                        <div style={{display:'flex',gap:14,alignItems:'center'}} onClick={()=>imprimerDevis(d,profil)}>
+                          <div style={{width:44,height:44,background:'#FAF3E0',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>📄</div>
+                          <div>
+                            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3,flexWrap:'wrap'}}>
+                              <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:600,color:'#1C1710'}}>{d.numero}</span>
+                              <span style={{fontSize:10,fontWeight:600,padding:'3px 9px',borderRadius:20,background:sc.bg,color:sc.color}}>{statutLabel[d.statut]||'En attente'}</span>
+                            </div>
+                            <div style={{fontSize:14,color:'#1C1710',fontWeight:500}}>{d.client_nom}</div>
+                            <div style={{fontSize:11,color:'#A89878',marginTop:2}}>
+                              Émis le {d.date_emission} · valable jusqu'au {d.date_validite}
+                            </div>
+                          </div>
                         </div>
-                        <div style={{fontSize:13,color:'#6B5E45'}}>{d.client_nom}</div>
-                        <div style={{fontSize:11,color:'#A89878',marginTop:2}}>Émis le {d.date_emission} — valable jusqu'au {d.date_validite}</div>
+                        <div style={{display:'flex',alignItems:'center',gap:10,flexShrink:0}}>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:'#1C1710',textAlign:'right'}}>
+                            {(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{minimumFractionDigits:2})} €
+                            <div style={{fontSize:10,color:'#A89878',fontFamily:'Outfit,sans-serif'}}>{d.tva_taux>0?'TTC':'HT'}</div>
+                          </div>
+                          <div style={{display:'flex',flexDirection:'column',gap:5}} onClick={e=>e.stopPropagation()}>
+                            <select
+                              style={{fontSize:11,padding:'5px 8px',borderRadius:8,border:'1px solid #E2D8C4',background:'#FBF8F1',color:'#6B5E45',fontFamily:'Outfit,sans-serif',cursor:'pointer'}}
+                              value={d.statut}
+                              onChange={e=>updateStatutDevis(d.id,e.target.value)}
+                            >
+                              <option value="en_attente">En attente</option>
+                              <option value="accepte">Accepté ✓</option>
+                              <option value="refuse">Refusé ✗</option>
+                              <option value="expire">Expiré</option>
+                            </select>
+                            <div style={{display:'flex',gap:5}}>
+                              <button onClick={()=>imprimerDevis(d,profil)} style={{flex:1,padding:'5px 8px',fontSize:11,borderRadius:8,border:'1px solid #E2D8C4',background:'#FBF8F1',color:'#6B5E45',cursor:'pointer',fontFamily:'Outfit,sans-serif'}}>👁 Voir</button>
+                              <button onClick={()=>supprimerDevis(d.id)} style={{padding:'5px 8px',fontSize:11,borderRadius:8,border:'1px solid #FFCACA',background:'#FFF3F3',color:'#8B1A1A',cursor:'pointer',fontFamily:'Outfit,sans-serif'}}>🗑</button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:8}}>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:'#1C1710'}}>{(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{minimumFractionDigits:2})} €</div>
-                      <div style={{display:'flex',gap:6}}>
-                        <select
-                          style={{fontSize:11,padding:'4px 8px',borderRadius:8,border:'1px solid #E2D8C4',background:'#FBF8F1',color:'#6B5E45',fontFamily:'Outfit,sans-serif',cursor:'pointer'}}
-                          value={d.statut}
-                          onChange={e=>updateStatutDevis(d.id,e.target.value)}
-                        >
-                          <option value="en_attente">En attente</option>
-                          <option value="accepte">Accepté</option>
-                          <option value="refuse">Refusé</option>
-                          <option value="expire">Expiré</option>
-                        </select>
-                        <button className="btn btn-ghost btn-sm" onClick={()=>imprimerDevis(d,profil)}>🖨 Imprimer</button>
-                        <button style={{padding:'5px 10px',fontSize:11,borderRadius:8,border:'1px solid #FFCACA',background:'#FFF3F3',color:'#8B1A1A',cursor:'pointer',fontFamily:'Outfit,sans-serif'}} onClick={()=>supprimerDevis(d.id)}>🗑</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  )
+                })
+              )}
             </div>
           )}
 
