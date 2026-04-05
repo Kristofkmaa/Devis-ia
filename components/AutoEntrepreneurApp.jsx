@@ -614,65 +614,204 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       {/* ── DASHBOARD ── */}
       {view==='dashboard' && (
         <div className="main">
-          {profil && (
-            <div className="welcome-bar">
-              <div>
-                <h1 className="welcome-title">Bonjour {profil.prenom} 👋</h1>
-                <p className="welcome-sub">{profil.activite}</p>
-              </div>
-              {prochaineDecl && (
-                <div className="next-decl">
-                  <span className="next-decl-label">Prochaine déclaration</span>
-                  <span className="next-decl-date">avant le {prochaineDecl.date_limite}</span>
+
+          {/* ── HERO ── */}
+          {profil ? (
+            <div style={{background:'#1C1710',borderRadius:24,padding:'2rem',marginBottom:'1.5rem',position:'relative',overflow:'hidden'}}>
+              {/* Décoration fond */}
+              <div style={{position:'absolute',top:-40,right:-40,width:200,height:200,borderRadius:'50%',background:'rgba(181,121,42,.12)',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',bottom:-60,right:80,width:140,height:140,borderRadius:'50%',background:'rgba(181,121,42,.07)',pointerEvents:'none'}}/>
+              <div style={{position:'relative',zIndex:1}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'1rem'}}>
+                  <div>
+                    <p style={{fontSize:12,color:'rgba(255,255,255,.45)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:6}}>Bonjour</p>
+                    <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:32,fontWeight:600,color:'#fff',marginBottom:4}}>{profil.prenom} {profil.nom}</h1>
+                    <p style={{fontSize:14,color:'rgba(255,255,255,.55)'}}>{profil.activite}</p>
+                  </div>
+                  {prochaineDecl && (
+                    <div style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:16,padding:'14px 18px',textAlign:'right'}}>
+                      <div style={{fontSize:10,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:5}}>⏰ Prochaine déclaration</div>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:'#E8D5A8'}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
+                      <div style={{fontSize:12,color:'rgba(255,255,255,.4)',marginTop:3}}>avant le {prochaineDecl.date_limite}</div>
+                      <button onClick={()=>setView('calendrier')} style={{marginTop:8,fontSize:11,background:'#B5792A',border:'none',color:'#fff',padding:'4px 12px',borderRadius:20,cursor:'pointer',fontFamily:'Outfit,sans-serif'}}>Voir le calendrier →</button>
+                    </div>
+                  )}
                 </div>
-              )}
+
+                {/* Métriques dans le hero */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginTop:'1.5rem'}}>
+                  {[
+                    { label:'CA ce mois', val:`${caMois.toLocaleString('fr-FR')} €`, sub:`Net ~${Math.round(caMois*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €`, color:'#E8D5A8', onClick:()=>setView('revenus') },
+                    { label:`CA ${year}`, val:`${caAnnuel.toLocaleString('fr-FR')} €`, sub:`URSSAF : ${Math.round(cotisAnnuel).toLocaleString('fr-FR')} €`, color:'#E8D5A8', onClick:()=>setView('revenus') },
+                    { label:'Taux URSSAF', val:`${profil?(taux*100).toFixed(1):'—'} %`, sub:profil?.acre?'✓ ACRE actif':'Taux standard', color:'#B5792A', onClick:()=>setShowOnboarding(true) },
+                    { label:'À mettre de côté', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`ce mois (${Math.round((taux+tauxImpot)*100)}% du CA)`, color:'#9CDBB8', onClick:()=>setView('simulateur') },
+                  ].map(({label,val,sub,color,onClick})=>(
+                    <div key={label} onClick={onClick} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.08)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'all .15s'}}
+                      onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,.09)'}}
+                      onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,.05)'}}
+                    >
+                      <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:8}}>{label}</div>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color,marginBottom:4}}>{val}</div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>{sub}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{background:'#FAF3E0',border:'2px dashed #E8D5A8',borderRadius:20,padding:'2rem',textAlign:'center',marginBottom:'1.5rem',cursor:'pointer'}} onClick={()=>setShowOnboarding(true)}>
+              <div style={{fontSize:32,marginBottom:8}}>👋</div>
+              <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,marginBottom:8,color:'#1C1710'}}>Bienvenue sur Serelyo !</h2>
+              <p style={{fontSize:14,color:'#6B5E45',marginBottom:'1rem'}}>Configure ton profil pour personnaliser ton tableau de bord</p>
+              <button className="btn btn-dark">Configurer mon profil →</button>
             </div>
           )}
-          <div className="metrics-grid">
-            <div className="metric-card">
-              <div className="metric-label">CA ce mois</div>
-              <div className="metric-value">{caMois.toLocaleString('fr-FR')} €</div>
-              <div className="metric-sub">Cotisations : ~{(caMois*taux).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">CA {year}</div>
-              <div className="metric-value">{caAnnuel.toLocaleString('fr-FR')} €</div>
-              <div className="metric-sub">Cotisations : ~{cotisAnnuel.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Taux URSSAF</div>
-              <div className="metric-value" style={{color:'#B5792A'}}>{profil?(taux*100).toFixed(1):'—'} %</div>
-              <div className="metric-sub">{profil?.acre?'✓ ACRE actif (→ 25% juil. 2026)':'Taux normal'}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">À mettre de côté</div>
-              <div className="metric-value" style={{color:'#2D7A4F'}}>{(caMois*(taux+tauxImpot)).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
-              <div className="metric-sub">URSSAF + impôts ({profil?.taux_impot_perso||14}%)</div>
-            </div>
-          </div>
-          <div className="card" style={{marginBottom:'1.5rem'}}>
-            <div className="card-title">Progression vers les seuils {year}</div>
-            <div className="seuil-item">
-              <div className="seuil-top"><span className="seuil-label">Seuil TVA</span><span className="seuil-val">{caAnnuel.toLocaleString('fr-FR')} € / {seuil_tva.toLocaleString('fr-FR')} €</span></div>
-              <div className="progress-bar"><div className="progress-fill" style={{width:pctTVA+'%',background:pctTVA>85?'#C0392B':pctTVA>60?'#B5792A':'#2D7A4F'}}/></div>
-              {pctTVA>85&&<div className="seuil-alert">⚠️ Attention — tu approches du seuil de TVA. Consulte un comptable.</div>}
-            </div>
-            <div className="seuil-item" style={{marginTop:'1rem'}}>
-              <div className="seuil-top"><span className="seuil-label">Plafond micro-entreprise</span><span className="seuil-val">{caAnnuel.toLocaleString('fr-FR')} € / {plafond.toLocaleString('fr-FR')} €</span></div>
-              <div className="progress-bar"><div className="progress-fill" style={{width:pctPlafond+'%',background:pctPlafond>85?'#C0392B':pctPlafond>60?'#B5792A':'#2D7A4F'}}/></div>
-              {pctPlafond>85&&<div className="seuil-alert">⚠️ Tu approches du plafond ! Au-delà tu bascules en régime réel.</div>}
-            </div>
-          </div>
-          {histoQ.length>0&&(
+
+          {/* ── LIGNE 2 : Seuils + Devis récents ── */}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1rem'}}>
+
+            {/* Seuils */}
             <div className="card">
-              <div className="card-title">Dernières questions à l'assistant</div>
-              {histoQ.slice(0,3).map(q=>(
-                <div key={q.id} className="question-preview" onClick={()=>{setQuestion(q.question);setReponse(q.reponse);setView('assistant')}}>
-                  <div className="question-text">💬 {q.question}</div>
-                  <div className="question-date">{new Date(q.created_at).toLocaleDateString('fr-FR')}</div>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+                <div className="card-title" style={{marginBottom:0}}>Seuils {year}</div>
+                <button className="link-btn" onClick={()=>setView('simulateur')}>Simuler →</button>
+              </div>
+              {[
+                { label:'TVA', val:seuil_tva, pct:pctTVA },
+                { label:'Plafond micro', val:plafond, pct:pctPlafond }
+              ].map(({label,val,pct})=>(
+                <div key={label} style={{marginBottom:'1rem'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                    <span style={{fontSize:12,fontWeight:500,color:'#1C1710'}}>{label}</span>
+                    <span style={{fontSize:11,color:'#A89878'}}>{Math.round(pct)}% atteint</span>
+                  </div>
+                  <div style={{height:8,background:'#F6F0E4',borderRadius:20,overflow:'hidden'}}>
+                    <div style={{height:'100%',width:pct+'%',background:pct>85?'#C0392B':pct>60?'#B5792A':'#2D7A4F',borderRadius:20,transition:'width .5s'}}/>
+                  </div>
+                  <div style={{fontSize:11,color:'#A89878',marginTop:4}}>
+                    {caAnnuel.toLocaleString('fr-FR')} € / {val.toLocaleString('fr-FR')} €
+                    {pct>85 && <span style={{color:'#C0392B',marginLeft:6}}>⚠️ Consulte un comptable</span>}
+                  </div>
                 </div>
               ))}
-              <button className="link-btn" onClick={()=>setView('assistant')}>Poser une nouvelle question →</button>
+            </div>
+
+            {/* Devis récents */}
+            <div className="card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+                <div className="card-title" style={{marginBottom:0}}>Devis récents</div>
+                <button className="link-btn" onClick={()=>setView('devis')}>Tous voir →</button>
+              </div>
+              {devis.length===0 ? (
+                <div style={{textAlign:'center',padding:'1.5rem 0',color:'#A89878'}}>
+                  <div style={{fontSize:28,marginBottom:8}}>📄</div>
+                  <div style={{fontSize:13}}>Aucun devis</div>
+                  <button className="link-btn" style={{marginTop:8}} onClick={()=>setView('devis')}>Créer un devis →</button>
+                </div>
+              ) : (
+                <>
+                  {devis.slice(0,3).map(d=>{
+                    const sc = {en_attente:{bg:'#FAF3E0',c:'#B5792A'},accepte:{bg:'#EDFAF3',c:'#2D7A4F'},refuse:{bg:'#FFF3F3',c:'#8B1A1A'},expire:{bg:'#F5F5F5',c:'#666'}}
+                    const s = sc[d.statut]||sc.en_attente
+                    return (
+                      <div key={d.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #FAF3E0',cursor:'pointer'}} onClick={()=>setView('devis')}>
+                        <div>
+                          <div style={{fontSize:13,fontWeight:500,color:'#1C1710'}}>{d.client_nom}</div>
+                          <div style={{fontSize:11,color:'#A89878'}}>{d.numero} · {d.date_emission}</div>
+                        </div>
+                        <div style={{display:'flex',alignItems:'center',gap:8}}>
+                          <span style={{fontFamily:"'Playfair Display',serif",fontSize:14,color:'#1C1710'}}>{(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</span>
+                          <span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:20,background:s.bg,color:s.c}}>
+                            {d.statut==='accepte'?'✓':d.statut==='refuse'?'✗':d.statut==='expire'?'exp.':'att.'}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* ── LIGNE 3 : Revenus récents + Assistant ── */}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1rem'}}>
+
+            {/* Revenus des derniers mois */}
+            <div className="card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+                <div className="card-title" style={{marginBottom:0}}>Revenus récents</div>
+                <button className="link-btn" onClick={()=>setView('revenus')}>Saisir →</button>
+              </div>
+              {revenus.slice(0,4).length===0 ? (
+                <div style={{textAlign:'center',padding:'1.5rem 0',color:'#A89878'}}>
+                  <div style={{fontSize:28,marginBottom:8}}>💶</div>
+                  <div style={{fontSize:13}}>Aucun revenu saisi</div>
+                  <button className="link-btn" style={{marginTop:8}} onClick={()=>setView('revenus')}>Saisir mes revenus →</button>
+                </div>
+              ) : (
+                revenus.slice(0,4).map(r=>{
+                  const net = r.montant*(1-taux-tauxImpot)
+                  return (
+                    <div key={r.mois} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #FAF3E0'}}>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:500,color:'#1C1710'}}>{formatMois(r.mois)}</div>
+                        <div style={{fontSize:11,color:'#A89878'}}>Net ~{Math.round(net).toLocaleString('fr-FR')} €</div>
+                      </div>
+                      <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:'#1C1710'}}>{r.montant.toLocaleString('fr-FR')} €</span>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+
+            {/* Assistant rapide */}
+            <div className="card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+                <div className="card-title" style={{marginBottom:0}}>Assistant IA</div>
+                <button className="link-btn" onClick={()=>setView('assistant')}>Ouvrir →</button>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {["Quand dois-je déclarer mon CA ?","Combien mettre de côté ce mois ?","Comment fonctionne l'ACRE ?","Qu'est-ce que la CFE ?"].map(q=>(
+                  <div key={q} onClick={()=>{setQuestion(q);setView('assistant')}}
+                    style={{padding:'10px 14px',borderRadius:10,border:'1px solid #E2D8C4',fontSize:13,color:'#6B5E45',cursor:'pointer',transition:'all .15s',background:'#FBF8F1'}}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor='#B5792A';e.currentTarget.style.color='#B5792A'}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor='#E2D8C4';e.currentTarget.style.color='#6B5E45'}}
+                  >
+                    💬 {q}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── LIGNE 4 : Prochaines échéances ── */}
+          {profil && (
+            <div className="card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+                <div className="card-title" style={{marginBottom:0}}>Prochaines échéances</div>
+                <button className="link-btn" onClick={()=>setView('calendrier')}>Calendrier complet →</button>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {calendrier.filter(e=>!e.past).slice(0,3).map(ev=>{
+                  const decl = declarations.find(d=>d.periode===ev.id)
+                  const fait = decl?.statut==='faite'
+                  return (
+                    <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:ev.current?'#FAF3E0':'#FAFAF8',border:`1px solid ${ev.current?'#E8D5A8':'#F0EBE0'}`}}>
+                      <div style={{display:'flex',alignItems:'center',gap:10}}>
+                        <div style={{width:8,height:8,borderRadius:'50%',background:fait?'#2D7A4F':ev.current?'#B5792A':'#E2D8C4',flexShrink:0}}/>
+                        <div>
+                          <div style={{fontSize:13,fontWeight:500,color:'#1C1710'}}>{ev.label}</div>
+                          <div style={{fontSize:11,color:'#A89878'}}>Avant le {ev.date_limite}</div>
+                        </div>
+                      </div>
+                      {fait
+                        ? <span style={{fontSize:11,fontWeight:600,color:'#2D7A4F',background:'#EDFAF3',padding:'3px 10px',borderRadius:20}}>✓ Faite</span>
+                        : <button className="btn btn-sm btn-amber" onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')}>Marquer faite</button>
+                      }
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>
