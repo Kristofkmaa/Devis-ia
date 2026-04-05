@@ -117,6 +117,13 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [savingRev, setSavingRev]   = useState(false)
   const [histoAnnee, setHistoAnnee] = useState(String(new Date().getFullYear()))
 
+  // Simulateur
+  const [simMode, setSimMode]         = useState('mensuel') // mensuel | annuel
+  const [simCA, setSimCA]             = useState('')
+  const [simMoisActifs, setSimMoisActifs] = useState(12)
+  const [simVariation, setSimVariation]   = useState('stable') // stable | croissance | saisonnalite
+  const [simResult, setSimResult]     = useState(null)
+
   // Devis
   const [devis, setDevis]           = useState([])
   const [showDevisForm, setShowDevisForm] = useState(false)
@@ -471,7 +478,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
       {/* NAV */}
       <div className="nav-tabs">
-        {[['dashboard','🏠 Tableau de bord'],['calendrier','📅 Calendrier'],['revenus','💶 Mes revenus'],['calculateur','🧮 Calculateur'],['devis','📄 Devis'],['assistant','💬 Assistant IA'],['ressources','📚 Ressources']].map(([v,l])=>(
+        {[['dashboard','🏠 Tableau de bord'],['calendrier','📅 Calendrier'],['revenus','💶 Mes revenus'],['calculateur','🧮 Calculateur'],['simulateur','📊 Simulateur'],['devis','📄 Devis'],['assistant','💬 Assistant IA'],['ressources','📚 Ressources']].map(([v,l])=>(
           <button key={v} className={`nav-tab ${view===v?'active':''}`} onClick={()=>setView(v)}>{l}</button>
         ))}
       </div>
@@ -986,6 +993,270 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 </div>
               ))}
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ── SIMULATEUR ── */}
+      {view==='simulateur' && (
+        <div className="main">
+          <div className="page-header">
+            <h2 className="page-title">Simulateur annuel</h2>
+            <p className="page-sub">Visualise tes revenus, charges et net mois par mois sur l'année</p>
+          </div>
+
+          {!profil ? (
+            <div className="empty-state"><h3>Configure ton profil d'abord</h3><button className="btn btn-dark" onClick={()=>setShowOnboarding(true)}>Configurer →</button></div>
+          ) : (
+            <>
+              {/* Formulaire */}
+              <div className="card" style={{marginBottom:'1.5rem'}}>
+                <div className="card-title">Paramètres de simulation</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,flexWrap:'wrap'}}>
+                  <div>
+                    <span className="mini-label">Mode de saisie</span>
+                    <select className="mini-input" value={simMode} onChange={e=>setSimMode(e.target.value)}>
+                      <option value="mensuel">CA mensuel moyen</option>
+                      <option value="annuel">CA annuel total</option>
+                    </select>
+                  </div>
+                  <div>
+                    <span className="mini-label">{simMode==='mensuel'?'CA mensuel moyen (€)':'CA annuel total (€)'}</span>
+                    <input className="mini-input" type="number" value={simCA}
+                      onChange={e=>setSimCA(e.target.value)}
+                      onKeyDown={e=>e.key==='Enter'&&document.getElementById('btn-simuler').click()}
+                      placeholder={simMode==='mensuel'?'3 000':'36 000'}/>
+                  </div>
+                  <div>
+                    <span className="mini-label">Mois d'activité</span>
+                    <select className="mini-input" value={simMoisActifs} onChange={e=>setSimMoisActifs(+e.target.value)}>
+                      {[6,7,8,9,10,11,12].map(m=><option key={m} value={m}>{m} mois</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <span className="mini-label">Profil de revenus</span>
+                    <select className="mini-input" value={simVariation} onChange={e=>setSimVariation(e.target.value)}>
+                      <option value="stable">Stable (même montant chaque mois)</option>
+                      <option value="croissance">En croissance (+10% par trimestre)</option>
+                      <option value="saisonnalite">Saisonnalité (été fort, hiver faible)</option>
+                    </select>
+                  </div>
+                  <div style={{display:'flex',alignItems:'flex-end'}}>
+                    <button id="btn-simuler" className="btn btn-dark" style={{width:'100%',padding:'10px'}} onClick={()=>{
+                      const ca = parseFloat(simCA)||0
+                      if (!ca) return
+                      const tauxU = profil.acre ? TAUX_ACRE[profil.secteur] : TAUX[profil.secteur]
+                      const tauxI = (parseFloat(profil.taux_impot_perso)||14)/100
+                      const caM = simMode==='mensuel' ? ca : ca/simMoisActifs
+                      // Générer les 12 mois
+                      const moisData = MOIS_NOMS.map((nom,i)=>{
+                        if (i >= simMoisActifs) return { nom, ca:0, urssaf:0, impots:0, net:0, actif:false }
+                        let facteur = 1
+                        if (simVariation==='croissance') facteur = 1 + Math.floor(i/3)*0.10
+                        if (simVariation==='saisonnalite') {
+                          const saisonniers = [0.7,0.7,0.9,1.0,1.1,1.4,1.5,1.4,1.1,0.9,0.7,0.6]
+                          facteur = saisonniers[i]
+                        }
+                        const mCA = caM * facteur
+                        const mUrssaf = mCA * tauxU
+                        const mImpots = mCA * tauxI
+                        const mNet = mCA - mUrssaf - mImpots
+                        return { nom, ca:mCA, urssaf:mUrssaf, impots:mImpots, net:mNet, actif:true }
+                      })
+                      const totCA = moisData.reduce((s,m)=>s+m.ca,0)
+                      const totUrssaf = moisData.reduce((s,m)=>s+m.urssaf,0)
+                      const totImpots = moisData.reduce((s,m)=>s+m.impots,0)
+                      const totNet = moisData.reduce((s,m)=>s+m.net,0)
+                      const seuil_tva = profil.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services
+                      const plafond = profil.secteur==='ventes'?SEUILS.plafond_ventes:SEUILS.plafond_services
+                      setSimResult({ moisData, totCA, totUrssaf, totImpots, totNet, tauxU, tauxI, seuil_tva, plafond })
+                    }}>Simuler →</button>
+                  </div>
+                </div>
+              </div>
+
+              {simResult && (() => {
+                const { moisData, totCA, totUrssaf, totImpots, totNet, tauxU, tauxI, seuil_tva, plafond } = simResult
+                const maxVal = Math.max(...moisData.map(m=>m.ca))
+                const chartH = 180
+                const chartW = 800
+                const barW = 44
+                const gap = 20
+                const totalW = moisData.length * (barW + gap)
+                const pct = (v) => v > 0 ? Math.max((v/maxVal)*chartH, 3) : 0
+
+                // Courbe nette (points)
+                const netPoints = moisData.map((m,i) => {
+                  const x = i*(barW+gap) + barW/2
+                  const y = chartH - pct(m.net)
+                  return `${x},${y}`
+                }).join(' ')
+
+                return (
+                  <>
+                    {/* Récap cartes */}
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:'1.5rem'}}>
+                      <div style={{background:'#1C1710',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
+                        <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.5)',marginBottom:6}}>CA Total</div>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#fff'}}>{totCA.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                      </div>
+                      <div style={{background:'#FFF3F3',border:'1px solid #FFCACA',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
+                        <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>URSSAF ({(tauxU*100).toFixed(1)}%)</div>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#8B1A1A'}}>{totUrssaf.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                      </div>
+                      <div style={{background:'#FFF4E6',border:'1px solid #FFD5A0',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
+                        <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>Impôts (~{Math.round(tauxI*100)}%)</div>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#7A3A0A'}}>{totImpots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                      </div>
+                      <div style={{background:'#EDFAF3',border:'1px solid #9CDBB8',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
+                        <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>Net estimé</div>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#2D7A4F'}}>{totNet.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                        <div style={{fontSize:11,color:'#2D7A4F',opacity:.7}}>{Math.round(totNet/12).toLocaleString('fr-FR')} €/mois</div>
+                      </div>
+                    </div>
+
+                    {/* Graphique */}
+                    <div className="card" style={{marginBottom:'1.5rem',overflowX:'auto'}}>
+                      <div className="card-title">Répartition mensuelle</div>
+
+                      {/* Légende */}
+                      <div style={{display:'flex',gap:20,marginBottom:16,flexWrap:'wrap'}}>
+                        {[['#4A9EFF','CA encaissé'],['#FF6B6B','URSSAF'],['#FFA94D','Impôts'],['#2D7A4F','Net (courbe)']].map(([color,label])=>(
+                          <div key={label} style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'#6B5E45'}}>
+                            <div style={{width:12,height:12,borderRadius:label==='Net (courbe)'?'50%':3,background:color}}/>
+                            {label}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{overflowX:'auto'}}>
+                        <svg width={Math.max(totalW+40,600)} height={chartH+60} style={{display:'block'}}>
+                          {/* Lignes de grille */}
+                          {[0.25,0.5,0.75,1].map(p=>(
+                            <g key={p}>
+                              <line x1="0" y1={chartH-p*chartH} x2={totalW+40} y2={chartH-p*chartH} stroke="#F6F0E4" strokeWidth="1"/>
+                              <text x="0" y={chartH-p*chartH-3} fontSize="9" fill="#A89878">{Math.round(maxVal*p).toLocaleString('fr-FR')}€</text>
+                            </g>
+                          ))}
+
+                          {/* Barres */}
+                          {moisData.map((m,i)=>{
+                            const x = i*(barW+gap)+30
+                            const hCA = pct(m.ca)
+                            const hU = pct(m.urssaf)
+                            const hI = pct(m.impots)
+                            if (!m.actif) return (
+                              <g key={i}>
+                                <rect x={x} y={0} width={barW} height={chartH} fill="#F6F0E4" rx="4"/>
+                                <text x={x+barW/2} y={chartH+14} textAnchor="middle" fontSize="10" fill="#A89878">{m.nom}</text>
+                                <text x={x+barW/2} y={chartH/2} textAnchor="middle" fontSize="9" fill="#A89878">inactif</text>
+                              </g>
+                            )
+                            return (
+                              <g key={i}>
+                                {/* Barre CA */}
+                                <rect x={x} y={chartH-hCA} width={barW} height={hCA} fill="#4A9EFF" rx="4" opacity="0.7"/>
+                                {/* Barre URSSAF */}
+                                <rect x={x} y={chartH-hU} width={barW} height={hU} fill="#FF6B6B" rx="2"/>
+                                {/* Barre impôts empilée sur urssaf */}
+                                <rect x={x} y={chartH-hU-hI} width={barW} height={hI} fill="#FFA94D" rx="2"/>
+                                {/* Label mois */}
+                                <text x={x+barW/2} y={chartH+14} textAnchor="middle" fontSize="10" fill="#6B5E45">{m.nom}</text>
+                                {/* Valeur CA au survol */}
+                                <title>{m.nom}: CA {Math.round(m.ca).toLocaleString('fr-FR')}€ | URSSAF {Math.round(m.urssaf).toLocaleString('fr-FR')}€ | Net {Math.round(m.net).toLocaleString('fr-FR')}€</title>
+                              </g>
+                            )
+                          })}
+
+                          {/* Courbe nette */}
+                          <polyline
+                            points={moisData.filter(m=>m.actif).map((m,i)=>{
+                              const allIdx = moisData.indexOf(m)
+                              const x = allIdx*(barW+gap)+30+barW/2
+                              const y = chartH-pct(m.net)
+                              return `${x},${y}`
+                            }).join(' ')}
+                            fill="none" stroke="#2D7A4F" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"
+                          />
+                          {/* Points de la courbe */}
+                          {moisData.filter(m=>m.actif).map((m,i)=>{
+                            const allIdx = moisData.indexOf(m)
+                            const x = allIdx*(barW+gap)+30+barW/2
+                            const y = chartH-pct(m.net)
+                            return <circle key={i} cx={x} cy={y} r="4" fill="#2D7A4F" stroke="#fff" strokeWidth="2"/>
+                          })}
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* Tableau détaillé */}
+                    <div className="card" style={{marginBottom:'1.5rem'}}>
+                      <div className="card-title">Détail mois par mois</div>
+                      <div style={{overflowX:'auto'}}>
+                        <table className="rev-table">
+                          <thead>
+                            <tr>
+                              <th>Mois</th>
+                              <th>CA</th>
+                              <th>URSSAF ({(tauxU*100).toFixed(1)}%)</th>
+                              <th>Impôts ({Math.round(tauxI*100)}%)</th>
+                              <th>À mettre de côté</th>
+                              <th>Net estimé</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {moisData.filter(m=>m.actif).map((m,i)=>(
+                              <tr key={i}>
+                                <td>{m.nom}</td>
+                                <td><strong>{Math.round(m.ca).toLocaleString('fr-FR')} €</strong></td>
+                                <td style={{color:'#8B1A1A'}}>{Math.round(m.urssaf).toLocaleString('fr-FR')} €</td>
+                                <td style={{color:'#7A3A0A'}}>{Math.round(m.impots).toLocaleString('fr-FR')} €</td>
+                                <td style={{color:'#B5792A',fontWeight:500}}>{Math.round(m.urssaf+m.impots).toLocaleString('fr-FR')} €</td>
+                                <td style={{color:'#2D7A4F',fontWeight:600}}>{Math.round(m.net).toLocaleString('fr-FR')} €</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot>
+                            <tr className="rev-total">
+                              <td>TOTAL</td>
+                              <td>{Math.round(totCA).toLocaleString('fr-FR')} €</td>
+                              <td style={{color:'#8B1A1A'}}>{Math.round(totUrssaf).toLocaleString('fr-FR')} €</td>
+                              <td style={{color:'#7A3A0A'}}>{Math.round(totImpots).toLocaleString('fr-FR')} €</td>
+                              <td style={{color:'#B5792A'}}>{Math.round(totUrssaf+totImpots).toLocaleString('fr-FR')} €</td>
+                              <td style={{color:'#2D7A4F'}}>{Math.round(totNet).toLocaleString('fr-FR')} €</td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Alertes seuils */}
+                    <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:'1.5rem'}}>
+                      {[
+                        { label:'Seuil TVA', val:seuil_tva, pct:Math.min((totCA/seuil_tva)*100,100), color:'#B5792A' },
+                        { label:'Plafond micro-entreprise', val:plafond, pct:Math.min((totCA/plafond)*100,100), color:'#2D7A4F' }
+                      ].map(({label,val,pct,color})=>(
+                        <div key={label} className="card" style={{padding:'1rem 1.25rem'}}>
+                          <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+                            <span style={{fontSize:13,fontWeight:500,color:'#1C1710'}}>{label}</span>
+                            <span style={{fontSize:12,color:'#A89878'}}>{Math.round(totCA).toLocaleString('fr-FR')} € / {val.toLocaleString('fr-FR')} €</span>
+                          </div>
+                          <div className="progress-bar">
+                            <div className="progress-fill" style={{width:pct+'%',background:pct>85?'#C0392B':pct>60?color:'#2D7A4F'}}/>
+                          </div>
+                          {pct>85&&<div className="seuil-alert" style={{marginTop:8}}>⚠️ À ce rythme tu dépasses le {label.toLowerCase()} — consulte un comptable.</div>}
+                          {pct<=85&&<div style={{fontSize:11,color:'#A89878',marginTop:6}}>Il te reste {(val-totCA).toLocaleString('fr-FR',{maximumFractionDigits:0})} € avant d'atteindre ce seuil</div>}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{fontSize:11,color:'#A89878',lineHeight:1.7,padding:'12px 16px',background:'#F6F0E4',borderRadius:12}}>
+                      ⚠️ <strong style={{color:'#1C1710'}}>Simulation indicative</strong> — Les montants sont calculés sur la base des taux officiels URSSAF {new Date().getFullYear()} pour ton secteur ({(tauxU*100).toFixed(1)}%). Le taux d'imposition réel dépend de ta situation fiscale globale. Ces chiffres ne constituent pas un conseil comptable.
+                    </div>
+                  </>
+                )
+              })()}
+            </>
           )}
         </div>
       )}
