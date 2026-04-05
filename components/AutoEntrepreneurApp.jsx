@@ -1370,7 +1370,6 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               </div>
                             ))}
                           </div>
-                        </table>
                       </div>
                     </div>
 
