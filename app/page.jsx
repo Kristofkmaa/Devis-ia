@@ -506,10 +506,10 @@ export default function HomePage() {
             <p className="section-sub">Entre les déclarations URSSAF, les devis, les seuils de TVA et les impôts — gérer son auto-entreprise est devenu un métier à part entière.</p>
             <div className="problem-list">
               {[
-                ["😰",'Tu oublies les dates de déclaration','Et tu te retrouves avec des pénalités de retard inutiles'],
-                ["🤯",'Tu ne sais pas combien mettre de côté','URSSAF, impôts, CFE — le calcul est flou et stressant'],
-                ["📄","Tes devis sont faits sur Word ou Excel","Pas de numerotation, pas de suivi, pas d'historique"],
-                ["📊",'Tu pilotes à l'aveugle','Sans visualisation claire de ta situation financière'],
+                ["😰","Tu oublies les dates de déclaration","Et tu te retrouves avec des pénalités de retard inutiles"],
+                ["🤯","Tu ne sais pas combien mettre de côté","URSSAF, impôts, CFE — le calcul est flou et stressant"],
+                ["📄","Tes devis sont faits sur Word ou Excel","Pas de numérotation, pas de suivi, pas d'historique"],
+                ["📊","Tu pilotes a l'aveugle","Sans visualisation claire de ta situation financière"],
               ].map(([icon,title,desc])=>(
                 <div key={title} className="problem-item">
                   <span className="problem-icon">{icon}</span>
@@ -549,12 +549,12 @@ export default function HomePage() {
         </div>
         <div className="features-grid">
           {[
-            {emoji:'🧮',title:'Calculs URSSAF automatiques',desc:'Tu saisis ton CA, Serelyo calcule exactement ce que tu dois, ce que tu devras payer en impôts, et ce qu'il te reste vraiment.',featured:true},
-            {emoji:'📅',title:'Calendrier des échéances',desc:'Toutes tes déclarations URSSAF, CFE et IR au même endroit. Avec un vrai calendrier visuel et tes rendez-vous personnels.'},
-            {emoji:'📊',title:'Simulation annuelle',desc:'Visualise toute ton année en un graphique. Stable, en croissance ou saisonnière — vois exactement ce que tu vas gagner.'},
-            {emoji:'📄',title:'Générateur de devis',desc:'Crée des devis professionnels en 2 minutes. Numérotation automatique, PDF imprimable, suivi des statuts.'},
-            {emoji:'💶',title:'Suivi des revenus',desc:'Saisis ton CA mois par mois et visualise ton historique avec le détail URSSAF, impôts et net pour chaque mois.'},
-            {emoji:'💬',title:'Assistant IA personnalisé',desc:'Pose tes questions en français simple. L'assistant connaît ton secteur et ta situation — ses réponses sont adaptées.'},
+            {emoji:"🧮",title:"Calculs URSSAF automatiques",desc:"Tu saisis ton CA, Serelyo calcule exactement ce que tu dois, ce que tu devras payer en impôts, et ce qu'il te reste vraiment.",featured:true},
+            {emoji:"📅",title:"Calendrier des échéances",desc:"Toutes tes déclarations URSSAF, CFE et IR au même endroit. Avec un vrai calendrier visuel et tes rendez-vous personnels."},
+            {emoji:"📊",title:"Simulation annuelle",desc:"Visualise toute ton année en un graphique. Stable, en croissance ou saisonnière — vois exactement ce que tu vas gagner."},
+            {emoji:"📄",title:"Générateur de devis",desc:"Crée des devis professionnels en 2 minutes. Numérotation automatique, PDF imprimable, suivi des statuts."},
+            {emoji:"💶",title:"Suivi des revenus",desc:"Saisis ton CA mois par mois et visualise ton historique avec le détail URSSAF, impôts et net pour chaque mois."},
+            {emoji:"💬",title:"Assistant IA personnalisé",desc:"Pose tes questions en français simple. L'assistant connaît ton secteur et ta situation — ses réponses sont adaptées."},
           ].map(({emoji,title,desc,featured})=>(
             <div key={title} className={`feature-card${featured?' featured':''}`}>
               <span className="feature-emoji">{emoji}</span>
@@ -575,10 +575,10 @@ export default function HomePage() {
         <div className="taux-grid">
           {[
             ["🛍","Vente de marchandises (BIC)","12,3%","ACRE : 6,15%"],
-            ["🔧","Services artisanaux (BIC)",'21,2%','ACRE : 10,6%'],
-            ["💼","Services freelance (BNC)",'21,2%','ACRE : 10,6%'],
-            ["🎓","Libéral non réglementé (SSI)",'25,6%','ACRE : 12,8%'],
-            ["🏛","Libéral réglementé (CIPAV)",'23,2%','ACRE : 11,6%'],
+            ["🔧","Services artisanaux (BIC)","21,2%","ACRE : 10,6%"],
+            ["💼","Services freelance (BNC)","21,2%","ACRE : 10,6%"],
+            ["🎓","Libéral non réglementé (SSI)","25,6%","ACRE : 12,8%"],
+            ["🏛","Libéral réglementé (CIPAV)","23,2%","ACRE : 11,6%"],
             ["🏠","Location meublée classée","6%","ACRE : 3%"],
           ].map(([icon,label,taux,acre])=>(
             <div key={label} className="taux-card">
@@ -602,10 +602,10 @@ export default function HomePage() {
             <h2 className="section-title">Opérationnel en<br/><em>5 minutes.</em></h2>
             <div className="how-steps">
               {[
-                ["1",'Crée ton compte gratuitement','Inscription en 30 secondes, sans carte bancaire.'],
-                ["2",'Configure ton profil','Secteur, date de création, ACRE, taux — Serelyo adapte tous les calculs.'],
-                ["3",'Saisis ton CA chaque mois','En 10 secondes. Serelyo calcule automatiquement tout le reste.'],
-                ["4",'Pilote ton activité sereinement','Tableau de bord, devis, calendrier — tout est à ta portée.'],
+                ["1","Crée ton compte gratuitement","Inscription en 30 secondes, sans carte bancaire."],
+                ["2","Configure ton profil","Secteur, date de création, ACRE, taux — Serelyo adapte tous les calculs."],
+                ["3","Saisis ton CA chaque mois","En 10 secondes. Serelyo calcule automatiquement tout le reste."],
+                ["4","Pilote ton activité sereinement","Tableau de bord, devis, calendrier — tout est à ta portée."],
               ].map(([num,title,desc])=>(
                 <div key={num} className="how-step">
                   <div className="step-num">{num}</div>
@@ -625,7 +625,7 @@ export default function HomePage() {
               <div className="dp-title">Serelyo — Tableau de bord</div>
             </div>
             <div className="dp-metrics">
-              {[['CA ce mois','4 200 €','#E8D5A8'],['Net estimé','2 646 €','#9CDBB8'],['URSSAF','890 €','#FF8888'],['À mettre de côté','1 554 €','#FFA94D']].map(([label,val,color])=>(
+              {[["CA ce mois","4 200 €","#E8D5A8"],["Net estimé","2 646 €","#9CDBB8"],["URSSAF","890 €","#FF8888"],["À mettre de côté","1 554 €","#FFA94D"]].map(([label,val,color])=>(
                 <div key={label} className="dp-metric">
                   <div className="dp-metric-label">{label}</div>
                   <div className="dp-metric-val" style={{color}}>{val}</div>
