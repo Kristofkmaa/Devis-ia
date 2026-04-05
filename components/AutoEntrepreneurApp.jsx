@@ -1354,16 +1354,22 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               </tr>
                             ))}
                           </tbody>
-                          <tfoot>
-                            <tr className="rev-total">
-                              <td>TOTAL</td>
-                              <td>{Math.round(totCA).toLocaleString('fr-FR')} €</td>
-                              <td style={{color:'#8B1A1A'}}>{Math.round(totUrssaf).toLocaleString('fr-FR')} €</td>
-                              <td style={{color:'#7A3A0A'}}>{Math.round(totImpots).toLocaleString('fr-FR')} €</td>
-                              <td style={{color:'#B5792A'}}>{Math.round(totUrssaf+totImpots).toLocaleString('fr-FR')} €</td>
-                              <td style={{color:'#2D7A4F'}}>{Math.round(totNet).toLocaleString('fr-FR')} €</td>
-                            </tr>
-                          </tfoot>
+                          </table>
+                          {/* Total récap cards */}
+                          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginTop:'1.25rem'}}>
+                            {[
+                              {label:'CA Total',val:Math.round(totCA),color:'#1C1710',bg:'#1C1710',textColor:'#fff',subColor:'rgba(255,255,255,.5)'},
+                              {label:'URSSAF total',val:Math.round(totUrssaf),color:'#8B1A1A',bg:'#FFF3F3',subColor:'#A89878'},
+                              {label:'Impôts total',val:Math.round(totImpots),color:'#7A3A0A',bg:'#FFF4E6',subColor:'#A89878'},
+                              {label:'Net estimé total',val:Math.round(totNet),color:'#2D7A4F',bg:'#EDFAF3',subColor:'#A89878'},
+                            ].map(({label,val,color,bg,textColor,subColor})=>(
+                              <div key={label} style={{background:bg,borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                                <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:subColor||'#A89878',marginBottom:6}}>{label}</div>
+                                <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:textColor||color,fontWeight:600}}>{val.toLocaleString('fr-FR')} €</div>
+                                <div style={{fontSize:11,color:subColor||'#A89878',marginTop:4}}>{Math.round(val/simMoisActifs).toLocaleString('fr-FR')} €/mois</div>
+                              </div>
+                            ))}
+                          </div>
                         </table>
                       </div>
                     </div>
