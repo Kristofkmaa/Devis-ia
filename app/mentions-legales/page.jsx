@@ -23,7 +23,7 @@ export default function MentionsLegales() {
 
       <nav className="legal-nav">
         <a href="/dashboard" className="legal-nav-logo">Serely<span>o</span></a>
-        <a href="/" className="legal-nav-back">← Retour</a>
+        <a href="/dashboard" className="legal-nav-back">← Retour à l'application</a>
       </nav>
 
       <div className="legal-hero">
