@@ -13,7 +13,7 @@ export default function Dashboard() {
     const init = async () => {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.push('/'); return }
+      if (!session) { router.push('/login'); return }
       setUser(session.user)
       setLoading(false)
       supabase.auth.onAuthStateChange((_event, session) => {
@@ -26,7 +26,7 @@ export default function Dashboard() {
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/login')
+    router.push('/')
   }
 
   if (loading) return (
