@@ -117,6 +117,22 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [savingRev, setSavingRev]   = useState(false)
   const [histoAnnee, setHistoAnnee] = useState(String(new Date().getFullYear()))
 
+  // Devis
+  const [devis, setDevis]           = useState([])
+  const [showDevisForm, setShowDevisForm] = useState(false)
+  const [devisClient, setDevisClient] = useState({ nom:'', adresse:'', email:'', type:'entreprise' })
+  const [devisLignes, setDevisLignes] = useState([
+    { id:1, designation:'', detail:'', quantite:1, unite:'heure', prix:0 },
+    { id:2, designation:'', detail:'', quantite:1, unite:'heure', prix:0 },
+  ])
+  const [devisLigneId, setDevisLigneId] = useState(2)
+  const [devisTva, setDevisTva]     = useState(0)
+  const [devisValidite, setDevisValidite] = useState('30')
+  const [devisConditions, setDevisConditions] = useState('Paiement à 30 jours à réception de facture')
+  const [devisNotes, setDevisNotes] = useState('')
+  const [savingDevis, setSavingDevis] = useState(false)
+  const [devisCounter, setDevisCounter] = useState(1)
+
   useEffect(() => { if (user) loadAll() }, [user])
 
   const loadAll = async () => {
@@ -148,6 +164,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     if (d) setDecl(d)
     const { data:q } = await supabase.from('ae_questions').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(20)
     if (q) setHistoQ(q)
+    const { data:dv } = await supabase.from('ae_devis').select('*').eq('user_id',user.id).order('created_at',{ascending:false})
+    if (dv) { setDevis(dv); if(dv.length>0) setDevisCounter(dv.length+1) }
     setLoading(false)
   }
 
@@ -213,6 +231,191 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     setAsking(false)
   }
 
+  // ─── Devis functions ──────────────────────
+  const devisHT = devisLignes.reduce((s,l)=>s+(l.quantite*l.prix),0)
+  const devisTVA_montant = devisHT * (devisTva/100)
+  const devisTTC = devisHT + devisTVA_montant
+
+  const addLigne = () => {
+    const id = devisLigneId + 1
+    setDevisLigneId(id)
+    setDevisLignes(prev=>[...prev, { id, designation:'', detail:'', quantite:1, unite:'heure', prix:0 }])
+  }
+
+  const updateLigne = (id, field, val) => {
+    setDevisLignes(prev=>prev.map(l=>l.id===id?{...l,[field]:field==='quantite'||field==='prix'?parseFloat(val)||0:val}:l))
+  }
+
+  const removeLigne = (id) => {
+    setDevisLignes(prev=>prev.filter(l=>l.id!==id))
+  }
+
+  const genNumeroDevis = () => {
+    const d = new Date()
+    const yr = d.getFullYear()
+    const mn = String(d.getMonth()+1).padStart(2,'0')
+    return `DEV-${yr}${mn}-${String(devisCounter).padStart(3,'0')}`
+  }
+
+  const saveDevis = async (statut='en_attente') => {
+    if (!devisClient.nom) { alert('Le nom du client est obligatoire'); return }
+    if (devisLignes.filter(l=>l.designation).length===0) { alert('Ajoute au moins une prestation'); return }
+    setSavingDevis(true)
+    const numero = genNumeroDevis()
+    const dateEmission = new Date().toLocaleDateString('fr-FR')
+    const dateValidite = new Date(Date.now() + parseInt(devisValidite)*24*60*60*1000).toLocaleDateString('fr-FR')
+    const payload = {
+      user_id: user.id,
+      numero, statut,
+      date_emission: dateEmission,
+      date_validite: dateValidite,
+      client_nom: devisClient.nom,
+      client_adresse: devisClient.adresse,
+      client_email: devisClient.email,
+      client_type: devisClient.type,
+      lignes: JSON.stringify(devisLignes.filter(l=>l.designation)),
+      tva_taux: devisTva,
+      total_ht: devisHT,
+      total_ttc: devisTTC,
+      conditions: devisConditions,
+      notes: devisNotes,
+      validite_jours: devisValidite,
+    }
+    const { data:saved, error } = await supabase.from('ae_devis').insert(payload).select().single()
+    if (error) { alert('Erreur : '+error.message); setSavingDevis(false); return }
+    setDevis(prev=>[saved,...prev])
+    setDevisCounter(c=>c+1)
+    setSavingDevis(false)
+    setShowDevisForm(false)
+    // Reset form
+    setDevisClient({ nom:'', adresse:'', email:'', type:'entreprise' })
+    setDevisLignes([{id:1,designation:'',detail:'',quantite:1,unite:'heure',prix:0},{id:2,designation:'',detail:'',quantite:1,unite:'heure',prix:0}])
+    setDevisLigneId(2)
+    setDevisNotes('')
+    // Imprimer
+    if (saved) imprimerDevis(saved, profil)
+  }
+
+  const updateStatutDevis = async (id, statut) => {
+    await supabase.from('ae_devis').update({statut}).eq('id',id)
+    setDevis(prev=>prev.map(d=>d.id===id?{...d,statut}:d))
+  }
+
+  const supprimerDevis = async (id) => {
+    if (!confirm('Supprimer ce devis ?')) return
+    await supabase.from('ae_devis').delete().eq('id',id)
+    setDevis(prev=>prev.filter(d=>d.id!==id))
+  }
+
+  const imprimerDevis = (d, em) => {
+    const lignes = JSON.parse(d.lignes||'[]')
+    const ht = lignes.reduce((s,l)=>s+(l.quantite*l.prix),0)
+    const tva = ht*(d.tva_taux/100)
+    const ttc = ht+tva
+    const fmt = v => (+v).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})
+    const rows = lignes.map(l=>`
+      <tr>
+        <td style="padding:10px 8px;border-bottom:1px solid #F6F0E4;vertical-align:top">
+          <strong style="color:#1C1710">${l.designation}</strong>
+          ${l.detail?`<br><span style="font-size:11px;color:#6B5E45">${l.detail}</span>`:''}
+        </td>
+        <td style="padding:10px 8px;border-bottom:1px solid #F6F0E4;text-align:center">${l.quantite} ${l.unite}</td>
+        <td style="padding:10px 8px;border-bottom:1px solid #F6F0E4;text-align:right">${fmt(l.prix)} €</td>
+        <td style="padding:10px 8px;border-bottom:1px solid #F6F0E4;text-align:right;font-weight:600">${fmt(l.quantite*l.prix)} €</td>
+      </tr>`).join('')
+    const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+    <title>Devis ${d.numero}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'Outfit',sans-serif;color:#1C1710;background:#fff;padding:40px 50px;max-width:800px;margin:0 auto}
+      .stripe{height:6px;background:linear-gradient(90deg,#B5792A,#D4A456);margin-bottom:36px;border-radius:2px}
+      h1{font-family:'Playfair Display',serif;font-size:38px;font-weight:600;margin-bottom:8px}
+      .badge{display:inline-block;background:#FAF3E0;color:#B5792A;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:24px}
+      .head{display:flex;justify-content:space-between;margin-bottom:28px}
+      .ref{text-align:right;font-size:12px;color:#A89878;line-height:2}
+      .ref strong{font-family:'Playfair Display',serif;font-size:17px;color:#1C1710;display:block}
+      .sep{height:1px;background:#E2D8C4;margin:20px 0}
+      .parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}
+      .plbl{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#A89878;margin-bottom:6px}
+      .pname{font-family:'Playfair Display',serif;font-size:17px;margin-bottom:4px}
+      .psub{font-size:12px;color:#6B5E45;line-height:1.6}
+      table{width:100%;border-collapse:collapse;margin-bottom:20px}
+      thead tr{border-bottom:2px solid #1C1710}
+      th{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#6B5E45;padding:0 8px 10px;text-align:left}
+      th:not(:first-child){text-align:right} th:nth-child(2){text-align:center}
+      .totals{display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-bottom:24px}
+      .trow{display:flex;gap:60px;font-size:13px;color:#6B5E45}
+      .tgrand{display:flex;gap:60px;align-items:center;background:#FAF3E0;border-radius:12px;padding:12px 20px;margin-top:4px}
+      .tgrand span:first-child{font-size:13px;color:#6B5E45}
+      .tgrand span:last-child{font-family:'Playfair Display',serif;font-size:22px;color:#1C1710}
+      .footer-box{background:#F6F0E4;border-radius:10px;padding:14px 18px;margin-top:20px}
+      .footer-box p{font-size:11px;color:#6B5E45;line-height:1.8;margin-bottom:4px}
+      .footer-box strong{color:#1C1710}
+      .legal{margin-top:24px;font-size:10px;color:#A89878;text-align:center;line-height:1.7;border-top:1px solid #E2D8C4;padding-top:16px}
+      @media print{body{padding:0}@page{margin:12mm 10mm}}
+    </style></head><body>
+    <div class="stripe"></div>
+    <div class="head">
+      <div>
+        <h1>Devis</h1>
+        <div class="badge">En attente de validation</div>
+      </div>
+      <div class="ref">
+        <strong>${d.numero}</strong>
+        Émis le ${d.date_emission}<br>
+        Valable jusqu'au <strong style="color:#1C1710">${d.date_validite}</strong>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <div class="parties">
+      <div>
+        <div class="plbl">Émetteur</div>
+        <div class="pname">${em?.nom||'—'}</div>
+        <div class="psub">${[em?.activite,em?.adresse,em?.email,em?.tel].filter(Boolean).join('<br>')}</div>
+        ${em?.siret?`<div class="psub" style="margin-top:6px">SIRET : ${em.siret}</div>`:''}
+      </div>
+      <div>
+        <div class="plbl">Client</div>
+        <div class="pname">${d.client_nom}</div>
+        <div class="psub">
+          ${d.client_type==='entreprise'?'Entreprise':'Particulier'}
+          ${d.client_adresse?'<br>'+d.client_adresse:''}
+          ${d.client_email?'<br>'+d.client_email:''}
+        </div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:right">Prix unitaire HT</th><th style="text-align:right">Total HT</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="totals">
+      <div class="trow"><span>Total HT</span><span>${fmt(ht)} €</span></div>
+      <div class="trow"><span>TVA ${d.tva_taux > 0 ? d.tva_taux+'%' : '(non applicable — art. 293B CGI)'}</span><span>${fmt(tva)} €</span></div>
+      <div class="tgrand"><span>${d.tva_taux>0?'Total TTC':'Total net HT'}</span><span>${fmt(ttc)} €</span></div>
+    </div>
+    <div class="footer-box">
+      ${d.conditions?`<p><strong>Conditions de règlement :</strong> ${d.conditions}</p>`:''}
+      <p><strong>Validité :</strong> Ce devis est valable ${d.validite_jours} jours à compter de sa date d'émission.</p>
+      ${d.notes?`<p><strong>Notes :</strong> ${d.notes}</p>`:''}
+      <p style="margin-top:8px;font-size:10px;color:#A89878">Bon pour accord — Date et signature du client :</p>
+      <div style="border:1px solid #E2D8C4;border-radius:8px;height:50px;margin-top:6px"></div>
+    </div>
+    ${d.tva_taux===0?'<p style="margin-top:12px;font-size:10px;color:#A89878">TVA non applicable en vertu de l'article 293B du Code Général des Impôts.</p>':''}
+    <div class="legal">
+      ${em?.nom||''} ${em?.forme_juridique?'— '+em.forme_juridique:''} ${em?.siret?'— SIRET : '+em.siret:''}<br>
+      Document généré par Serelyo — serelyo.fr
+    </div>
+    <script>document.title="Devis ${d.numero} — ${d.client_nom}";window.onload=()=>setTimeout(window.print,500)<\/script>
+    </body></html>`
+    const blob = new Blob([html],{type:'text/html;charset=utf-8'})
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href=url; a.download=`Devis-${d.numero}-${d.client_nom.replace(/[^\w]/g,'-')}.html`
+    document.body.appendChild(a); a.click(); document.body.removeChild(a)
+    setTimeout(()=>URL.revokeObjectURL(url),5000)
+  }
+
   const tauxImpot = profil ? (parseFloat(profil.taux_impot_perso)||14) / 100 : 0.14
 
   const calculer = () => {
@@ -269,7 +472,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
       {/* NAV */}
       <div className="nav-tabs">
-        {[['dashboard','🏠 Tableau de bord'],['calendrier','📅 Calendrier'],['revenus','💶 Mes revenus'],['calculateur','🧮 Calculateur'],['assistant','💬 Assistant IA'],['ressources','📚 Ressources']].map(([v,l])=>(
+        {[['dashboard','🏠 Tableau de bord'],['calendrier','📅 Calendrier'],['revenus','💶 Mes revenus'],['calculateur','🧮 Calculateur'],['devis','📄 Devis'],['assistant','💬 Assistant IA'],['ressources','📚 Ressources']].map(([v,l])=>(
           <button key={v} className={`nav-tab ${view===v?'active':''}`} onClick={()=>setView(v)}>{l}</button>
         ))}
       </div>
@@ -783,6 +986,194 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   <div className="question-date">{new Date(q.created_at).toLocaleDateString('fr-FR')}</div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── DEVIS ── */}
+      {view==='devis' && (
+        <div className="main">
+          <div className="page-header" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12}}>
+            <div>
+              <h2 className="page-title">Mes devis</h2>
+              <p className="page-sub">Crée et gère tes devis professionnels</p>
+            </div>
+            <button className="btn btn-dark" onClick={()=>setShowDevisForm(true)}>+ Nouveau devis</button>
+          </div>
+
+          {/* Avertissement légal */}
+          <div style={{background:'#EEF4FF',border:'1px solid #C3D8F8',borderRadius:14,padding:'12px 16px',marginBottom:'1.5rem',fontSize:12,color:'#1A4A8A',lineHeight:1.7}}>
+            ℹ️ <strong>Note légale :</strong> Pour les artisans du bâtiment, réparateurs auto et coiffeurs, le devis est obligatoire au-delà de 150€ et doit contenir des mentions spécifiques. Serelyo génère des devis conformes aux recommandations pour tous les secteurs. En cas de doute, consultez un professionnel juridique.
+          </div>
+
+          {/* Stats rapides */}
+          {devis.length > 0 && (
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:'1.5rem'}}>
+              {[
+                ['Total devis',devis.length,'#1C1710','#FFFDF8'],
+                ['En attente',devis.filter(d=>d.statut==='en_attente').length,'#B5792A','#FAF3E0'],
+                ['Acceptés',devis.filter(d=>d.statut==='accepte').length,'#2D7A4F','#EDFAF3'],
+                ['Refusés',devis.filter(d=>d.statut==='refuse').length,'#8B1A1A','#FFF3F3'],
+              ].map(([label,val,color,bg])=>(
+                <div key={label} style={{background:bg,border:`1px solid ${color}22`,borderRadius:16,padding:'1rem',textAlign:'center'}}>
+                  <div style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>{label}</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color}}>{val}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Liste devis */}
+          {devis.length === 0 ? (
+            <div className="empty-state">
+              <h3>Aucun devis pour l'instant</h3>
+              <p style={{fontSize:13,color:'#A89878',marginBottom:'1.5rem'}}>Crée ton premier devis en quelques clics</p>
+              <button className="btn btn-dark" onClick={()=>setShowDevisForm(true)}>+ Créer un devis</button>
+            </div>
+          ) : (
+            <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              {devis.map(d=>(
+                <div key={d.id} className="card" style={{padding:'1rem 1.25rem'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:10}}>
+                    <div style={{display:'flex',gap:14,alignItems:'center'}}>
+                      <div style={{width:42,height:42,background:'#FAF3E0',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>📄</div>
+                      <div>
+                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+                          <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:600,color:'#1C1710'}}>{d.numero}</span>
+                          <span style={{
+                            fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,
+                            background:d.statut==='accepte'?'#EDFAF3':d.statut==='refuse'?'#FFF3F3':'#FAF3E0',
+                            color:d.statut==='accepte'?'#2D7A4F':d.statut==='refuse'?'#8B1A1A':'#B5792A'
+                          }}>{d.statut==='accepte'?'Accepté':d.statut==='refuse'?'Refusé':'En attente'}</span>
+                        </div>
+                        <div style={{fontSize:13,color:'#6B5E45'}}>{d.client_nom}</div>
+                        <div style={{fontSize:11,color:'#A89878',marginTop:2}}>Émis le {d.date_emission} — valable jusqu'au {d.date_validite}</div>
+                      </div>
+                    </div>
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:8}}>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:'#1C1710'}}>{(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{minimumFractionDigits:2})} €</div>
+                      <div style={{display:'flex',gap:6}}>
+                        <select
+                          style={{fontSize:11,padding:'4px 8px',borderRadius:8,border:'1px solid #E2D8C4',background:'#FBF8F1',color:'#6B5E45',fontFamily:'Outfit,sans-serif',cursor:'pointer'}}
+                          value={d.statut}
+                          onChange={e=>updateStatutDevis(d.id,e.target.value)}
+                        >
+                          <option value="en_attente">En attente</option>
+                          <option value="accepte">Accepté</option>
+                          <option value="refuse">Refusé</option>
+                          <option value="expire">Expiré</option>
+                        </select>
+                        <button className="btn btn-ghost btn-sm" onClick={()=>imprimerDevis(d,profil)}>🖨 Imprimer</button>
+                        <button style={{padding:'5px 10px',fontSize:11,borderRadius:8,border:'1px solid #FFCACA',background:'#FFF3F3',color:'#8B1A1A',cursor:'pointer',fontFamily:'Outfit,sans-serif'}} onClick={()=>supprimerDevis(d.id)}>🗑</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Modal formulaire devis */}
+          {showDevisForm && (
+            <div className="overlay show" onClick={e=>{if(e.target.className.includes('overlay'))setShowDevisForm(false)}}>
+              <div className="modal" style={{maxWidth:700,maxHeight:'90vh',overflowY:'auto'}}>
+                <div className="modal-title">Nouveau devis</div>
+                <p className="modal-sub">Remplis les informations ci-dessous pour générer ton devis.</p>
+
+                {/* Client */}
+                <div className="prof-section-title">Client</div>
+                <div className="form-grid">
+                  <div className="field full"><label>Nom du client *</label><input value={devisClient.nom} onChange={e=>setDevisClient(p=>({...p,nom:e.target.value}))} placeholder="Entreprise Martin SARL ou M. Dupont"/></div>
+                  <div className="field full"><label>Adresse</label><input value={devisClient.adresse} onChange={e=>setDevisClient(p=>({...p,adresse:e.target.value}))} placeholder="12 rue de la Paix, 75001 Paris"/></div>
+                  <div className="field"><label>Email</label><input type="email" value={devisClient.email} onChange={e=>setDevisClient(p=>({...p,email:e.target.value}))} placeholder="contact@client.fr"/></div>
+                  <div className="field">
+                    <label>Type de client</label>
+                    <select value={devisClient.type} onChange={e=>setDevisClient(p=>({...p,type:e.target.value}))}>
+                      <option value="entreprise">Entreprise / Professionnel</option>
+                      <option value="particulier">Particulier</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Prestations */}
+                <div className="prof-section-title">Prestations</div>
+                <table style={{width:'100%',borderCollapse:'collapse',marginBottom:12}}>
+                  <thead>
+                    <tr>
+                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'#A89878',padding:'0 4px 8px',textAlign:'left',width:'35%'}}>Désignation *</th>
+                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'#A89878',padding:'0 4px 8px',textAlign:'left',width:'20%'}}>Détail</th>
+                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'#A89878',padding:'0 4px 8px',textAlign:'center',width:'10%'}}>Qté</th>
+                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'#A89878',padding:'0 4px 8px',textAlign:'center',width:'12%'}}>Unité</th>
+                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'#A89878',padding:'0 4px 8px',textAlign:'right',width:'15%'}}>Prix HT</th>
+                      <th style={{width:'8%'}}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {devisLignes.map(l=>(
+                      <tr key={l.id} style={{borderBottom:'1px solid #FAF3E0'}}>
+                        <td style={{padding:'4px'}}><input style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1.5px solid #E2D8C4',background:'#FBF8F1',fontFamily:'Outfit,sans-serif',fontSize:12}} value={l.designation} onChange={e=>updateLigne(l.id,'designation',e.target.value)} placeholder="Ex: Développement web"/></td>
+                        <td style={{padding:'4px'}}><input style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1.5px solid #E2D8C4',background:'#FBF8F1',fontFamily:'Outfit,sans-serif',fontSize:12}} value={l.detail} onChange={e=>updateLigne(l.id,'detail',e.target.value)} placeholder="Détail optionnel"/></td>
+                        <td style={{padding:'4px'}}><input type="number" style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1.5px solid #E2D8C4',background:'#FBF8F1',fontFamily:'Outfit,sans-serif',fontSize:12,textAlign:'center'}} value={l.quantite} onChange={e=>updateLigne(l.id,'quantite',e.target.value)}/></td>
+                        <td style={{padding:'4px'}}>
+                          <select style={{width:'100%',padding:'7px 6px',borderRadius:8,border:'1.5px solid #E2D8C4',background:'#FBF8F1',fontFamily:'Outfit,sans-serif',fontSize:12}} value={l.unite} onChange={e=>updateLigne(l.id,'unite',e.target.value)}>
+                            <option value="heure">heure</option>
+                            <option value="jour">jour</option>
+                            <option value="forfait">forfait</option>
+                            <option value="unité">unité</option>
+                            <option value="mois">mois</option>
+                            <option value="m²">m²</option>
+                            <option value="km">km</option>
+                          </select>
+                        </td>
+                        <td style={{padding:'4px'}}><input type="number" style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1.5px solid #E2D8C4',background:'#FBF8F1',fontFamily:'Outfit,sans-serif',fontSize:12,textAlign:'right'}} value={l.prix} onChange={e=>updateLigne(l.id,'prix',e.target.value)} placeholder="0"/></td>
+                        <td style={{padding:'4px',textAlign:'center'}}><button onClick={()=>removeLigne(l.id)} style={{background:'none',border:'none',cursor:'pointer',color:'#A89878',fontSize:16,padding:'4px'}}>×</button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <button onClick={addLigne} style={{display:'flex',alignItems:'center',gap:8,background:'transparent',border:'1.5px dashed #E2D8C4',borderRadius:10,padding:'8px 16px',cursor:'pointer',fontFamily:'Outfit,sans-serif',fontSize:12,color:'#6B5E45',width:'100%',marginBottom:'1rem'}}>+ Ajouter une ligne</button>
+
+                {/* Totaux preview */}
+                <div style={{background:'#FAF3E0',borderRadius:12,padding:'12px 16px',marginBottom:'1rem',display:'flex',justifyContent:'flex-end',gap:24}}>
+                  <span style={{fontSize:13,color:'#6B5E45'}}>Total HT : <strong style={{color:'#1C1710'}}>{devisHT.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></span>
+                  <span style={{fontSize:13,color:'#6B5E45'}}>TVA ({devisTva}%) : <strong style={{color:'#1C1710'}}>{devisTVA_montant.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></span>
+                  <span style={{fontSize:13,fontWeight:700,color:'#1C1710'}}>Total : {devisTTC.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</span>
+                </div>
+
+                {/* Conditions */}
+                <div className="prof-section-title">Conditions</div>
+                <div className="form-grid">
+                  <div className="field">
+                    <label>TVA applicable</label>
+                    <select value={devisTva} onChange={e=>setDevisTva(+e.target.value)}>
+                      <option value={0}>Non applicable (art. 293B CGI)</option>
+                      <option value={20}>20% (taux normal)</option>
+                      <option value={10}>10% (taux intermédiaire)</option>
+                      <option value={5.5}>5,5% (taux réduit)</option>
+                      <option value={2.1}>2,1% (taux super réduit)</option>
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Validité du devis</label>
+                    <select value={devisValidite} onChange={e=>setDevisValidite(e.target.value)}>
+                      <option value="15">15 jours</option>
+                      <option value="30">30 jours</option>
+                      <option value="60">60 jours</option>
+                      <option value="90">90 jours</option>
+                    </select>
+                  </div>
+                  <div className="field full"><label>Conditions de paiement</label><input value={devisConditions} onChange={e=>setDevisConditions(e.target.value)} placeholder="Paiement à 30 jours à réception de facture"/></div>
+                  <div className="field full"><label>Notes / remarques</label><input value={devisNotes} onChange={e=>setDevisNotes(e.target.value)} placeholder="Toute information complémentaire utile au client…"/></div>
+                </div>
+
+                <div className="modal-actions">
+                  <button className="btn btn-ghost" onClick={()=>setShowDevisForm(false)}>Annuler</button>
+                  <button className="btn btn-dark" onClick={()=>saveDevis('en_attente')} disabled={savingDevis}>
+                    {savingDevis?'Génération…':'Générer & télécharger →'}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
