@@ -754,7 +754,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   return (
                     <div key={r.mois} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #FAF3E0'}}>
                       <div>
-                        <div style={{fontSize:13,fontWeight:500,color:'#1C1710'}}>{formatMois(r.mois)}</div>
+                        <div style={{fontSize:13,fontWeight:500,color:'#1C1710'}}>{r.mois&&r.mois.match(/^\d{4}-\d{2}$/)?formatMois(r.mois):r.mois||'—'}</div>
                         <div style={{fontSize:11,color:'#A89878'}}>Net ~{Math.round(net).toLocaleString('fr-FR')} €</div>
                       </div>
                       <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:'#1C1710'}}>{r.montant.toLocaleString('fr-FR')} €</span>
@@ -818,52 +818,194 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       )}
 
       {/* ── CALENDRIER ── */}
-      {view==='calendrier' && (
+      {view==='calendrier' && (() => {
+        const calYear = year
+        const MOIS_FULL = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+        const JOURS = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
+
+        // Construire les événements par date limite
+        const eventsParMois = {} // { 'MM': [event, ...] }
+        calendrier.forEach(ev => {
+          if (!ev.date_limite) return
+          const parts = ev.date_limite.split('/')
+          if (parts.length !== 3) return
+          const moisIdx = parseInt(parts[1]) - 1 // 0-based
+          const evYear = parseInt(parts[2])
+          if (evYear !== calYear && evYear !== calYear+1) return
+          const key = evYear === calYear ? String(moisIdx) : 'next'
+          if (!eventsParMois[key]) eventsParMois[key] = []
+          const decl = declarations.find(d=>d.periode===ev.id)
+          const statut = decl?.statut || (ev.past ? 'a_verifier' : 'a_faire')
+          eventsParMois[key].push({ ...ev, statut, jour: parseInt(parts[0]) })
+        })
+
+        // Ajouter revenus saisis par mois
+        const revParMois = {}
+        revenus.filter(r=>r.mois&&r.mois.startsWith(String(calYear))).forEach(r => {
+          const m = parseInt(r.mois.split('-')[1]) - 1
+          revParMois[m] = r.montant
+        })
+
+        return (
         <div className="main">
-          <div className="page-header">
-            <h2 className="page-title">Calendrier administratif</h2>
-            <p className="page-sub">Toutes tes échéances au même endroit</p>
+          <div className="page-header" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
+            <div>
+              <h2 className="page-title">Calendrier {calYear}</h2>
+              <p className="page-sub">Tes échéances et revenus en un coup d'oeil</p>
+            </div>
+            <div style={{display:'flex',gap:16,flexWrap:'wrap'}}>
+              {[['#2D7A4F','✓ Déclaration faite'],['#B5792A','À faire'],['#4A9EFF','Revenu saisi'],['#E2D8C4','Mois inactif']].map(([c,l])=>(
+                <div key={l} style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'#6B5E45'}}>
+                  <div style={{width:10,height:10,borderRadius:'50%',background:c}}/>
+                  {l}
+                </div>
+              ))}
+            </div>
           </div>
+
           {!profil ? (
             <div className="empty-state"><h3>Configure ton profil d'abord</h3><button className="btn btn-dark" onClick={()=>setShowOnboarding(true)}>Configurer →</button></div>
           ) : (
-            <div className="cal-list">
-              {calendrier.map(ev=>{
-                const decl = declarations.find(d=>d.periode===ev.id)
-                const statut = decl?.statut||(ev.past?'a_verifier':'a_faire')
-                return (
-                  <div key={ev.id} className={`cal-card ${ev.current?'cal-current':''} ${ev.special?'cal-special':''} ${ev.past&&statut!=='faite'?'cal-past':''}`}>
-                    <div className="cal-left">
-                      <div className={`cal-dot ${statut==='faite'?'dot-done':ev.past?'dot-late':'dot-pending'}`}/>
-                      <div>
-                        <div className="cal-label">{ev.label}</div>
-                        <div className="cal-date">Avant le {ev.date_limite}</div>
-                        {ev.current&&<span className="badge-current">Période en cours</span>}
+            <>
+              {/* Grille 12 mois */}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14,marginBottom:'1.5rem'}}>
+                {MOIS_FULL.map((nomMois, moisIdx) => {
+                  const estCourant = moisIdx === month-1
+                  const estPasse = moisIdx < month-1
+                  const evs = eventsParMois[String(moisIdx)] || []
+                  const rev = revParMois[moisIdx]
+
+                  // Calcul jours du mois
+                  const premierJour = new Date(calYear, moisIdx, 1).getDay() // 0=dim
+                  const premierLundi = premierJour === 0 ? 6 : premierJour - 1
+                  const nbJours = new Date(calYear, moisIdx+1, 0).getDate()
+                  const jours = Array(premierLundi).fill(null).concat(Array.from({length:nbJours},(_,i)=>i+1))
+                  while (jours.length % 7 !== 0) jours.push(null)
+
+                  // Jours avec événements
+                  const joursEvenements = {}
+                  evs.forEach(ev => {
+                    if (ev.jour) joursEvenements[ev.jour] = ev
+                  })
+
+                  return (
+                    <div key={moisIdx} style={{
+                      background:'#FFFDF8',
+                      border:`2px solid ${estCourant?'#B5792A':'#E2D8C4'}`,
+                      borderRadius:16,
+                      padding:'1rem',
+                      opacity: estPasse && !rev && evs.length===0 ? 0.6 : 1,
+                      boxShadow: estCourant ? '0 4px 20px rgba(181,121,42,.15)' : 'none'
+                    }}>
+                      {/* En-tête mois */}
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:600,color:estCourant?'#B5792A':'#1C1710'}}>
+                          {nomMois}
+                          {estCourant && <span style={{fontSize:10,background:'#B5792A',color:'#fff',padding:'2px 7px',borderRadius:20,marginLeft:6,fontFamily:'Outfit,sans-serif'}}>En cours</span>}
+                        </div>
+                        {rev && <span style={{fontSize:11,fontWeight:600,color:'#4A9EFF',background:'#EEF4FF',padding:'2px 8px',borderRadius:20}}>{rev.toLocaleString('fr-FR')} €</span>}
                       </div>
+
+                      {/* Mini calendrier */}
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:1,marginBottom:8}}>
+                        {JOURS.map(j=>(
+                          <div key={j} style={{textAlign:'center',fontSize:8,color:'#A89878',fontWeight:600,padding:'2px 0'}}>{j}</div>
+                        ))}
+                        {jours.map((jour,i)=>{
+                          const ev = jour ? joursEvenements[jour] : null
+                          const estAujourdhui = estCourant && jour === getNow().day
+                          return (
+                            <div key={i} style={{
+                              textAlign:'center',
+                              fontSize:10,
+                              padding:'3px 1px',
+                              borderRadius:4,
+                              fontWeight: ev || estAujourdhui ? 700 : 400,
+                              background: ev ? (ev.statut==='faite'?'#EDFAF3':ev.statut==='a_verifier'?'#FFF3F3':'#FAF3E0') : estAujourdhui ? '#1C1710' : 'transparent',
+                              color: ev ? (ev.statut==='faite'?'#2D7A4F':ev.statut==='a_verifier'?'#8B1A1A':'#B5792A') : estAujourdhui ? '#fff' : jour ? '#6B5E45' : 'transparent',
+                              cursor: ev ? 'pointer' : 'default',
+                              title: ev ? ev.label : ''
+                            }}>
+                              {jour||''}
+                            </div>
+                          )
+                        })}
+                      </div>
+
+                      {/* Badges événements */}
+                      {evs.length > 0 && (
+                        <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                          {evs.map(ev=>(
+                            <div key={ev.id} style={{
+                              display:'flex',justifyContent:'space-between',alignItems:'center',
+                              padding:'5px 8px',borderRadius:8,fontSize:11,
+                              background: ev.statut==='faite'?'#EDFAF3':ev.statut==='a_verifier'?'#FFF3F3':'#FAF3E0',
+                              border: `1px solid ${ev.statut==='faite'?'#9CDBB8':ev.statut==='a_verifier'?'#FFCACA':'#E8D5A8'}`
+                            }}>
+                              <span style={{color:'#1C1710',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:120}}>
+                                {ev.special ? (ev.type==='cfe'?'💶 CFE':'📋 IR') : '📅 URSSAF'}
+                              </span>
+                              {ev.statut==='faite'
+                                ? <span style={{color:'#2D7A4F',fontWeight:700,flexShrink:0}}>✓</span>
+                                : <button onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')} style={{fontSize:10,background:'#B5792A',border:'none',color:'#fff',padding:'2px 8px',borderRadius:20,cursor:'pointer',fontFamily:'Outfit,sans-serif',flexShrink:0}}>Faire</button>
+                              }
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Si pas d'événement et pas de revenu */}
+                      {evs.length===0 && !rev && (
+                        <div style={{fontSize:11,color:'#D0C8B8',textAlign:'center',padding:'4px 0'}}>
+                          {estPasse ? 'Aucune échéance' : 'Libre'}
+                        </div>
+                      )}
                     </div>
-                    <div className="cal-right">
-                      {statut==='faite'
-                        ? <span className="badge-done">✓ Faite</span>
-                        : <button className="btn btn-sm btn-amber" onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')}>Marquer comme faite</button>
-                      }
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+
+              {/* Liste récap des échéances à venir */}
+              <div className="card">
+                <div className="card-title">Récapitulatif des échéances</div>
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  {calendrier.map(ev=>{
+                    const decl = declarations.find(d=>d.periode===ev.id)
+                    const statut = decl?.statut||(ev.past?'a_verifier':'a_faire')
+                    const couleur = statut==='faite'?{bg:'#EDFAF3',border:'#9CDBB8',dot:'#2D7A4F'}:ev.past?{bg:'#FFF3F3',border:'#FFCACA',dot:'#C0392B'}:ev.current?{bg:'#FAF3E0',border:'#E8D5A8',dot:'#B5792A'}:{bg:'#FAFAF8',border:'#F0EBE0',dot:'#E2D8C4'}
+                    return (
+                      <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:couleur.bg,border:`1px solid ${couleur.border}`,flexWrap:'wrap',gap:8}}>
+                        <div style={{display:'flex',alignItems:'center',gap:10}}>
+                          <div style={{width:8,height:8,borderRadius:'50%',background:couleur.dot,flexShrink:0}}/>
+                          <div>
+                            <div style={{fontSize:13,fontWeight:500,color:'#1C1710'}}>{ev.label}</div>
+                            <div style={{fontSize:11,color:'#A89878'}}>Avant le {ev.date_limite}</div>
+                          </div>
+                        </div>
+                        <div style={{display:'flex',alignItems:'center',gap:8}}>
+                          {ev.current && <span style={{fontSize:10,background:'#B5792A',color:'#fff',padding:'2px 8px',borderRadius:20,fontWeight:600}}>En cours</span>}
+                          {statut==='faite'
+                            ? <span style={{fontSize:12,fontWeight:600,color:'#2D7A4F',background:'#EDFAF3',padding:'4px 12px',borderRadius:20}}>✓ Faite</span>
+                            : <button className="btn btn-sm btn-amber" onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')}>Marquer faite</button>
+                          }
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="info-box" style={{marginTop:'1rem'}}>
+                <div className="info-title">📌 Comment déclarer</div>
+                <div className="info-text">
+                  Va sur <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" style={{color:'#1A4A8A',fontWeight:600}}>autoentrepreneur.urssaf.fr</a> · Connecte-toi avec ton SIRET · Clique "Déclarer et payer" · Saisis ton CA · Valide
+                </div>
+              </div>
+            </>
           )}
-          <div className="info-box" style={{marginTop:'1.5rem'}}>
-            <div className="info-title">📌 Comment déclarer sur autoentrepreneur.urssaf.fr</div>
-            <div className="info-text">
-              1. Va sur <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" style={{color:'#1A4A8A',fontWeight:600}}>autoentrepreneur.urssaf.fr</a><br/>
-              2. Connecte-toi avec ton numéro SIRET<br/>
-              3. Clique sur "Déclarer et payer"<br/>
-              4. Saisis ton CA de la période<br/>
-              5. Valide — le montant à payer est calculé automatiquement
-            </div>
-          </div>
         </div>
-      )}
+        )
+      })()}
 
       {/* ── REVENUS ── */}
       {view==='revenus' && (
