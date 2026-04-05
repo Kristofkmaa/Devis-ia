@@ -666,7 +666,7 @@ export default function HomePage() {
           <div className="pricing-card featured-plan">
             <div className="plan-badge">⭐ Le plus populaire</div>
             <div className="plan-name">Pro</div>
-            <div className="plan-price">9€ <span>/ mois</span></div>
+            <div className="plan-price">25€ <span>/ mois</span></div>
             <div className="plan-desc">Tout ce qu'il faut pour gérer son activité sereinement</div>
             <div className="plan-features">
               {['Tout du plan Gratuit','Devis illimités + PDF','Simulateur annuel complet','Assistant IA illimité','Rappels email avant déclarations','Export CSV pour comptable'].map(f=><div key={f} className="plan-feature">{f}</div>)}
@@ -675,7 +675,7 @@ export default function HomePage() {
           </div>
           <div className="pricing-card">
             <div className="plan-name">Annuel</div>
-            <div className="plan-price">79€ <span>/ an</span></div>
+            <div className="plan-price">249€ <span>/ an</span></div>
             <div className="plan-desc">Tout le plan Pro avec 2 mois offerts</div>
             <div className="plan-features">
               {['Tout du plan Pro','2 mois offerts','Support prioritaire','Nouvelles fonctionnalités en avant-première'].map(f=><div key={f} className="plan-feature">{f}</div>)}
