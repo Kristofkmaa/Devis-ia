@@ -124,6 +124,13 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [simVariation, setSimVariation]   = useState('stable') // stable | croissance | saisonnalite
   const [simResult, setSimResult]     = useState(null)
 
+  // Rendez-vous personnels
+  const [rdvList, setRdvList]         = useState([])
+  const [showRdvModal, setShowRdvModal] = useState(false)
+  const [rdvJour, setRdvJour]         = useState(null)   // { moisIdx, jour, moisNom }
+  const [rdvForm, setRdvForm]         = useState({ titre:'', heure:'09:00', type:'rdv', notes:'' })
+  const [rdvEditing, setRdvEditing]   = useState(null)
+
   // Devis
   const [devis, setDevis]           = useState([])
   const [showDevisForm, setShowDevisForm] = useState(false)
@@ -175,6 +182,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     if (q) setHistoQ(q)
     const { data:dv } = await supabase.from('ae_devis').select('*').eq('user_id',user.id).order('created_at',{ascending:false})
     if (dv) { setDevis(dv); if(dv.length>0) setDevisCounter(dv.length+1) }
+    const { data:rdv } = await supabase.from('ae_rdv').select('*').eq('user_id',user.id).order('date',{ascending:true})
+    if (rdv) setRdvList(rdv)
     setLoading(false)
   }
 
@@ -314,6 +323,43 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     if (!confirm('Supprimer ce devis ?')) return
     await supabase.from('ae_devis').delete().eq('id',id)
     setDevis(prev=>prev.filter(d=>d.id!==id))
+  }
+
+  // ─── RDV functions ─────────────────────────
+  const saveRdv = async () => {
+    if (!rdvForm.titre.trim() || !rdvJour) return
+    const date = `${year}-${String(rdvJour.moisIdx+1).padStart(2,'0')}-${String(rdvJour.jour).padStart(2,'0')}`
+    const payload = { user_id:user.id, date, titre:rdvForm.titre, heure:rdvForm.heure, type:rdvForm.type, notes:rdvForm.notes }
+    if (rdvEditing) {
+      const { data } = await supabase.from('ae_rdv').update(payload).eq('id',rdvEditing).select().single()
+      if (data) setRdvList(prev=>prev.map(r=>r.id===rdvEditing?data:r))
+    } else {
+      const { data } = await supabase.from('ae_rdv').insert(payload).select().single()
+      if (data) setRdvList(prev=>[...prev,data].sort((a,b)=>a.date.localeCompare(b.date)))
+    }
+    setShowRdvModal(false)
+    setRdvForm({ titre:'', heure:'09:00', type:'rdv', notes:'' })
+    setRdvEditing(null)
+  }
+
+  const deleteRdv = async (id) => {
+    await supabase.from('ae_rdv').delete().eq('id',id)
+    setRdvList(prev=>prev.filter(r=>r.id!==id))
+  }
+
+  const openRdvModal = (moisIdx, jour, moisNom) => {
+    setRdvJour({ moisIdx, jour, moisNom })
+    setRdvForm({ titre:'', heure:'09:00', type:'rdv', notes:'' })
+    setRdvEditing(null)
+    setShowRdvModal(true)
+  }
+
+  const RDV_TYPES = {
+    rdv:      { label:'Rendez-vous',   color:'#1A4A8A', bg:'#EEF4FF', emoji:'📅' },
+    client:   { label:'Client',         color:'#2D7A4F', bg:'#EDFAF3', emoji:'🤝' },
+    admin:    { label:'Administratif',  color:'#B5792A', bg:'#FAF3E0', emoji:'📋' },
+    perso:    { label:'Personnel',      color:'#6B2D7A', bg:'#F5F0FF', emoji:'👤' },
+    rappel:   { label:'Rappel',         color:'#8B1A1A', bg:'#FFF3F3', emoji:'⏰' },
   }
 
   const imprimerDevis = (d, em) => {
@@ -914,19 +960,27 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         {jours.map((jour,i)=>{
                           const ev = jour ? joursEvenements[jour] : null
                           const estAujourdhui = estCourant && jour === getNow().day
+                          const dateStr = jour ? `${year}-${String(moisIdx+1).padStart(2,'0')}-${String(jour).padStart(2,'0')}` : null
+                          const rdvsJour = dateStr ? rdvList.filter(r=>r.date===dateStr) : []
+                          const hasRdv = rdvsJour.length > 0
                           return (
-                            <div key={i} style={{
-                              textAlign:'center',
-                              fontSize:10,
-                              padding:'3px 1px',
-                              borderRadius:4,
-                              fontWeight: ev || estAujourdhui ? 700 : 400,
-                              background: ev ? (ev.statut==='faite'?'#EDFAF3':ev.statut==='a_verifier'?'#FFF3F3':'#FAF3E0') : estAujourdhui ? '#1C1710' : 'transparent',
-                              color: ev ? (ev.statut==='faite'?'#2D7A4F':ev.statut==='a_verifier'?'#8B1A1A':'#B5792A') : estAujourdhui ? '#fff' : jour ? '#6B5E45' : 'transparent',
-                              cursor: ev ? 'pointer' : 'default',
-                              title: ev ? ev.label : ''
-                            }}>
+                            <div key={i}
+                              onClick={()=>jour && openRdvModal(moisIdx, jour, nomMois)}
+                              title={jour ? (hasRdv ? rdvsJour.map(r=>r.titre).join(', ') : `Ajouter un événement`) : ''}
+                              style={{
+                                textAlign:'center',
+                                fontSize:10,
+                                padding:'3px 1px',
+                                borderRadius:4,
+                                fontWeight: ev || estAujourdhui || hasRdv ? 700 : 400,
+                                background: estAujourdhui ? '#1C1710' : hasRdv ? RDV_TYPES[rdvsJour[0].type]?.bg||'#EEF4FF' : ev ? (ev.statut==='faite'?'#EDFAF3':ev.statut==='a_verifier'?'#FFF3F3':'#FAF3E0') : 'transparent',
+                                color: estAujourdhui ? '#fff' : hasRdv ? RDV_TYPES[rdvsJour[0].type]?.color||'#1A4A8A' : ev ? (ev.statut==='faite'?'#2D7A4F':ev.statut==='a_verifier'?'#8B1A1A':'#B5792A') : jour ? '#6B5E45' : 'transparent',
+                                cursor: jour ? 'pointer' : 'default',
+                                outline: hasRdv ? `1.5px solid ${RDV_TYPES[rdvsJour[0].type]?.color||'#1A4A8A'}` : 'none',
+                                position:'relative'
+                              }}>
                               {jour||''}
+                              {hasRdv && rdvsJour.length > 1 && <span style={{position:'absolute',top:-2,right:-1,fontSize:7,background:'#1A4A8A',color:'#fff',borderRadius:'50%',width:10,height:10,display:'flex',alignItems:'center',justifyContent:'center'}}>{rdvsJour.length}</span>}
                             </div>
                           )
                         })}
@@ -954,10 +1008,36 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         </div>
                       )}
 
+                      {/* RDV personnels du mois */}
+                      {(() => {
+                        const rdvsMois = rdvList.filter(r=>{
+                          if (!r.date) return false
+                          const parts = r.date.split('-')
+                          return parseInt(parts[0])===year && parseInt(parts[1])-1===moisIdx
+                        })
+                        if (rdvsMois.length===0) return null
+                        return (
+                          <div style={{marginTop:6,borderTop:'1px solid #F0EBE0',paddingTop:6,display:'flex',flexDirection:'column',gap:3}}>
+                            {rdvsMois.map(r=>{
+                              const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
+                              return (
+                                <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'3px 6px',borderRadius:6,background:t.bg,fontSize:10}}>
+                                  <span style={{color:t.color,fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:110}}>{t.emoji} {r.titre}</span>
+                                  <div style={{display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
+                                    <span style={{color:'#A89878'}}>{r.heure}</span>
+                                    <button onClick={e=>{e.stopPropagation();deleteRdv(r.id)}} style={{background:'none',border:'none',cursor:'pointer',color:'#C0392B',fontSize:11,padding:0,lineHeight:1}}>×</button>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )
+                      })()}
+
                       {/* Si pas d'événement et pas de revenu */}
-                      {evs.length===0 && !rev && (
-                        <div style={{fontSize:11,color:'#D0C8B8',textAlign:'center',padding:'4px 0'}}>
-                          {estPasse ? 'Aucune échéance' : 'Libre'}
+                      {evs.length===0 && !rev && rdvList.filter(r=>r.date&&parseInt(r.date.split('-')[1])-1===moisIdx&&parseInt(r.date.split('-')[0])===year).length===0 && (
+                        <div style={{fontSize:11,color:'#D0C8B8',textAlign:'center',padding:'4px 0',cursor:'pointer'}} onClick={()=>openRdvModal(moisIdx,1,nomMois)}>
+                          + Ajouter
                         </div>
                       )}
                     </div>
@@ -1001,6 +1081,70 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   Va sur <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" style={{color:'#1A4A8A',fontWeight:600}}>autoentrepreneur.urssaf.fr</a> · Connecte-toi avec ton SIRET · Clique "Déclarer et payer" · Saisis ton CA · Valide
                 </div>
               </div>
+
+              {/* Modal ajout RDV */}
+              {showRdvModal && rdvJour && (
+                <div className="overlay show" onClick={e=>{if(e.target.className.includes('overlay'))setShowRdvModal(false)}}>
+                  <div className="modal" style={{maxWidth:440}}>
+                    <div className="modal-title">
+                      {rdvEditing ? 'Modifier' : 'Nouvel événement'}
+                    </div>
+                    <p className="modal-sub">
+                      {rdvJour.moisNom} {rdvJour.jour}, {year}
+                    </p>
+                    <div className="form-grid">
+                      <div className="field full">
+                        <label>Titre *</label>
+                        <input value={rdvForm.titre} onChange={e=>setRdvForm(p=>({...p,titre:e.target.value}))} placeholder="Ex: Appel client, Réunion, Déclaration…" autoFocus/>
+                      </div>
+                      <div className="field">
+                        <label>Heure</label>
+                        <input type="time" value={rdvForm.heure} onChange={e=>setRdvForm(p=>({...p,heure:e.target.value}))}/>
+                      </div>
+                      <div className="field">
+                        <label>Type</label>
+                        <select value={rdvForm.type} onChange={e=>setRdvForm(p=>({...p,type:e.target.value}))}>
+                          {Object.entries(RDV_TYPES).map(([val,{label,emoji}])=>(
+                            <option key={val} value={val}>{emoji} {label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="field full">
+                        <label>Notes</label>
+                        <input value={rdvForm.notes} onChange={e=>setRdvForm(p=>({...p,notes:e.target.value}))} placeholder="Informations complémentaires…"/>
+                      </div>
+                    </div>
+
+                    {/* RDV existants ce jour */}
+                    {(() => {
+                      const dateStr = `${year}-${String(rdvJour.moisIdx+1).padStart(2,'0')}-${String(rdvJour.jour).padStart(2,'0')}`
+                      const rdvsJour = rdvList.filter(r=>r.date===dateStr)
+                      if (rdvsJour.length===0) return null
+                      return (
+                        <div style={{marginBottom:'1rem'}}>
+                          <div style={{fontSize:11,fontWeight:600,color:'#A89878',letterSpacing:'.5px',textTransform:'uppercase',marginBottom:8}}>Événements ce jour</div>
+                          {rdvsJour.map(r=>{
+                            const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
+                            return (
+                              <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 12px',borderRadius:10,background:t.bg,marginBottom:6}}>
+                                <span style={{fontSize:13,color:t.color,fontWeight:500}}>{t.emoji} {r.heure} — {r.titre}</span>
+                                <button onClick={()=>deleteRdv(r.id)} style={{background:'none',border:'none',cursor:'pointer',color:'#C0392B',fontSize:18,lineHeight:1}}>×</button>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )
+                    })()}
+
+                    <div className="modal-actions">
+                      <button className="btn btn-ghost" onClick={()=>setShowRdvModal(false)}>Annuler</button>
+                      <button className="btn btn-dark" onClick={saveRdv} disabled={!rdvForm.titre.trim()}>
+                        {rdvEditing ? 'Modifier' : 'Ajouter →'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
