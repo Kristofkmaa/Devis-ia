@@ -1115,77 +1115,71 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       </div>
                     </div>
 
-                    {/* Graphique */}
-                    <div className="card" style={{marginBottom:'1.5rem',overflowX:'auto'}}>
-                      <div className="card-title">Répartition mensuelle</div>
+                    {/* Graphique barres empilées */}
+                    <div className="card" style={{marginBottom:'1.5rem'}}>
+                      <div className="card-title">Répartition mensuelle — barres empilées</div>
+                      <div style={{fontSize:12,color:'#A89878',marginBottom:14}}>Chaque barre = ton CA total, découpé en 3 couches</div>
 
                       {/* Légende */}
                       <div style={{display:'flex',gap:20,marginBottom:16,flexWrap:'wrap'}}>
-                        {[['#4A9EFF','CA encaissé'],['#FF6B6B','URSSAF'],['#FFA94D','Impôts'],['#2D7A4F','Net (courbe)']].map(([color,label])=>(
+                        {[['#2D7A4F','Net (ce qui reste)'],['#FFA94D','Impôts'],['#FF6B6B','URSSAF']].map(([color,label])=>(
                           <div key={label} style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'#6B5E45'}}>
-                            <div style={{width:12,height:12,borderRadius:label==='Net (courbe)'?'50%':3,background:color}}/>
+                            <div style={{width:14,height:14,borderRadius:3,background:color}}/>
                             {label}
                           </div>
                         ))}
                       </div>
 
                       <div style={{overflowX:'auto'}}>
-                        <svg width={Math.max(totalW+40,600)} height={chartH+60} style={{display:'block'}}>
-                          {/* Lignes de grille */}
+                        <svg width={Math.max(moisData.length*(barW+gap)+60,600)} height={chartH+80} style={{display:'block'}}>
+                          {/* Lignes de grille horizontales */}
                           {[0.25,0.5,0.75,1].map(p=>(
                             <g key={p}>
-                              <line x1="0" y1={chartH-p*chartH} x2={totalW+40} y2={chartH-p*chartH} stroke="#F6F0E4" strokeWidth="1"/>
-                              <text x="0" y={chartH-p*chartH-3} fontSize="9" fill="#A89878">{Math.round(maxVal*p).toLocaleString('fr-FR')}€</text>
+                              <line x1="40" y1={chartH-p*chartH} x2={moisData.length*(barW+gap)+50} y2={chartH-p*chartH} stroke="#F0EBE0" strokeWidth="1" strokeDasharray="4,3"/>
+                              <text x="0" y={chartH-p*chartH+4} fontSize="9" fill="#A89878">{Math.round(maxVal*p/1000)}k€</text>
                             </g>
                           ))}
 
-                          {/* Barres */}
+                          {/* Barres empilées URSSAF + Impôts + Net */}
                           {moisData.map((m,i)=>{
-                            const x = i*(barW+gap)+30
-                            const hCA = pct(m.ca)
-                            const hU = pct(m.urssaf)
-                            const hI = pct(m.impots)
+                            const x = i*(barW+gap)+50
+                            const hTotal = pct(m.ca)
+                            const hU = m.ca>0 ? (m.urssaf/m.ca)*hTotal : 0
+                            const hI = m.ca>0 ? (m.impots/m.ca)*hTotal : 0
+                            const hN = hTotal - hU - hI
+
                             if (!m.actif) return (
                               <g key={i}>
-                                <rect x={x} y={0} width={barW} height={chartH} fill="#F6F0E4" rx="4"/>
-                                <text x={x+barW/2} y={chartH+14} textAnchor="middle" fontSize="10" fill="#A89878">{m.nom}</text>
-                                <text x={x+barW/2} y={chartH/2} textAnchor="middle" fontSize="9" fill="#A89878">inactif</text>
+                                <rect x={x} y={chartH-8} width={barW} height={8} fill="#F0EBE0" rx="3"/>
+                                <text x={x+barW/2} y={chartH+18} textAnchor="middle" fontSize="10" fill="#D0C8B8">{m.nom}</text>
                               </g>
                             )
                             return (
                               <g key={i}>
-                                {/* Barre CA */}
-                                <rect x={x} y={chartH-hCA} width={barW} height={hCA} fill="#4A9EFF" rx="4" opacity="0.7"/>
-                                {/* Barre URSSAF */}
-                                <rect x={x} y={chartH-hU} width={barW} height={hU} fill="#FF6B6B" rx="2"/>
-                                {/* Barre impôts empilée sur urssaf */}
-                                <rect x={x} y={chartH-hU-hI} width={barW} height={hI} fill="#FFA94D" rx="2"/>
-                                {/* Label mois */}
-                                <text x={x+barW/2} y={chartH+14} textAnchor="middle" fontSize="10" fill="#6B5E45">{m.nom}</text>
-                                {/* Valeur CA au survol */}
-                                <title>{m.nom}: CA {Math.round(m.ca).toLocaleString('fr-FR')}€ | URSSAF {Math.round(m.urssaf).toLocaleString('fr-FR')}€ | Net {Math.round(m.net).toLocaleString('fr-FR')}€</title>
+                                <title>{m.nom} — CA : {Math.round(m.ca).toLocaleString('fr-FR')}€ | Net : {Math.round(m.net).toLocaleString('fr-FR')}€ | URSSAF : {Math.round(m.urssaf).toLocaleString('fr-FR')}€ | Impôts : {Math.round(m.impots).toLocaleString('fr-FR')}€</title>
+                                {/* NET — couche du haut (vert) */}
+                                <rect x={x} y={chartH-hTotal} width={barW} height={hN} fill="#2D7A4F" rx="4"/>
+                                <rect x={x} y={chartH-hTotal+4} width={barW} height={Math.max(hN-4,0)} fill="#2D7A4F"/>
+                                {/* IMPOTS — couche du milieu (orange) */}
+                                <rect x={x} y={chartH-hU-hI} width={barW} height={hI} fill="#FFA94D"/>
+                                {/* URSSAF — couche du bas (rouge) */}
+                                <rect x={x} y={chartH-hU} width={barW} height={hU} fill="#FF6B6B"/>
+                                <rect x={x} y={chartH-hU} width={barW} height={Math.max(hU-4,0)} fill="#FF6B6B"/>
+                                <rect x={x} y={chartH-4} width={barW} height={4} fill="#FF6B6B" rx="0"/>
+                                <rect x={x} y={chartH-hU} width={barW} height={4} fill="#FF6B6B" rx="2"/>
+                                {/* Valeur nette au dessus */}
+                                {hTotal > 30 && <text x={x+barW/2} y={chartH-hTotal-5} textAnchor="middle" fontSize="9" fill="#2D7A4F" fontWeight="600">{Math.round(m.net/1000*10)/10}k</text>}
+                                {/* Mois en dessous */}
+                                <text x={x+barW/2} y={chartH+18} textAnchor="middle" fontSize="10" fill="#6B5E45">{m.nom}</text>
+                                {/* CA total en petit */}
+                                <text x={x+barW/2} y={chartH+30} textAnchor="middle" fontSize="9" fill="#A89878">{Math.round(m.ca/1000*10)/10}k</text>
                               </g>
                             )
                           })}
-
-                          {/* Courbe nette */}
-                          <polyline
-                            points={moisData.filter(m=>m.actif).map((m,i)=>{
-                              const allIdx = moisData.indexOf(m)
-                              const x = allIdx*(barW+gap)+30+barW/2
-                              const y = chartH-pct(m.net)
-                              return `${x},${y}`
-                            }).join(' ')}
-                            fill="none" stroke="#2D7A4F" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"
-                          />
-                          {/* Points de la courbe */}
-                          {moisData.filter(m=>m.actif).map((m,i)=>{
-                            const allIdx = moisData.indexOf(m)
-                            const x = allIdx*(barW+gap)+30+barW/2
-                            const y = chartH-pct(m.net)
-                            return <circle key={i} cx={x} cy={y} r="4" fill="#2D7A4F" stroke="#fff" strokeWidth="2"/>
-                          })}
                         </svg>
+                      </div>
+                      <div style={{fontSize:11,color:'#A89878',marginTop:8,textAlign:'center'}}>
+                        Chiffres en milliers d'euros · Survole une barre pour voir le détail
                       </div>
                     </div>
 
