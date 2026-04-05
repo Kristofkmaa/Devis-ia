@@ -1374,23 +1374,63 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     </div>
 
                     {/* Alertes seuils */}
-                    <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:'1.5rem'}}>
-                      {[
-                        { label:'Seuil TVA', val:seuil_tva, pct:Math.min((totCA/seuil_tva)*100,100), color:'#B5792A' },
-                        { label:'Plafond micro-entreprise', val:plafond, pct:Math.min((totCA/plafond)*100,100), color:'#2D7A4F' }
-                      ].map(({label,val,pct,color})=>(
-                        <div key={label} className="card" style={{padding:'1rem 1.25rem'}}>
-                          <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
-                            <span style={{fontSize:13,fontWeight:500,color:'#1C1710'}}>{label}</span>
-                            <span style={{fontSize:12,color:'#A89878'}}>{Math.round(totCA).toLocaleString('fr-FR')} € / {val.toLocaleString('fr-FR')} €</span>
-                          </div>
-                          <div className="progress-bar">
-                            <div className="progress-fill" style={{width:pct+'%',background:pct>85?'#C0392B':pct>60?color:'#2D7A4F'}}/>
-                          </div>
-                          {pct>85&&<div className="seuil-alert" style={{marginTop:8}}>⚠️ À ce rythme tu dépasses le {label.toLowerCase()} — consulte un comptable.</div>}
-                          {pct<=85&&<div style={{fontSize:11,color:'#A89878',marginTop:6}}>Il te reste {(val-totCA).toLocaleString('fr-FR',{maximumFractionDigits:0})} € avant d'atteindre ce seuil</div>}
-                        </div>
-                      ))}
+                    <div className="card" style={{marginBottom:'1.5rem'}}>
+                      <div className="card-title">Progression vers les seuils légaux</div>
+                      <div style={{display:'flex',flexDirection:'column',gap:20}}>
+                        {[
+                          {
+                            label:'Seuil de TVA',
+                            val: seuil_tva,
+                            pct: Math.min((totCA/seuil_tva)*100,100),
+                            icon:'💳',
+                            consequence: "Au-delà, tu dois collecter et reverser la TVA à l'État. Tes prix augmentent de 20% ou ta marge diminue.",
+                            conseil: "Prévois-le en avance pour éviter une mauvaise surprise."
+                          },
+                          {
+                            label:'Plafond micro-entreprise',
+                            val: plafond,
+                            pct: Math.min((totCA/plafond)*100,100),
+                            icon:'🏢',
+                            consequence: "Au-delà 2 années consécutives, tu bascules au régime réel — comptabilité obligatoire, charges calculées différemment.",
+                            conseil: "Commence à te rapprocher d'un comptable si tu approches de ce seuil."
+                          }
+                        ].map(({label,val,pct,icon,consequence,conseil})=>{
+                          const reste = val - totCA
+                          const couleur = pct > 90 ? '#C0392B' : pct > 70 ? '#B5792A' : '#2D7A4F'
+                          const bgCouleur = pct > 90 ? '#FFF3F3' : pct > 70 ? '#FAF3E0' : '#EDFAF3'
+                          const status = pct > 90 ? 'DÉPASSEMENT IMMINENT' : pct > 70 ? 'ATTENTION' : 'OK'
+                          return (
+                            <div key={label}>
+                              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10,flexWrap:'wrap',gap:8}}>
+                                <div style={{display:'flex',alignItems:'center',gap:10}}>
+                                  <span style={{fontSize:20}}>{icon}</span>
+                                  <div>
+                                    <div style={{fontSize:14,fontWeight:600,color:'#1C1710'}}>{label}</div>
+                                    <div style={{fontSize:11,color:'#A89878'}}>Seuil légal : {val.toLocaleString('fr-FR')} €/an</div>
+                                  </div>
+                                </div>
+                                <div style={{display:'flex',alignItems:'center',gap:12}}>
+                                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:'#1C1710'}}>{Math.round(totCA).toLocaleString('fr-FR')} € / {val.toLocaleString('fr-FR')} €</span>
+                                  <span style={{fontSize:10,fontWeight:700,padding:'3px 10px',borderRadius:20,background:bgCouleur,color:couleur,letterSpacing:'.5px'}}>{status}</span>
+                                </div>
+                              </div>
+                              {/* Barre de progression */}
+                              <div style={{height:12,background:'#F6F0E4',borderRadius:20,overflow:'hidden',marginBottom:10}}>
+                                <div style={{height:'100%',width:pct+'%',background:couleur,borderRadius:20,transition:'width .5s ease'}}/>
+                              </div>
+                              {/* Info contextuelle */}
+                              <div style={{background:bgCouleur,borderRadius:10,padding:'10px 14px',fontSize:12,color:'#1C1710',lineHeight:1.6}}>
+                                {pct > 90
+                                  ? <><strong>⚠️ Alerte :</strong> {consequence} <strong>{conseil}</strong></>
+                                  : pct > 70
+                                  ? <><strong>📌 À surveiller :</strong> Il te reste <strong style={{color:couleur}}>{reste > 0 ? reste.toLocaleString('fr-FR',{maximumFractionDigits:0}) : 0} €</strong> avant ce seuil. {conseil}</>
+                                  : <><strong>✅ Tout va bien :</strong> Il te reste <strong style={{color:'#2D7A4F'}}>{reste > 0 ? reste.toLocaleString('fr-FR',{maximumFractionDigits:0}) : 0} €</strong> de marge avant ce seuil.</>
+                                }
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
 
                     <div style={{fontSize:11,color:'#A89878',lineHeight:1.7,padding:'12px 16px',background:'#F6F0E4',borderRadius:12}}>
