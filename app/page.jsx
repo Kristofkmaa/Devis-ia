@@ -488,7 +488,7 @@ export default function HomePage() {
         </div>
         <p className="hero-note">Sans carte bancaire · Gratuit pour commencer · Données sécurisées</p>
         <div className="hero-stats">
-          {[['6','Secteurs d'activité'],['2026','Taux mis à jour'],['100%','Sources officielles'],['0€','Pour commencer']].map(([val,label])=>(
+          {[["6","Secteurs activite"],["2026","Taux mis a jour"],["100%","Sources officielles"],["0€","Pour commencer"]].map(([val,label])=>(
             <div key={label} className="hero-stat">
               <div className="hero-stat-val">{val}</div>
               <div className="hero-stat-label">{label}</div>
@@ -506,10 +506,10 @@ export default function HomePage() {
             <p className="section-sub">Entre les déclarations URSSAF, les devis, les seuils de TVA et les impôts — gérer son auto-entreprise est devenu un métier à part entière.</p>
             <div className="problem-list">
               {[
-                ['😰','Tu oublies les dates de déclaration','Et tu te retrouves avec des pénalités de retard inutiles'],
-                ['🤯','Tu ne sais pas combien mettre de côté','URSSAF, impôts, CFE — le calcul est flou et stressant'],
-                ['📄','Tes devis sont faits sur Word ou Excel','Pas de numérotation, pas de suivi, pas d'historique'],
-                ['📊','Tu pilotes à l'aveugle','Sans visualisation claire de ta situation financière'],
+                ["😰",'Tu oublies les dates de déclaration','Et tu te retrouves avec des pénalités de retard inutiles'],
+                ["🤯",'Tu ne sais pas combien mettre de côté','URSSAF, impôts, CFE — le calcul est flou et stressant'],
+                ["📄","Tes devis sont faits sur Word ou Excel","Pas de numerotation, pas de suivi, pas d'historique"],
+                ["📊",'Tu pilotes à l'aveugle','Sans visualisation claire de ta situation financière'],
               ].map(([icon,title,desc])=>(
                 <div key={title} className="problem-item">
                   <span className="problem-icon">{icon}</span>
@@ -574,12 +574,12 @@ export default function HomePage() {
         </div>
         <div className="taux-grid">
           {[
-            ['🛍','Vente de marchandises (BIC)','12,3%','ACRE : 6,15%'],
-            ['🔧','Services artisanaux (BIC)','21,2%','ACRE : 10,6%'],
-            ['💼','Services freelance (BNC)','21,2%','ACRE : 10,6%'],
-            ['🎓','Libéral non réglementé (SSI)','25,6%','ACRE : 12,8%'],
-            ['🏛','Libéral réglementé (CIPAV)','23,2%','ACRE : 11,6%'],
-            ['🏠','Location meublée classée','6%','ACRE : 3%'],
+            ["🛍","Vente de marchandises (BIC)","12,3%","ACRE : 6,15%"],
+            ["🔧","Services artisanaux (BIC)",'21,2%','ACRE : 10,6%'],
+            ["💼","Services freelance (BNC)",'21,2%','ACRE : 10,6%'],
+            ["🎓","Libéral non réglementé (SSI)",'25,6%','ACRE : 12,8%'],
+            ["🏛","Libéral réglementé (CIPAV)",'23,2%','ACRE : 11,6%'],
+            ["🏠","Location meublée classée","6%","ACRE : 3%"],
           ].map(([icon,label,taux,acre])=>(
             <div key={label} className="taux-card">
               <div className="taux-secteur">{icon} {label}</div>
@@ -602,10 +602,10 @@ export default function HomePage() {
             <h2 className="section-title">Opérationnel en<br/><em>5 minutes.</em></h2>
             <div className="how-steps">
               {[
-                ['1','Crée ton compte gratuitement','Inscription en 30 secondes, sans carte bancaire.'],
-                ['2','Configure ton profil','Secteur, date de création, ACRE, taux — Serelyo adapte tous les calculs.'],
-                ['3','Saisis ton CA chaque mois','En 10 secondes. Serelyo calcule automatiquement tout le reste.'],
-                ['4','Pilote ton activité sereinement','Tableau de bord, devis, calendrier — tout est à ta portée.'],
+                ["1",'Crée ton compte gratuitement','Inscription en 30 secondes, sans carte bancaire.'],
+                ["2",'Configure ton profil','Secteur, date de création, ACRE, taux — Serelyo adapte tous les calculs.'],
+                ["3",'Saisis ton CA chaque mois','En 10 secondes. Serelyo calcule automatiquement tout le reste.'],
+                ["4",'Pilote ton activité sereinement','Tableau de bord, devis, calendrier — tout est à ta portée.'],
               ].map(([num,title,desc])=>(
                 <div key={num} className="how-step">
                   <div className="step-num">{num}</div>
@@ -693,11 +693,11 @@ export default function HomePage() {
             <h2 className="section-title">Tu as des <em>questions ?</em></h2>
           </div>
           {[
-            ['Serelyo remplace-t-il un comptable ?', 'Non — Serelyo est un outil de suivi et de simulation, pas un outil comptable certifié. Pour des situations complexes, un expert-comptable reste indispensable. Serelyo te permet de mieux comprendre ta situation pour dialoguer plus efficacement avec lui.'],
-            ['Les taux sont-ils vraiment à jour ?', 'Oui. Tous les taux URSSAF sont issus des sources officielles et mis à jour dès qu'une évolution est publiée. Les taux 2026 incluent la hausse pour les libéraux SSI et le changement ACRE de juillet 2026.'],
-            ['Mes données sont-elles sécurisées ?', 'Oui. Serelyo utilise Supabase avec authentification robuste et des politiques de sécurité strictes. Tes données ne sont jamais partagées avec des tiers.'],
-            ['Puis-je utiliser Serelyo sur mobile ?', 'Oui, le site est responsive et fonctionne très bien sur smartphone. Tu peux aussi l'ajouter à ton écran d'accueil pour une expérience proche d'une app native.'],
-            ['Comment fonctionne l'essai gratuit Pro ?', 'Les 30 premiers jours du plan Pro sont offerts, sans carte bancaire requise. À l'issue, tu choisis de continuer ou de rester sur le plan Gratuit — sans engagement.'],
+            ["Serelyo remplace-t-il un comptable ?", 'Non — Serelyo est un outil de suivi et de simulation, pas un outil comptable certifié. Pour des situations complexes, un expert-comptable reste indispensable. Serelyo te permet de mieux comprendre ta situation pour dialoguer plus efficacement avec lui.'],
+            ["Les taux sont-ils vraiment à jour ?", 'Oui. Tous les taux URSSAF sont issus des sources officielles et mis à jour dès qu'une évolution est publiée. Les taux 2026 incluent la hausse pour les libéraux SSI et le changement ACRE de juillet 2026.'],
+            ["Mes données sont-elles sécurisées ?", 'Oui. Serelyo utilise Supabase avec authentification robuste et des politiques de sécurité strictes. Tes données ne sont jamais partagées avec des tiers.'],
+            ["Puis-je utiliser Serelyo sur mobile ?", "Oui, le site est responsive et fonctionne très bien sur smartphone. Tu peux aussi l'ajouter à ton écran d'accueil pour une expérience proche d'une app native."],
+            ["Comment fonctionne l"essai gratuit Pro ?', 'Les 30 premiers jours du plan Pro sont offerts, sans carte bancaire requise. À l'issue, tu choisis de continuer ou de rester sur le plan Gratuit — sans engagement.'],
           ].map(([q,a])=>(
             <div key={q} className="faq-item">
               <button className="faq-q">
