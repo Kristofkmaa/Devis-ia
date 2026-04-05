@@ -401,7 +401,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       <p style="margin-top:8px;font-size:10px;color:#A89878">Bon pour accord — Date et signature du client :</p>
       <div style="border:1px solid #E2D8C4;border-radius:8px;height:50px;margin-top:6px"></div>
     </div>
-    ${d.tva_taux===0?'<p style="margin-top:12px;font-size:10px;color:#A89878">TVA non applicable en vertu de l'article 293B du Code Général des Impôts.</p>':''}
+    ${d.tva_taux===0?'<p style="margin-top:12px;font-size:10px;color:#A89878">TVA non applicable en vertu de l&#39;article 293B du Code General des Impots.</p>':''}
     <div class="legal">
       ${em?.nom||''} ${em?.forme_juridique?'— '+em.forme_juridique:''} ${em?.siret?'— SIRET : '+em.siret:''}<br>
       Document généré par Serelyo — serelyo.fr
