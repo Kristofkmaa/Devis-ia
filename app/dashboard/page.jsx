@@ -13,11 +13,11 @@ export default function Dashboard() {
     const init = async () => {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.push('/login'); return }
+      if (!session) { router.push('/'); return }
       setUser(session.user)
       setLoading(false)
       supabase.auth.onAuthStateChange((_event, session) => {
-        if (!session) router.push('/login')
+        if (!session) router.push('/')
       })
     }
     init()
