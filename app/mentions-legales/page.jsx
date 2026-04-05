@@ -22,7 +22,7 @@ export default function MentionsLegales() {
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet"/>
 
       <nav className="legal-nav">
-        <a href="/" className="legal-nav-logo">Serely<span>o</span></a>
+        <a href="/dashboard" className="legal-nav-logo">Serely<span>o</span></a>
         <a href="/" className="legal-nav-back">← Retour</a>
       </nav>
 
