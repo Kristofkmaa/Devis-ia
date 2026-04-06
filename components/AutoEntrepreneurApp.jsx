@@ -1020,7 +1020,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
                 {/* Légende */}
                 <div style={{display:'flex',gap:12,marginTop:12,flexWrap:'wrap'}}>
-                  {[['rgba(0,200,160,.3)','#00C8A0','✓ Faite'],['rgba(255,160,60,.3)','#FFA03C','À faire'],['rgba(255,100,100,.3)','#FF8A8A','En retard'],['rgba(0,200,200,.5)','#00C8C8','Aujourd'hui']].map(([bg,color,label])=>(
+                  {[['rgba(0,200,160,.3)','#00C8A0','✓ Faite'],['rgba(255,160,60,.3)','#FFA03C','À faire'],['rgba(255,100,100,.3)','#FF8A8A','En retard'],['rgba(0,200,200,.5)','#00C8C8',"Aujourd'hui"]].map(([bg,color,label])=>(
                     <div key={label} style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'rgba(255,255,255,.4)'}}>
                       <div style={{width:10,height:10,borderRadius:3,background:bg,border:`1px solid ${color}`}}/>
                       {label}
