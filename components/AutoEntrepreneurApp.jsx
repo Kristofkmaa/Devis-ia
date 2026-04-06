@@ -883,7 +883,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
         const calYear = year
         const MOIS_FULL = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
         const MOIS_COURT = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
+        const JOURS_LONG = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
         const JOURS = ['L','M','M','J','V','S','D']
+
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 700
 
         const moisIdx = calMoisActif
         const nomMois = MOIS_FULL[moisIdx]
@@ -934,8 +937,9 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
           {!profil ? (
             <div className="empty-state"><h3>Configure ton profil d'abord</h3><button className="btn btn-dark" onClick={()=>setShowOnboarding(true)}>Configurer →</button></div>
-          ) : (
+          ) : isMobile ? (
             <>
+              {/* ── VUE MOBILE : 1 mois + swipe ── */}
               {/* Navigation mois */}
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1rem'}}>
                 <button onClick={allerMoisPrev} style={{width:44,height:44,borderRadius:'50%',border:'1px solid rgba(0,200,200,.2)',background:'rgba(0,200,200,.06)',color:'#00C8C8',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
@@ -1090,6 +1094,133 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   Va sur <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer">autoentrepreneur.urssaf.fr</a> · SIRET · "Déclarer et payer" · Saisis ton CA · Valide
                 </div>
               </div>
+
+            </>
+          ) : (
+            <>
+              {/* ── VUE DESKTOP : grille 12 mois ── */}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14,marginBottom:'1.5rem'}}>
+                {MOIS_FULL.map((nomM, mi) => {
+                  const estCourantM = mi === month-1
+                  const estPasseM = mi < month-1
+                  const evsM = eventsParMois[String(mi)] || []
+                  const revM = revParMois[mi]
+                  const premierJourM = new Date(calYear, mi, 1).getDay()
+                  const premierLundiM = premierJourM === 0 ? 6 : premierJourM - 1
+                  const nbJoursM = new Date(calYear, mi+1, 0).getDate()
+                  const joursM = Array(premierLundiM).fill(null).concat(Array.from({length:nbJoursM},(_,i)=>i+1))
+                  while (joursM.length % 7 !== 0) joursM.push(null)
+                  const joursEvenementsM = {}
+                  evsM.forEach(ev => { if (ev.jour) joursEvenementsM[ev.jour] = ev })
+                  return (
+                    <div key={mi} style={{
+                      background:'#0D1F35', border:`2px solid ${estCourantM?'rgba(0,200,200,.4)':'rgba(0,200,200,.1)'}`,
+                      borderRadius:16, padding:'1rem',
+                      opacity: estPasseM && !revM && evsM.length===0 ? 0.5 : 1,
+                      boxShadow: estCourantM ? '0 4px 20px rgba(0,200,200,.1)' : 'none'
+                    }}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:600,color:estCourantM?'#00C8C8':'#E8F4F8'}}>
+                          {nomM}
+                          {estCourantM && <span style={{fontSize:9,background:'rgba(0,200,200,.2)',color:'#00C8C8',padding:'2px 7px',borderRadius:20,marginLeft:6,fontFamily:'Outfit,sans-serif',border:'1px solid rgba(0,200,200,.3)'}}>En cours</span>}
+                        </div>
+                        {revM && <span style={{fontSize:10,fontWeight:600,color:'#00C8C8',background:'rgba(0,200,200,.1)',padding:'2px 7px',borderRadius:20}}>{revM.toLocaleString('fr-FR')} €</span>}
+                      </div>
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:1,marginBottom:6}}>
+                        {JOURS_LONG.map(j=>(<div key={j} style={{textAlign:'center',fontSize:8,color:'rgba(255,255,255,.25)',fontWeight:600,padding:'2px 0'}}>{j}</div>))}
+                        {joursM.map((jour,i)=>{
+                          const ev = jour ? joursEvenementsM[jour] : null
+                          const estAujourdhui = estCourantM && jour === getNow().day
+                          const dateStr = jour ? `${year}-${String(mi+1).padStart(2,'0')}-${String(jour).padStart(2,'0')}` : null
+                          const rdvsJour = dateStr ? rdvList.filter(r=>r.date===dateStr) : []
+                          const hasRdv = rdvsJour.length > 0
+                          return (
+                            <div key={i} onClick={()=>jour && openRdvModal(mi, jour, nomM)}
+                              title={jour?(hasRdv?rdvsJour.map(r=>r.titre).join(', '):'Ajouter'):''}
+                              style={{
+                                textAlign:'center', fontSize:10, padding:'3px 1px', borderRadius:4,
+                                fontWeight: ev||estAujourdhui||hasRdv ? 700 : 400,
+                                background: estAujourdhui?'#00C8C8':hasRdv?'rgba(0,200,200,.15)':ev?(ev.statut==='faite'?'rgba(0,200,160,.15)':ev.statut==='a_verifier'?'rgba(255,100,100,.15)':'rgba(255,160,60,.15)'):'transparent',
+                                color: estAujourdhui?'#0B1929':hasRdv?'#00C8C8':ev?(ev.statut==='faite'?'#00C8A0':ev.statut==='a_verifier'?'#FF8A8A':'#FFA03C'):jour?'rgba(255,255,255,.6)':'transparent',
+                                cursor: jour?'pointer':'default',
+                              }}>
+                              {jour||''}
+                            </div>
+                          )
+                        })}
+                      </div>
+                      {evsM.length > 0 && (
+                        <div style={{display:'flex',flexDirection:'column',gap:3}}>
+                          {evsM.map(ev=>(
+                            <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'4px 8px',borderRadius:8,fontSize:11,background:ev.statut==='faite'?'rgba(0,200,160,.1)':ev.past?'rgba(255,100,100,.1)':'rgba(255,160,60,.08)',border:`1px solid ${ev.statut==='faite'?'rgba(0,200,160,.2)':ev.past?'rgba(255,100,100,.2)':'rgba(255,160,60,.2)'}`}}>
+                              <span style={{color:'#E8F4F8',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:110}}>
+                                {ev.special?(ev.type==='cfe'?'💶 CFE':'📋 IR'):'📅 URSSAF'}
+                              </span>
+                              {ev.statut==='faite'
+                                ? <span style={{color:'#00C8A0',fontWeight:700,flexShrink:0}}>✓</span>
+                                : <button onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')} style={{fontSize:9,background:'#00C8C8',border:'none',color:'#0B1929',padding:'2px 7px',borderRadius:20,cursor:'pointer',fontFamily:'Outfit,sans-serif',fontWeight:700,flexShrink:0}}>Faire</button>
+                              }
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {(() => {
+                        const rdvsMois = rdvList.filter(r=>r.date&&parseInt(r.date.split('-')[0])===year&&parseInt(r.date.split('-')[1])-1===mi)
+                        if (!rdvsMois.length) return null
+                        return (
+                          <div style={{marginTop:4,display:'flex',flexDirection:'column',gap:2}}>
+                            {rdvsMois.map(r=>{
+                              const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
+                              return (
+                                <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'3px 6px',borderRadius:6,background:'rgba(0,200,200,.08)',fontSize:10}}>
+                                  <span style={{color:'#00C8C8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:100}}>{t.emoji} {r.titre}</span>
+                                  <button onClick={e=>{e.stopPropagation();deleteRdv(r.id)}} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,100,100,.6)',fontSize:11,padding:0}}>×</button>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )
+                      })()}
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Récap desktop */}
+              <div className="card" style={{marginBottom:'1rem'}}>
+                <div className="card-title">Récapitulatif des échéances</div>
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  {calendrier.map(ev=>{
+                    const decl = declarations.find(d=>d.periode===ev.id)
+                    const statut = decl?.statut||(ev.past?'a_verifier':'a_faire')
+                    return (
+                      <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:statut==='faite'?'rgba(0,200,160,.06)':ev.current?'rgba(255,160,60,.06)':'rgba(255,255,255,.03)',border:`1px solid ${statut==='faite'?'rgba(0,200,160,.15)':ev.current?'rgba(255,160,60,.2)':'rgba(255,255,255,.06)'}`,flexWrap:'wrap',gap:8}}>
+                        <div style={{display:'flex',alignItems:'center',gap:10}}>
+                          <div style={{width:8,height:8,borderRadius:'50%',background:statut==='faite'?'#00C8A0':ev.past?'#FF8A8A':ev.current?'#FFA03C':'rgba(255,255,255,.2)',flexShrink:0}}/>
+                          <div>
+                            <div style={{fontSize:13,fontWeight:500,color:'#E8F4F8'}}>{ev.label}</div>
+                            <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Avant le {ev.date_limite}</div>
+                          </div>
+                        </div>
+                        <div style={{display:'flex',alignItems:'center',gap:8}}>
+                          {ev.current && <span style={{fontSize:10,background:'rgba(255,160,60,.1)',color:'#FFA03C',padding:'2px 8px',borderRadius:20,fontWeight:600,border:'1px solid rgba(255,160,60,.2)'}}>En cours</span>}
+                          {statut==='faite'
+                            ? <span style={{fontSize:12,fontWeight:600,color:'#00C8A0',background:'rgba(0,200,160,.1)',padding:'4px 12px',borderRadius:20}}>✓ Faite</span>
+                            : <button className="btn btn-sm btn-amber" onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')}>Marquer faite</button>
+                          }
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="info-box">
+                <div className="info-title">📌 Comment déclarer</div>
+                <div className="info-text">Va sur <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer">autoentrepreneur.urssaf.fr</a> · SIRET · "Déclarer et payer" · Saisis ton CA · Valide</div>
+              </div>
+            </>
+          )}
 
               {/* Modal ajout RDV */}              {/* Modal ajout RDV */}
               {showRdvModal && rdvJour && (
