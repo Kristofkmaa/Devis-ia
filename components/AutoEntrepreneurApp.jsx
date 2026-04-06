@@ -1435,7 +1435,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           ) : (
             <>
               {/* Sélecteur de mode — 2 grandes cartes */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:'2rem'}}>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:'2rem'}}>
                 <div
                   onClick={()=>setSimMode('rapide')}
                   style={{
@@ -1477,6 +1477,22 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     color: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? 'rgba(255,255,255,.65)' : '#6B5E45'
                   }}>Visualise toute ton année :<br/>revenus, charges et net mois par mois avec graphique.</div>
                   {(simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel') && (
+                    <div style={{marginTop:14,display:'inline-block',background:'#B5792A',color:'#fff',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
+                  )}
+                </div>
+                <div
+                  onClick={()=>setSimMode('inverse')}
+                  style={{
+                    background: simMode==='inverse' ? '#1C1710' : '#FFFDF8',
+                    border: simMode==='inverse' ? '2px solid #1C1710' : '2px solid #E2D8C4',
+                    borderRadius:20, padding:'1.75rem', cursor:'pointer', transition:'all .2s',
+                    boxShadow: simMode==='inverse' ? '0 8px 32px rgba(28,23,16,.2)' : '0 2px 12px rgba(28,23,16,.05)'
+                  }}
+                >
+                  <div style={{fontSize:36,marginBottom:12}}>🎯</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='inverse'?'#fff':'#1C1710'}}>Calculateur inversé</div>
+                  <div style={{fontSize:13,lineHeight:1.6,color:simMode==='inverse'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu veux X€ nets par mois ?<br/>Calcule exactement combien tu dois facturer.</div>
+                  {simMode==='inverse' && (
                     <div style={{marginTop:14,display:'inline-block',background:'#B5792A',color:'#fff',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
                   )}
                 </div>
@@ -1865,6 +1881,119 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 )
               })()}
               </>
+              )}
+
+              {/* ── MODE CALCULATEUR INVERSÉ ── */}
+              {simMode==='inverse' && (
+                <div className="card">
+                  <div className="card-title">🎯 Combien dois-je facturer ?</div>
+                  <p style={{fontSize:13,color:'#6B5E45',marginBottom:'1.5rem',lineHeight:1.7}}>
+                    Renseigne le revenu net que tu veux toucher chaque mois. Serelyo calcule le CA à facturer en tenant compte de l'URSSAF, des impôts, de tes jours travaillés et de tes congés.
+                  </p>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14,marginBottom:'1.5rem'}}>
+                    <div>
+                      <span className="mini-label">Revenu net souhaité (€/mois)</span>
+                      <input className="mini-input" type="number" value={invNet}
+                        onChange={e=>setInvNet(e.target.value)}
+                        onKeyDown={e=>e.key==='Enter'&&document.getElementById('btn-inv').click()}
+                        placeholder="3 000" style={{fontSize:18,padding:'12px 14px'}}/>
+                    </div>
+                    <div>
+                      <span className="mini-label">Jours travaillés / mois</span>
+                      <select className="mini-input" value={invJours} onChange={e=>setInvJours(+e.target.value)}>
+                        {[15,16,17,18,19,20,21,22,23,24,25].map(j=><option key={j} value={j}>{j} jours</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <span className="mini-label">Semaines de congés / an</span>
+                      <select className="mini-input" value={invConges} onChange={e=>setInvConges(+e.target.value)}>
+                        {[0,1,2,3,4,5,6,7,8].map(c=><option key={c} value={c}>{c} semaine{c>1?'s':''}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <button id="btn-inv" className="btn btn-dark" style={{padding:'12px 28px'}} onClick={()=>{
+                    const netMensuel = parseFloat(invNet)||0
+                    if (!netMensuel||!profil) return
+                    const tauxU = profil.acre ? TAUX_ACRE[profil.secteur] : TAUX[profil.secteur]
+                    const tauxI = (parseFloat(profil.taux_impot_perso)||14)/100
+                    const tauxTotal = tauxU + tauxI
+                    // CA mensuel brut nécessaire
+                    const caParMoisActif = netMensuel / (1 - tauxTotal)
+                    // Mois actifs sur l'année
+                    const moisActifs = 12 - (invConges / 4.33)
+                    const caAnnuel = caParMoisActif * moisActifs
+                    const caParMoisCalendaire = caAnnuel / 12
+                    // Taux journalier moyen (TJM)
+                    const moisActifMoyJours = invJours * (moisActifs/12)
+                    const tjm = caParMoisActif / invJours
+                    // Taux horaire (7h/jour)
+                    const tauxHoraire = tjm / 7
+                    setInvResult({
+                      netMensuel, tauxTotal, tauxU, tauxI,
+                      caParMoisActif, caAnnuel, caParMoisCalendaire,
+                      tjm, tauxHoraire, moisActifs: Math.round(moisActifs*10)/10,
+                      urssafMensuel: caParMoisActif*tauxU,
+                      impotsMensuel: caParMoisActif*tauxI,
+                      caMettre: caParMoisActif*tauxTotal,
+                    })
+                  }}>Calculer →</button>
+
+                  {invResult && (
+                    <div style={{marginTop:'2rem'}}>
+                      {/* Résultat principal */}
+                      <div style={{background:'#1C1710',borderRadius:20,padding:'1.75rem',marginBottom:'1.25rem',textAlign:'center',position:'relative',overflow:'hidden'}}>
+                        <div style={{position:'absolute',top:-30,right:-30,width:150,height:150,borderRadius:'50%',background:'rgba(181,121,42,.12)'}}/>
+                        <div style={{fontSize:12,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:8}}>Pour toucher {invResult.netMensuel.toLocaleString('fr-FR')} € nets/mois</div>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:48,color:'#E8D5A8',marginBottom:6}}>{Math.ceil(invResult.caParMoisActif).toLocaleString('fr-FR')} €</div>
+                        <div style={{fontSize:14,color:'rgba(255,255,255,.5)'}}>à facturer chaque mois actif</div>
+                      </div>
+
+                      {/* Grille détails */}
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:'1.25rem'}}>
+                        <div style={{background:'#FAF3E0',border:'1px solid #E8D5A8',borderRadius:16,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>TJM conseillé</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#B5792A'}}>{Math.ceil(invResult.tjm).toLocaleString('fr-FR')} €</div>
+                          <div style={{fontSize:11,color:'#A89878',marginTop:4}}>par jour ({invJours}j/mois)</div>
+                        </div>
+                        <div style={{background:'#FAF3E0',border:'1px solid #E8D5A8',borderRadius:16,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>Taux horaire</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#B5792A'}}>{Math.ceil(invResult.tauxHoraire).toLocaleString('fr-FR')} €</div>
+                          <div style={{fontSize:11,color:'#A89878',marginTop:4}}>par heure (7h/jour)</div>
+                        </div>
+                        <div style={{background:'#FAF3E0',border:'1px solid #E8D5A8',borderRadius:16,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>CA annuel</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#B5792A'}}>{Math.ceil(invResult.caAnnuel).toLocaleString('fr-FR')} €</div>
+                          <div style={{fontSize:11,color:'#A89878',marginTop:4}}>{invResult.moisActifs} mois actifs</div>
+                        </div>
+                      </div>
+
+                      {/* Décomposition mensuelle */}
+                      <div className="card" style={{marginBottom:'1rem'}}>
+                        <div className="card-title" style={{marginBottom:'1rem'}}>Décomposition d'un mois actif</div>
+                        {[
+                          {label:'CA facturé',val:Math.ceil(invResult.caParMoisActif),color:'#1C1710',bg:'#1C1710',text:'#fff'},
+                          {label:`URSSAF (${(invResult.tauxU*100).toFixed(1)}%)`,val:Math.round(invResult.urssafMensuel),color:'#8B1A1A',bg:'#FFF3F3',text:'#8B1A1A'},
+                          {label:`Impôts (~${Math.round(invResult.tauxI*100)}%)`,val:Math.round(invResult.impotsMensuel),color:'#7A3A0A',bg:'#FFF4E6',text:'#7A3A0A'},
+                          {label:'Net perçu',val:Math.round(invResult.netMensuel),color:'#2D7A4F',bg:'#EDFAF3',text:'#2D7A4F'},
+                        ].map(({label,val,bg,text})=>(
+                          <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:bg,marginBottom:8}}>
+                            <span style={{fontSize:13,color:bg==='#1C1710'?'rgba(255,255,255,.6)':text,fontWeight:500}}>{label}</span>
+                            <span style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:bg==='#1C1710'?'#E8D5A8':text,fontWeight:600}}>{val.toLocaleString('fr-FR')} €</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Vérification seuils */}
+                      {invResult.caAnnuel > (profil.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services)*0.85 && (
+                        <div className="seuil-alert">⚠️ Attention : pour atteindre cet objectif, ton CA annuel ({Math.ceil(invResult.caAnnuel).toLocaleString('fr-FR')} €) approche ou dépasse le seuil de TVA ({(profil.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services).toLocaleString('fr-FR')} €). Pense à anticiper.</div>
+                      )}
+
+                      <div style={{marginTop:12,fontSize:11,color:'#A89878',background:'#F6F0E4',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
+                        ⚠️ <strong style={{color:'#1C1710'}}>Estimation indicative</strong> — Basée sur ton secteur ({(invResult.tauxU*100).toFixed(1)}% URSSAF) et ton taux d'imposition personnalisé ({Math.round(invResult.tauxI*100)}%). Consulte un expert-comptable pour affiner.
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </>
           )}
