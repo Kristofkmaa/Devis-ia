@@ -366,11 +366,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   }
 
   const RDV_TYPES = {
-    rdv:      { label:'Rendez-vous',   color:'#1A4A8A', bg:'#EEF4FF', emoji:'📅' },
-    client:   { label:'Client',         color:'#2D7A4F', bg:'#EDFAF3', emoji:'🤝' },
-    admin:    { label:'Administratif',  color:'#B5792A', bg:'#FAF3E0', emoji:'📋' },
-    perso:    { label:'Personnel',      color:'#6B2D7A', bg:'#F5F0FF', emoji:'👤' },
-    rappel:   { label:'Rappel',         color:'#8B1A1A', bg:'#FFF3F3', emoji:'⏰' },
+    rdv:      { label:'Rendez-vous',   color:'#7DC8FF', bg:'rgba(0,120,220,0.18)', emoji:'📅' },
+    client:   { label:'Client',         color:'#00D4A0', bg:'rgba(0,200,160,0.12)', emoji:'🤝' },
+    admin:    { label:'Administratif',  color:'#FFA94D', bg:'rgba(255,160,60,0.12)', emoji:'📋' },
+    perso:    { label:'Personnel',      color:'#C084FC', bg:'rgba(157,78,221,0.18)', emoji:'👤' },
+    rappel:   { label:'Rappel',         color:'#FF8A8A', bg:'rgba(255,100,100,0.12)', emoji:'⏰' },
   }
 
   const imprimerDevis = (d, em) => {
@@ -511,7 +511,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
   if (loading) return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh'}}>
-      <div style={{width:28,height:28,border:'2.5px solid #E2D8C4',borderTopColor:'#B5792A',borderRadius:'50%',animation:'spin .7s linear infinite'}}/>
+      <div style={{width:28,height:28,border:'2.5px solid rgba(255,255,255,0.15)',borderTopColor:'#00C8C8',borderRadius:'50%',animation:'spin .7s linear infinite'}}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
@@ -564,11 +564,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               <div className="field"><label>Nom *</label><input value={oForm.nom} onChange={set('nom')} placeholder="Dupont"/></div>
               <div className="field full"><label>Activité *</label><input value={oForm.activite} onChange={set('activite')} placeholder="Plombier, graphiste freelance, coach…"/></div>
               <div className="field full">
-                <label>Secteur d'activité * <span style={{fontWeight:400,color:'#A89878'}}>(détermine ton taux URSSAF)</span></label>
+                <label>Secteur d'activité * <span style={{fontWeight:400,color:'rgba(255,255,255,0.38)'}}>(détermine ton taux URSSAF)</span></label>
                 <select value={oForm.secteur} onChange={set('secteur')}>
                   {SECTEURS.map(s=><option key={s.value} value={s.value}>{s.label} → {s.taux}</option>)}
                 </select>
-                <div style={{marginTop:6,fontSize:12,color:'#B5792A',background:'#FAF3E0',borderRadius:8,padding:'6px 10px'}}>
+                <div style={{marginTop:6,fontSize:12,color:'#FFA94D',background:'rgba(255,255,255,0.06)',borderRadius:8,padding:'6px 10px'}}>
                   ⚠️ Ton taux URSSAF : <strong>{TAUX[oForm.secteur]*100}%</strong>
                   {oForm.acre && <span> → avec ACRE : <strong>{TAUX_ACRE[oForm.secteur]*100}%</strong></span>}
                 </div>
@@ -584,7 +584,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               <div className="field"><label>Objectif CA annuel (€)</label><input type="number" value={oForm.objectif_ca} onChange={set('objectif_ca')} placeholder="24000"/></div>
               <div className="field"><label>Objectif CA mensuel (€)</label><input type="number" value={oForm.objectif_ca_mensuel} onChange={set('objectif_ca_mensuel')} placeholder="2000"/></div>
               <div className="field">
-                <label>ACRE ? <span style={{fontWeight:400,color:'#A89878'}}>(exonération 1ère année)</span></label>
+                <label>ACRE ? <span style={{fontWeight:400,color:'rgba(255,255,255,0.38)'}}>(exonération 1ère année)</span></label>
                 <select value={oForm.acre?'oui':'non'} onChange={setBool('acre')}>
                   <option value="non">Non</option>
                   <option value="oui">Oui — 50% du taux (jusqu'au 30/06/2026)</option>
@@ -685,9 +685,9 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
           {/* ── HERO ── */}
           {profil ? (
-            <div style={{background:'#0D1F35',borderRadius:20,padding:'1.25rem',marginBottom:'1.5rem',position:'relative',overflow:'hidden'}}>
+            <div style={{background:'rgba(10,12,35,0.65)',backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,padding:'1.25rem',marginBottom:'1.5rem',position:'relative',overflow:'hidden'}}>
               {/* Décoration fond */}
-              <div style={{position:'absolute',top:-40,right:-40,width:200,height:200,borderRadius:'50%',background:'rgba(0,200,200,.08)',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',top:-40,right:-40,width:200,height:200,borderRadius:'50%',background:'rgba(0,200,200,0.08)',pointerEvents:'none'}}/>
               <div style={{position:'absolute',bottom:-60,right:80,width:140,height:140,borderRadius:'50%',background:'rgba(0,200,200,.04)',pointerEvents:'none'}}/>
               <div style={{position:'relative',zIndex:1}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'1rem'}}>
@@ -697,11 +697,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     <p style={{fontSize:13,color:'rgba(255,255,255,.45)'}}>{profil.activite}</p>
                   </div>
                   {prochaineDecl && (
-                    <div style={{background:'rgba(0,200,200,.08)',border:'1px solid rgba(0,200,200,.15)',borderRadius:16,padding:'14px 18px',textAlign:'right'}}>
+                    <div style={{background:'rgba(0,200,200,0.08)',border:'1px solid rgba(0,200,200,.15)',borderRadius:16,padding:'14px 18px',textAlign:'right'}}>
                       <div style={{fontSize:10,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:5}}>⏰ Prochaine déclaration</div>
                       <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:'#00C8C8'}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
                       <div style={{fontSize:12,color:'rgba(255,255,255,.35)',marginTop:3}}>avant le {prochaineDecl.date_limite}</div>
-                      <button onClick={()=>setView('calendrier')} style={{marginTop:8,fontSize:11,background:'#00C8C8',border:'none',color:'#0B1929',padding:'4px 12px',borderRadius:20,cursor:'pointer',fontFamily:'Outfit,sans-serif',fontWeight:600}}>Voir le calendrier →</button>
+                      <button onClick={()=>setView('calendrier')} style={{marginTop:8,fontSize:11,background:'rgba(0,200,200,0.9)',border:'none',color:'#07080F',padding:'4px 12px',borderRadius:20,cursor:'pointer',fontFamily:'Outfit,sans-serif',fontWeight:600}}>Voir le calendrier →</button>
                     </div>
                   )}
                 </div>
@@ -714,9 +714,9 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     { label:'Taux URSSAF', val:`${profil?(taux*100).toFixed(1):'—'} %`, sub:profil?.acre?'✓ ACRE actif':'Taux standard', color:'#FFA03C', onClick:()=>setShowOnboarding(true) },
                     { label:'À mettre de côté', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`ce mois (${Math.round((taux+tauxImpot)*100)}% du CA)`, color:'#00C8A0', onClick:()=>setView('simulateur') },
                   ].map(({label,val,sub,color,onClick})=>(
-                    <div key={label} onClick={onClick} style={{background:'rgba(0,200,200,.06)',border:'1px solid rgba(0,200,200,.12)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'all .15s'}}
-                      onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,.09)'}}
-                      onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,.05)'}}
+                    <div key={label} onClick={onClick} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',backdropFilter:'blur(12px)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'all .15s'}}
+                      onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,0.09)'}}
+                      onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)'}}
                     >
                       <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.35)',marginBottom:8}}>{label}</div>
                       <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color,marginBottom:4}}>{val}</div>
@@ -727,10 +727,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
             </div>
           ) : (
-            <div style={{background:'#FAF3E0',border:'2px dashed #E8D5A8',borderRadius:20,padding:'2rem',textAlign:'center',marginBottom:'1.5rem',cursor:'pointer'}} onClick={()=>setShowOnboarding(true)}>
+            <div style={{background:'rgba(255,255,255,0.04)',border:'2px dashed rgba(255,255,255,0.15)',backdropFilter:'blur(16px)',borderRadius:20,padding:'2rem',textAlign:'center',marginBottom:'1.5rem',cursor:'pointer'}} onClick={()=>setShowOnboarding(true)}>
               <div style={{fontSize:32,marginBottom:8}}>👋</div>
-              <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,marginBottom:8,color:'#1C1710'}}>Bienvenue sur Serelyo !</h2>
-              <p style={{fontSize:14,color:'#6B5E45',marginBottom:'1rem'}}>Configure ton profil pour personnaliser ton tableau de bord</p>
+              <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,marginBottom:8,color:'#F0F4FF'}}>Bienvenue sur Serelyo !</h2>
+              <p style={{fontSize:14,color:'rgba(255,255,255,0.55)',marginBottom:'1rem'}}>Configure ton profil pour personnaliser ton tableau de bord</p>
               <button className="btn btn-dark">Configurer mon profil →</button>
             </div>
           )}
@@ -750,10 +750,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               ].map(({label,val,pct})=>(
                 <div key={label} style={{marginBottom:'1rem'}}>
                   <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
-                    <span style={{fontSize:12,fontWeight:500,color:'#1C1710'}}>{label}</span>
+                    <span style={{fontSize:12,fontWeight:500,color:'#F0F4FF'}}>{label}</span>
                     <span style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>{Math.round(pct)}% atteint</span>
                   </div>
-                  <div style={{height:8,background:'#F6F0E4',borderRadius:20,overflow:'hidden'}}>
+                  <div style={{height:8,background:'rgba(255,255,255,0.05)',borderRadius:20,overflow:'hidden'}}>
                     <div style={{height:'100%',width:pct+'%',background:pct>85?'#FF6B6B':pct>60?'#FFA03C':'#00C8A0',borderRadius:20,transition:'width .5s'}}/>
                   </div>
                   <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>
@@ -771,7 +771,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 <button className="link-btn" onClick={()=>setView('devis')}>Tous voir →</button>
               </div>
               {devis.length===0 ? (
-                <div style={{textAlign:'center',padding:'1.5rem 0',color:'#A89878'}}>
+                <div style={{textAlign:'center',padding:'1.5rem 0',color:'rgba(255,255,255,0.38)'}}>
                   <div style={{fontSize:28,marginBottom:8}}>📄</div>
                   <div style={{fontSize:13}}>Aucun devis</div>
                   <button className="link-btn" style={{marginTop:8}} onClick={()=>setView('devis')}>Créer un devis →</button>
@@ -779,10 +779,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               ) : (
                 <>
                   {devis.slice(0,3).map(d=>{
-                    const sc = {en_attente:{bg:'#FAF3E0',c:'#B5792A'},accepte:{bg:'#EDFAF3',c:'#2D7A4F'},refuse:{bg:'#FFF3F3',c:'#8B1A1A'},expire:{bg:'#F5F5F5',c:'#666'}}
+                    const sc = {en_attente:{bg:'rgba(255,160,60,0.12)',c:'#B5792A'},accepte:{bg:'rgba(0,200,160,0.12)',c:'#2D7A4F'},refuse:{bg:'rgba(255,100,100,0.12)',c:'#8B1A1A'},expire:{bg:'#F5F5F5',c:'#666'}}
                     const s = sc[d.statut]||sc.en_attente
                     return (
-                      <div key={d.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #FAF3E0',cursor:'pointer'}} onClick={()=>setView('devis')}>
+                      <div key={d.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}} onClick={()=>setView('devis')}>
                         <div>
                           <div style={{fontSize:13,fontWeight:500,color:'#E8F4F8'}}>{d.client_nom}</div>
                           <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>{d.numero} · {d.date_emission}</div>
@@ -811,7 +811,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 <button className="link-btn" onClick={()=>setView('revenus')}>Saisir →</button>
               </div>
               {revenus.slice(0,4).length===0 ? (
-                <div style={{textAlign:'center',padding:'1.5rem 0',color:'#A89878'}}>
+                <div style={{textAlign:'center',padding:'1.5rem 0',color:'rgba(255,255,255,0.38)'}}>
                   <div style={{fontSize:28,marginBottom:8}}>💶</div>
                   <div style={{fontSize:13}}>Aucun revenu saisi</div>
                   <button className="link-btn" style={{marginTop:8}} onClick={()=>setView('revenus')}>Saisir mes revenus →</button>
@@ -820,12 +820,12 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 revenus.slice(0,4).map(r=>{
                   const net = r.montant*(1-taux-tauxImpot)
                   return (
-                    <div key={r.mois} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #FAF3E0'}}>
+                    <div key={r.mois} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
                       <div>
                         <div style={{fontSize:13,fontWeight:500,color:'#E8F4F8'}}>{r.mois&&r.mois.match(/^\d{4}-\d{2}$/)?formatMois(r.mois):r.mois||'—'}</div>
                         <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Net ~{Math.round(net).toLocaleString('fr-FR')} €</div>
                       </div>
-                      <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:'#1C1710'}}>{r.montant.toLocaleString('fr-FR')} €</span>
+                      <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:'#F0F4FF'}}>{r.montant.toLocaleString('fr-FR')} €</span>
                     </div>
                   )
                 })
@@ -947,12 +947,12 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               {/* ── VUE MOBILE : 1 mois + swipe ── */}
               {/* Navigation mois */}
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1rem'}}>
-                <button onClick={allerMoisPrev} style={{width:44,height:44,borderRadius:'50%',border:'1px solid rgba(0,200,200,.2)',background:'rgba(0,200,200,.06)',color:'#00C8C8',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
+                <button onClick={allerMoisPrev} style={{width:44,height:44,borderRadius:'50%',border:'1px solid rgba(0,200,200,.2)',background:'rgba(255,255,255,0.05)',color:'#00C8C8',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
                 <div style={{textAlign:'center'}}>
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#E8F4F8',fontWeight:600}}>{nomMois}</div>
                   <div style={{fontSize:12,color:'rgba(255,255,255,.35)',marginTop:2}}>{calYear}{estCourant?' · Mois en cours':''}</div>
                 </div>
-                <button onClick={allerMoisNext} style={{width:44,height:44,borderRadius:'50%',border:'1px solid rgba(0,200,200,.2)',background:'rgba(0,200,200,.06)',color:'#00C8C8',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>›</button>
+                <button onClick={allerMoisNext} style={{width:44,height:44,borderRadius:'50%',border:'1px solid rgba(0,200,200,.2)',background:'rgba(255,255,255,0.05)',color:'#00C8C8',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>›</button>
               </div>
 
               {/* Sélecteur rapide mois */}
@@ -1054,7 +1054,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           </div>
                           {statut==='faite'
                             ? <span style={{fontSize:11,fontWeight:600,color:'#00C8A0',background:'rgba(0,200,160,.1)',padding:'4px 10px',borderRadius:20}}>✓ Faite</span>
-                            : <button onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')} style={{fontSize:11,background:'#00C8C8',border:'none',color:'#0B1929',padding:'6px 12px',borderRadius:20,cursor:'pointer',fontFamily:'Outfit,sans-serif',fontWeight:600}}>Marquer faite</button>
+                            : <button onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')} style={{fontSize:11,background:'rgba(0,200,200,0.85)',border:'none',color:'#07080F',padding:'6px 12px',borderRadius:20,cursor:'pointer',fontFamily:'Outfit,sans-serif',fontWeight:600}}>Marquer faite</button>
                           }
                         </div>
                       )
@@ -1062,7 +1062,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     {rdvList.filter(r=>r.date&&r.date.startsWith(`${calYear}-${String(moisIdx+1).padStart(2,'0')}`)).map(r=>{
                       const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
                       return (
-                        <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',borderRadius:12,background:'rgba(0,200,200,.06)',border:'1px solid rgba(0,200,200,.15)'}}>
+                        <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',borderRadius:12,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(0,200,200,.15)'}}>
                           <div style={{display:'flex',alignItems:'center',gap:8}}>
                             <span style={{fontSize:16}}>{t.emoji}</span>
                             <div>
@@ -1082,7 +1082,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
               {/* CA du mois */}
               {rev && (
-                <div className="card" style={{marginBottom:'1rem',background:'rgba(0,200,200,.06)',border:'1px solid rgba(0,200,200,.15)'}}>
+                <div className="card" style={{marginBottom:'1rem',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(0,200,200,.15)'}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                     <div>
                       <div style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:4}}>CA {nomMois}</div>
@@ -1119,7 +1119,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   evsM.forEach(ev => { if (ev.jour) joursEvenementsM[ev.jour] = ev })
                   return (
                     <div key={mi} style={{
-                      background:'#0D1F35', border:`2px solid ${estCourantM?'rgba(0,200,200,.4)':'rgba(0,200,200,.1)'}`,
+                      background:'rgba(10,12,35,0.6)', backdropFilter:'blur(16px)', WebkitBackdropFilter:'blur(16px)', border:`2px solid ${estCourantM?'rgba(0,200,200,0.5)':'rgba(255,255,255,0.08)'}`,
                       borderRadius:16, padding:'1rem',
                       opacity: estPasseM && !revM && evsM.length===0 ? 0.5 : 1,
                       boxShadow: estCourantM ? '0 4px 20px rgba(0,200,200,.1)' : 'none'
@@ -1177,7 +1177,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             {rdvsMois.map(r=>{
                               const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
                               return (
-                                <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'3px 6px',borderRadius:6,background:'rgba(0,200,200,.08)',fontSize:10}}>
+                                <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'3px 6px',borderRadius:6,background:'rgba(0,200,200,0.08)',fontSize:10}}>
                                   <span style={{color:'#00C8C8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:100}}>{t.emoji} {r.titre}</span>
                                   <button onClick={e=>{e.stopPropagation();deleteRdv(r.id)}} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,100,100,.6)',fontSize:11,padding:0}}>×</button>
                                 </div>
@@ -1267,7 +1267,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       if (rdvsJour.length===0) return null
                       return (
                         <div style={{marginBottom:'1rem'}}>
-                          <div style={{fontSize:11,fontWeight:600,color:'#A89878',letterSpacing:'.5px',textTransform:'uppercase',marginBottom:8}}>Événements ce jour</div>
+                          <div style={{fontSize:11,fontWeight:600,color:'rgba(255,255,255,0.38)',letterSpacing:'.5px',textTransform:'uppercase',marginBottom:8}}>Événements ce jour</div>
                           {rdvsJour.map(r=>{
                             const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
                             return (
@@ -1333,8 +1333,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 {savingRev?'Sauvegarde…':'Enregistrer →'}
               </button>
             </div>
-            <div style={{marginTop:10,fontSize:12,color:'#A89878'}}>
-              Tu saisis pour : <strong style={{color:'#1C1710'}}>{['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][parseInt(revMoisNum)-1]} {revAnnee}</strong>
+            <div style={{marginTop:10,fontSize:12,color:'rgba(255,255,255,0.38)'}}>
+              Tu saisis pour : <strong style={{color:'#F0F4FF'}}>{['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][parseInt(revMoisNum)-1]} {revAnnee}</strong>
             </div>
           </div>
 
@@ -1349,7 +1349,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </select>
             </div>
             {revenus.filter(r=>r.mois.startsWith(histoAnnee)).length===0
-              ? <p style={{fontSize:13,color:'#A89878',padding:'1rem 0'}}>Aucun revenu saisi pour {histoAnnee}.</p>
+              ? <p style={{fontSize:13,color:'rgba(255,255,255,0.38)',padding:'1rem 0'}}>Aucun revenu saisi pour {histoAnnee}.</p>
               : (
                 <>
                   <table className="rev-table">
@@ -1370,11 +1370,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           <tr key={r.mois}>
                             <td>{formatMois(r.mois)}</td>
                             <td><strong>{r.montant.toLocaleString('fr-FR')} €</strong></td>
-                            <td style={{color:'#8B1A1A'}}>{cotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                            <td style={{color:'#7A3A0A'}}>{impots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                            <td style={{color:'#2D7A4F',fontWeight:600}}>{net.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                            <td style={{color:'#FF8A8A'}}>{cotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                            <td style={{color:'#FFAA80'}}>{impots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
+                            <td style={{color:'#00D4A0',fontWeight:600}}>{net.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
                             <td>
-                              <button style={{background:'none',border:'none',cursor:'pointer',color:'#A89878',fontSize:16}} onClick={async()=>{
+                              <button style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.38)',fontSize:16}} onClick={async()=>{
                                 if(!confirm('Supprimer ce mois ?')) return
                                 const {data:ex} = await supabase.from('ae_revenus').select('id').eq('user_id',user.id).eq('mois',r.mois).single()
                                 if(ex) await supabase.from('ae_revenus').delete().eq('id',ex.id)
@@ -1394,21 +1394,21 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     const totalNet = totalCA*(1-taux-tauxImpot)
                     return (
                       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginTop:'1.25rem'}}>
-                        <div style={{background:'#1C1710',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                        <div style={{background:'rgba(255,255,255,0.1)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                           <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.5)',marginBottom:6}}>CA Total {histoAnnee}</div>
                           <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#fff'}}>{totalCA.toLocaleString('fr-FR')} €</div>
                         </div>
-                        <div style={{background:'#FFF3F3',border:'1px solid #FFCACA',borderRadius:14,padding:'1rem',textAlign:'center'}}>
-                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>URSSAF ({(taux*100).toFixed(1)}%)</div>
-                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#8B1A1A'}}>{totalCotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                        <div style={{background:'rgba(255,100,100,0.1)',border:'1px solid rgba(255,100,100,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>URSSAF ({(taux*100).toFixed(1)}%)</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#FF8A8A'}}>{totalCotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                         </div>
-                        <div style={{background:'#FFF4E6',border:'1px solid #FFD5A0',borderRadius:14,padding:'1rem',textAlign:'center'}}>
-                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>Impôts ({profil?.taux_impot_perso||14}%)</div>
-                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#7A3A0A'}}>{totalImpots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                        <div style={{background:'rgba(255,160,60,0.1)',border:'1px solid rgba(255,160,60,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Impôts ({profil?.taux_impot_perso||14}%)</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#FFAA80'}}>{totalImpots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                         </div>
-                        <div style={{background:'#EDFAF3',border:'1px solid #9CDBB8',borderRadius:14,padding:'1rem',textAlign:'center'}}>
-                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>Net estimé</div>
-                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#2D7A4F'}}>{totalNet.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                        <div style={{background:'rgba(0,200,160,0.12)',border:'1px solid rgba(0,200,160,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Net estimé</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#00D4A0'}}>{totalNet.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                         </div>
                       </div>
                     )
@@ -1432,30 +1432,30 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           ) : (
             <>
               {/* Infos secteur */}
-              <div className="card" style={{marginBottom:'1rem',background:'#FAF3E0',border:'1px solid #E8D5A8'}}>
+              <div className="card" style={{marginBottom:'1rem',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)'}}>
                 <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
                   <div>
-                    <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Ton secteur</span>
-                    <span style={{fontSize:14,color:'#1C1710',fontWeight:500}}>{SECTEURS.find(s=>s.value===profil.secteur)?.label||profil.secteur}</span>
+                    <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Ton secteur</span>
+                    <span style={{fontSize:14,color:'#F0F4FF',fontWeight:500}}>{SECTEURS.find(s=>s.value===profil.secteur)?.label||profil.secteur}</span>
                   </div>
                   <div style={{display:'flex',gap:16,flexWrap:'wrap'}}>
                     <div style={{textAlign:'center'}}>
-                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Taux URSSAF</span>
-                      <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#B5792A'}}>{(TAUX[profil.secteur]*100).toFixed(1)}%</span>
+                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Taux URSSAF</span>
+                      <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#FFA94D'}}>{(TAUX[profil.secteur]*100).toFixed(1)}%</span>
                     </div>
                     {profil.acre && (
                       <div style={{textAlign:'center'}}>
-                        <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Avec ACRE</span>
-                        <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#2D7A4F'}}>{(TAUX_ACRE[profil.secteur]*100).toFixed(1)}%</span>
+                        <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Avec ACRE</span>
+                        <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#00D4A0'}}>{(TAUX_ACRE[profil.secteur]*100).toFixed(1)}%</span>
                       </div>
                     )}
                     <div style={{textAlign:'center'}}>
-                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Taux impôt perso</span>
-                      <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#7A3A0A'}}>{profil.taux_impot_perso||14}%</span>
+                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Taux impôt perso</span>
+                      <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#FFAA80'}}>{profil.taux_impot_perso||14}%</span>
                     </div>
                     <div style={{textAlign:'center'}}>
-                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Total à prévoir</span>
-                      <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#1C1710'}}>~{((TAUX[profil.secteur]+(parseFloat(profil.taux_impot_perso)||14)/100)*100).toFixed(0)}%</span>
+                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Total à prévoir</span>
+                      <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#F0F4FF'}}>~{((TAUX[profil.secteur]+(parseFloat(profil.taux_impot_perso)||14)/100)*100).toFixed(0)}%</span>
                     </div>
                   </div>
                 </div>
@@ -1470,7 +1470,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   </div>
                   <button className="btn btn-dark" style={{padding:'12px 24px'}} onClick={calculer}>Calculer →</button>
                 </div>
-                <div style={{marginTop:10,fontSize:12,color:'#A89878'}}>
+                <div style={{marginTop:10,fontSize:12,color:'rgba(255,255,255,0.38)'}}>
                   Les calculs utilisent ton secteur et taux personnalisés du profil. <button className="link-btn" onClick={()=>setShowOnboarding(true)}>Modifier mon profil →</button>
                 </div>
               </div>
@@ -1543,10 +1543,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <div className="card" style={{marginBottom:'1.5rem'}}>
               <div className="reponse-header">
                 <div className="reponse-avatar">IA</div>
-                <span style={{fontSize:13,color:'#6B5E45',fontWeight:500}}>Assistant Serelyo</span>
+                <span style={{fontSize:13,color:'rgba(255,255,255,0.55)',fontWeight:500}}>Assistant Serelyo</span>
               </div>
               {asking
-                ? <div style={{display:'flex',alignItems:'center',gap:10,padding:'1rem 0',color:'#A89878'}}><div className="ring"/>Je réfléchis à ta question…</div>
+                ? <div style={{display:'flex',alignItems:'center',gap:10,padding:'1rem 0',color:'rgba(255,255,255,0.38)'}}><div className="ring"/>Je réfléchis à ta question…</div>
                 : <div className="reponse-text">{reponse.split('\n').map((line,i)=><p key={i} style={{marginBottom:line?'0.75rem':0}}>{line}</p>)}</div>
               }
             </div>
@@ -1582,77 +1582,77 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 <div
                   onClick={()=>setSimMode('rapide')}
                   style={{
-                    background: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '#1C1710' : '#FFFDF8',
-                    border: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '2px solid #1C1710' : '2px solid #E2D8C4',
+                    background: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
+                    border: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '1.5px solid rgba(255,255,255,0.2)' : '1.5px solid rgba(255,255,255,0.08)',
                     borderRadius:20, padding:'1.75rem', cursor:'pointer', transition:'all .2s',
-                    boxShadow: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '0 8px 32px rgba(28,23,16,.2)' : '0 2px 12px rgba(28,23,16,.05)'
+                    boxShadow: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
                   <div style={{fontSize:36,marginBottom:12}}>⚡</div>
                   <div style={{
                     fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600,marginBottom:8,
-                    color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '#fff' : '#1C1710'
+                    color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '#F0F4FF' : 'rgba(255,255,255,0.65)'
                   }}>Calcul rapide</div>
                   <div style={{
                     fontSize:13,lineHeight:1.6,
-                    color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? 'rgba(255,255,255,.65)' : '#6B5E45'
+                    color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)'
                   }}>Tu as encaissé un paiement ?<br/>Calcule instantanément ce que tu dois mettre de côté.</div>
                   {(simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel') && (
-                    <div style={{marginTop:14,display:'inline-block',background:'#B5792A',color:'#fff',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
+                    <div style={{marginTop:14,display:'inline-block',background:'rgba(0,200,200,0.2)',color:'#00C8C8',border:'1px solid rgba(0,200,200,0.35)',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
                   )}
                 </div>
                 <div
                   onClick={()=>setSimMode('mensuel')}
                   style={{
-                    background: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? '#1C1710' : '#FFFDF8',
-                    border: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? '2px solid #1C1710' : '2px solid #E2D8C4',
+                    background: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
+                    border: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? '1.5px solid rgba(255,255,255,0.2)' : '1.5px solid rgba(255,255,255,0.08)',
                     borderRadius:20, padding:'1.75rem', cursor:'pointer', transition:'all .2s',
-                    boxShadow: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? '0 8px 32px rgba(28,23,16,.2)' : '0 2px 12px rgba(28,23,16,.05)'
+                    boxShadow: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
                   <div style={{fontSize:36,marginBottom:12}}>📊</div>
                   <div style={{
                     fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600,marginBottom:8,
-                    color: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? '#fff' : '#1C1710'
+                    color: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? '#F0F4FF' : 'rgba(255,255,255,0.65)'
                   }}>Simulation annuelle</div>
                   <div style={{
                     fontSize:13,lineHeight:1.6,
-                    color: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? 'rgba(255,255,255,.65)' : '#6B5E45'
+                    color: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)'
                   }}>Visualise toute ton année :<br/>revenus, charges et net mois par mois avec graphique.</div>
                   {(simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel') && (
-                    <div style={{marginTop:14,display:'inline-block',background:'#B5792A',color:'#fff',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
+                    <div style={{marginTop:14,display:'inline-block',background:'rgba(0,200,200,0.2)',color:'#00C8C8',border:'1px solid rgba(0,200,200,0.35)',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
                   )}
                 </div>
                 <div
                   onClick={()=>setSimMode('inverse')}
                   style={{
-                    background: simMode==='inverse' ? '#1C1710' : '#FFFDF8',
-                    border: simMode==='inverse' ? '2px solid #1C1710' : '2px solid #E2D8C4',
+                    background: simMode==='inverse' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
+                    border: simMode==='inverse' ? '1.5px solid rgba(255,255,255,0.2)' : '1.5px solid rgba(255,255,255,0.08)',
                     borderRadius:20, padding:'1.75rem', cursor:'pointer', transition:'all .2s',
-                    boxShadow: simMode==='inverse' ? '0 8px 32px rgba(28,23,16,.2)' : '0 2px 12px rgba(28,23,16,.05)'
+                    boxShadow: simMode==='inverse' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
                   <div style={{fontSize:36,marginBottom:12}}>🎯</div>
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='inverse'?'#fff':'#1C1710'}}>Calculateur inversé</div>
                   <div style={{fontSize:13,lineHeight:1.6,color:simMode==='inverse'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu veux X€ nets par mois ?<br/>Calcule exactement combien tu dois facturer.</div>
                   {simMode==='inverse' && (
-                    <div style={{marginTop:14,display:'inline-block',background:'#B5792A',color:'#fff',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
+                    <div style={{marginTop:14,display:'inline-block',background:'rgba(0,200,200,0.2)',color:'#00C8C8',border:'1px solid rgba(0,200,200,0.35)',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
                   )}
                 </div>
                 <div
                   onClick={()=>setSimMode('reel')}
                   style={{
-                    background: simMode==='reel' ? '#1C1710' : '#FFFDF8',
-                    border: simMode==='reel' ? '2px solid #1C1710' : '2px solid #E2D8C4',
+                    background: simMode==='reel' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
+                    border: simMode==='reel' ? '1.5px solid rgba(255,255,255,0.2)' : '1.5px solid rgba(255,255,255,0.08)',
                     borderRadius:20, padding:'1.75rem', cursor:'pointer', transition:'all .2s',
-                    boxShadow: simMode==='reel' ? '0 8px 32px rgba(28,23,16,.2)' : '0 2px 12px rgba(28,23,16,.05)'
+                    boxShadow: simMode==='reel' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
                   <div style={{fontSize:36,marginBottom:12}}>⚖️</div>
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='reel'?'#fff':'#1C1710'}}>Micro vs Réel</div>
                   <div style={{fontSize:13,lineHeight:1.6,color:simMode==='reel'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu approches du plafond ?<br/>Compare concrètement micro-entreprise et régime réel.</div>
                   {simMode==='reel' && (
-                    <div style={{marginTop:14,display:'inline-block',background:'#B5792A',color:'#fff',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
+                    <div style={{marginTop:14,display:'inline-block',background:'rgba(0,200,200,0.2)',color:'#00C8C8',border:'1px solid rgba(0,200,200,0.35)',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
                   )}
                 </div>
               </div>
@@ -1662,30 +1662,30 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 return (
                   <>
                     {/* Infos secteur */}
-                    <div className="card" style={{marginBottom:'1rem',background:'#FAF3E0',border:'1px solid #E8D5A8'}}>
+                    <div className="card" style={{marginBottom:'1rem',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)'}}>
                       <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
                         <div>
-                          <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Ton secteur</span>
-                          <span style={{fontSize:14,color:'#1C1710',fontWeight:500}}>{SECTEURS.find(s=>s.value===profil.secteur)?.label||profil.secteur}</span>
+                          <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Ton secteur</span>
+                          <span style={{fontSize:14,color:'#F0F4FF',fontWeight:500}}>{SECTEURS.find(s=>s.value===profil.secteur)?.label||profil.secteur}</span>
                         </div>
                         <div style={{display:'flex',gap:16,flexWrap:'wrap'}}>
                           <div style={{textAlign:'center'}}>
-                            <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Taux URSSAF</span>
-                            <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#B5792A'}}>{(TAUX[profil.secteur]*100).toFixed(1)}%</span>
+                            <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Taux URSSAF</span>
+                            <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#FFA94D'}}>{(TAUX[profil.secteur]*100).toFixed(1)}%</span>
                           </div>
                           {profil.acre && (
                             <div style={{textAlign:'center'}}>
-                              <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Avec ACRE</span>
-                              <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#2D7A4F'}}>{(TAUX_ACRE[profil.secteur]*100).toFixed(1)}%</span>
+                              <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Avec ACRE</span>
+                              <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#00D4A0'}}>{(TAUX_ACRE[profil.secteur]*100).toFixed(1)}%</span>
                             </div>
                           )}
                           <div style={{textAlign:'center'}}>
-                            <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Taux impôt</span>
-                            <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#7A3A0A'}}>{profil.taux_impot_perso||14}%</span>
+                            <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Taux impôt</span>
+                            <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#FFAA80'}}>{profil.taux_impot_perso||14}%</span>
                           </div>
                           <div style={{textAlign:'center'}}>
-                            <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',display:'block',marginBottom:4}}>Total à prévoir</span>
-                            <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#1C1710'}}>~{((TAUX[profil.secteur]+(parseFloat(profil.taux_impot_perso)||14)/100)*100).toFixed(0)}%</span>
+                            <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Total à prévoir</span>
+                            <span style={{fontSize:20,fontFamily:"'Playfair Display',serif",color:'#F0F4FF'}}>~{((TAUX[profil.secteur]+(parseFloat(profil.taux_impot_perso)||14)/100)*100).toFixed(0)}%</span>
                           </div>
                         </div>
                       </div>
@@ -1702,7 +1702,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         </div>
                         <button className="btn btn-dark" style={{padding:'12px 24px'}} onClick={calculer}>Calculer →</button>
                       </div>
-                      <div style={{marginTop:10,fontSize:12,color:'#A89878'}}>
+                      <div style={{marginTop:10,fontSize:12,color:'rgba(255,255,255,0.38)'}}>
                         Les calculs utilisent ton secteur et taux du profil. <button className="link-btn" onClick={()=>setShowOnboarding(true)}>Modifier →</button>
                       </div>
                     </div>
@@ -1840,34 +1840,34 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   <>
                     {/* Récap cartes */}
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:'1.25rem'}}>
-                      <div style={{background:'#1C1710',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
+                      <div style={{background:'rgba(255,255,255,0.1)',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
                         <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.5)',marginBottom:6}}>CA Total</div>
                         <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#fff'}}>{totCA.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                       </div>
-                      <div style={{background:'#FFF3F3',border:'1px solid #FFCACA',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
-                        <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>URSSAF ({(tauxU*100).toFixed(1)}%)</div>
-                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#8B1A1A'}}>{totUrssaf.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                      <div style={{background:'rgba(255,100,100,0.1)',border:'1px solid rgba(255,100,100,0.25)',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
+                        <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>URSSAF ({(tauxU*100).toFixed(1)}%)</div>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#FF8A8A'}}>{totUrssaf.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                       </div>
-                      <div style={{background:'#FFF4E6',border:'1px solid #FFD5A0',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
-                        <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>Impôts (~{Math.round(tauxI*100)}%)</div>
-                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#7A3A0A'}}>{totImpots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                      <div style={{background:'rgba(255,160,60,0.1)',border:'1px solid rgba(255,160,60,0.25)',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
+                        <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Impôts (~{Math.round(tauxI*100)}%)</div>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#FFAA80'}}>{totImpots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                       </div>
-                      <div style={{background:'#EDFAF3',border:'1px solid #9CDBB8',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
-                        <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>Net estimé</div>
-                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#2D7A4F'}}>{totNet.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
-                        <div style={{fontSize:11,color:'#2D7A4F',opacity:.7}}>{Math.round(totNet/12).toLocaleString('fr-FR')} €/mois</div>
+                      <div style={{background:'rgba(0,200,160,0.12)',border:'1px solid rgba(0,200,160,0.25)',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
+                        <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Net estimé</div>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#00D4A0'}}>{totNet.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                        <div style={{fontSize:11,color:'#00D4A0',opacity:.7}}>{Math.round(totNet/12).toLocaleString('fr-FR')} €/mois</div>
                       </div>
                     </div>
 
                     {/* Graphique barres empilées */}
                     <div className="card" style={{marginBottom:'1.5rem'}}>
                       <div className="card-title">Répartition mensuelle — barres empilées</div>
-                      <div style={{fontSize:12,color:'#A89878',marginBottom:14}}>Chaque barre = ton CA total, découpé en 3 couches</div>
+                      <div style={{fontSize:12,color:'rgba(255,255,255,0.38)',marginBottom:14}}>Chaque barre = ton CA total, découpé en 3 couches</div>
 
                       {/* Légende */}
                       <div style={{display:'flex',gap:20,marginBottom:16,flexWrap:'wrap'}}>
                         {[['#2D7A4F','Net (ce qui reste)'],['#FFA94D','Impôts'],['#FF6B6B','URSSAF']].map(([color,label])=>(
-                          <div key={label} style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'#6B5E45'}}>
+                          <div key={label} style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'rgba(255,255,255,0.55)'}}>
                             <div style={{width:14,height:14,borderRadius:3,background:color}}/>
                             {label}
                           </div>
@@ -1879,8 +1879,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           {/* Lignes de grille horizontales */}
                           {[0.25,0.5,0.75,1].map(p=>(
                             <g key={p}>
-                              <line x1="40" y1={chartH-p*chartH} x2={moisData.length*(barW+gap)+50} y2={chartH-p*chartH} stroke="#F0EBE0" strokeWidth="1" strokeDasharray="4,3"/>
-                              <text x="0" y={chartH-p*chartH+4} fontSize="9" fill="#A89878">{Math.round(maxVal*p/1000)}k€</text>
+                              <line x1="40" y1={chartH-p*chartH} x2={moisData.length*(barW+gap)+50} y2={chartH-p*chartH} stroke="rgba(255,255,255,0.07)" strokeWidth="1" strokeDasharray="4,3"/>
+                              <text x="0" y={chartH-p*chartH+4} fontSize="9" fill="rgba(255,255,255,0.28)">{Math.round(maxVal*p/1000)}k€</text>
                             </g>
                           ))}
 
@@ -1894,7 +1894,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
                             if (!m.actif) return (
                               <g key={i}>
-                                <rect x={x} y={chartH-8} width={barW} height={8} fill="#F0EBE0" rx="3"/>
+                                <rect x={x} y={chartH-8} width={barW} height={8} fill="rgba(255,255,255,0.04)" rx="3"/>
                                 <text x={x+barW/2} y={chartH+18} textAnchor="middle" fontSize="10" fill="#D0C8B8">{m.nom}</text>
                               </g>
                             )
@@ -1902,8 +1902,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               <g key={i}>
                                 <title>{m.nom} — CA : {Math.round(m.ca).toLocaleString('fr-FR')}€ | Net : {Math.round(m.net).toLocaleString('fr-FR')}€ | URSSAF : {Math.round(m.urssaf).toLocaleString('fr-FR')}€ | Impôts : {Math.round(m.impots).toLocaleString('fr-FR')}€</title>
                                 {/* NET — couche du haut (vert) */}
-                                <rect x={x} y={chartH-hTotal} width={barW} height={hN} fill="#2D7A4F" rx="4"/>
-                                <rect x={x} y={chartH-hTotal+4} width={barW} height={Math.max(hN-4,0)} fill="#2D7A4F"/>
+                                <rect x={x} y={chartH-hTotal} width={barW} height={hN} fill="#00C8A0" rx="4"/>
+                                <rect x={x} y={chartH-hTotal+4} width={barW} height={Math.max(hN-4,0)} fill="#00C8A0"/>
                                 {/* IMPOTS — couche du milieu (orange) */}
                                 <rect x={x} y={chartH-hU-hI} width={barW} height={hI} fill="#FFA94D"/>
                                 {/* URSSAF — couche du bas (rouge) */}
@@ -1912,11 +1912,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                                 <rect x={x} y={chartH-4} width={barW} height={4} fill="#FF6B6B" rx="0"/>
                                 <rect x={x} y={chartH-hU} width={barW} height={4} fill="#FF6B6B" rx="2"/>
                                 {/* Valeur nette au dessus */}
-                                {hTotal > 30 && <text x={x+barW/2} y={chartH-hTotal-5} textAnchor="middle" fontSize="9" fill="#2D7A4F" fontWeight="600">{Math.round(m.net/1000*10)/10}k</text>}
+                                {hTotal > 30 && <text x={x+barW/2} y={chartH-hTotal-5} textAnchor="middle" fontSize="9" fill="#00C8A0" fontWeight="600">{Math.round(m.net/1000*10)/10}k</text>}
                                 {/* Mois en dessous */}
-                                <text x={x+barW/2} y={chartH+18} textAnchor="middle" fontSize="10" fill="#6B5E45">{m.nom}</text>
+                                <text x={x+barW/2} y={chartH+18} textAnchor="middle" fontSize="10" fill="rgba(255,255,255,0.4)">{m.nom}</text>
                                 {/* CA total en petit */}
-                                <text x={x+barW/2} y={chartH+30} textAnchor="middle" fontSize="9" fill="#A89878">{Math.round(m.ca/1000*10)/10}k</text>
+                                <text x={x+barW/2} y={chartH+30} textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.28)">{Math.round(m.ca/1000*10)/10}k</text>
                               </g>
                             )
                           })}
@@ -1947,10 +1947,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               <tr key={i}>
                                 <td>{m.nom}</td>
                                 <td><strong>{Math.round(m.ca).toLocaleString('fr-FR')} €</strong></td>
-                                <td style={{color:'#8B1A1A'}}>{Math.round(m.urssaf).toLocaleString('fr-FR')} €</td>
-                                <td style={{color:'#7A3A0A'}}>{Math.round(m.impots).toLocaleString('fr-FR')} €</td>
-                                <td style={{color:'#B5792A',fontWeight:500}}>{Math.round(m.urssaf+m.impots).toLocaleString('fr-FR')} €</td>
-                                <td style={{color:'#2D7A4F',fontWeight:600}}>{Math.round(m.net).toLocaleString('fr-FR')} €</td>
+                                <td style={{color:'#FF8A8A'}}>{Math.round(m.urssaf).toLocaleString('fr-FR')} €</td>
+                                <td style={{color:'#FFAA80'}}>{Math.round(m.impots).toLocaleString('fr-FR')} €</td>
+                                <td style={{color:'#FFA94D',fontWeight:500}}>{Math.round(m.urssaf+m.impots).toLocaleString('fr-FR')} €</td>
+                                <td style={{color:'#00D4A0',fontWeight:600}}>{Math.round(m.net).toLocaleString('fr-FR')} €</td>
                               </tr>
                             ))}
                           </tbody>
@@ -1958,12 +1958,12 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           {/* Total récap cards */}
                           <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginTop:'1.25rem'}}>
                             {[
-                              {label:'CA Total',val:Math.round(totCA),color:'#1C1710',bg:'#1C1710',textColor:'#fff',subColor:'rgba(255,255,255,.5)'},
-                              {label:'URSSAF total',val:Math.round(totUrssaf),color:'#8B1A1A',bg:'#FFF3F3',subColor:'#A89878'},
-                              {label:'Impôts total',val:Math.round(totImpots),color:'#7A3A0A',bg:'#FFF4E6',subColor:'#A89878'},
-                              {label:'Net estimé total',val:Math.round(totNet),color:'#2D7A4F',bg:'#EDFAF3',subColor:'#A89878'},
+                              {label:'CA Total',val:Math.round(totCA),color:'#F0F4FF',bg:'rgba(255,255,255,0.1)',textColor:'#fff',subColor:'rgba(255,255,255,.5)'},
+                              {label:'URSSAF total',val:Math.round(totUrssaf),color:'#FF8A8A',bg:'rgba(255,100,100,0.12)',subColor:'rgba(255,255,255,0.4)'},
+                              {label:'Impôts total',val:Math.round(totImpots),color:'#FFAA80',bg:'rgba(255,160,60,0.12)',subColor:'rgba(255,255,255,0.4)'},
+                              {label:'Net estimé total',val:Math.round(totNet),color:'#00D4A0',bg:'rgba(0,200,160,0.12)',subColor:'rgba(255,255,255,0.4)'},
                             ].map(({label,val,color,bg,textColor,subColor})=>(
-                              <div key={label} style={{background:bg,borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                              <div key={label} style={{background:bg,backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                                 <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:subColor||'#A89878',marginBottom:6}}>{label}</div>
                                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:textColor||color,fontWeight:600}}>{val.toLocaleString('fr-FR')} €</div>
                                 <div style={{fontSize:11,color:subColor||'#A89878',marginTop:4}}>{Math.round(val/simMoisActifs).toLocaleString('fr-FR')} €/mois</div>
@@ -1997,7 +1997,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         ].map(({label,val,pct,icon,consequence,conseil})=>{
                           const reste = val - totCA
                           const couleur = pct > 90 ? '#C0392B' : pct > 70 ? '#B5792A' : '#2D7A4F'
-                          const bgCouleur = pct > 90 ? '#FFF3F3' : pct > 70 ? '#FAF3E0' : '#EDFAF3'
+                          const bgCouleur = pct > 90 ? 'rgba(255,100,100,0.12)' : pct > 70 ? 'rgba(255,255,255,0.07)' : 'rgba(0,200,160,0.1)'
                           const status = pct > 90 ? 'DÉPASSEMENT IMMINENT' : pct > 70 ? 'ATTENTION' : 'OK'
                           return (
                             <div key={label}>
@@ -2005,26 +2005,26 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                                 <div style={{display:'flex',alignItems:'center',gap:10}}>
                                   <span style={{fontSize:20}}>{icon}</span>
                                   <div>
-                                    <div style={{fontSize:14,fontWeight:600,color:'#1C1710'}}>{label}</div>
+                                    <div style={{fontSize:14,fontWeight:600,color:'#F0F4FF'}}>{label}</div>
                                     <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Seuil légal : {val.toLocaleString('fr-FR')} €/an</div>
                                   </div>
                                 </div>
                                 <div style={{display:'flex',alignItems:'center',gap:12}}>
-                                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:'#1C1710'}}>{Math.round(totCA).toLocaleString('fr-FR')} € / {val.toLocaleString('fr-FR')} €</span>
+                                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:'#F0F4FF'}}>{Math.round(totCA).toLocaleString('fr-FR')} € / {val.toLocaleString('fr-FR')} €</span>
                                   <span style={{fontSize:10,fontWeight:700,padding:'3px 10px',borderRadius:20,background:bgCouleur,color:couleur,letterSpacing:'.5px'}}>{status}</span>
                                 </div>
                               </div>
                               {/* Barre de progression */}
-                              <div style={{height:12,background:'#F6F0E4',borderRadius:20,overflow:'hidden',marginBottom:10}}>
+                              <div style={{height:12,background:'rgba(255,255,255,0.05)',borderRadius:20,overflow:'hidden',marginBottom:10}}>
                                 <div style={{height:'100%',width:pct+'%',background:couleur,borderRadius:20,transition:'width .5s ease'}}/>
                               </div>
                               {/* Info contextuelle */}
-                              <div style={{background:bgCouleur,borderRadius:10,padding:'10px 14px',fontSize:12,color:'#1C1710',lineHeight:1.6}}>
+                              <div style={{background:bgCouleur,borderRadius:10,padding:'10px 14px',fontSize:12,color:'#F0F4FF',lineHeight:1.6}}>
                                 {pct > 90
                                   ? <><strong>⚠️ Alerte :</strong> {consequence} <strong>{conseil}</strong></>
                                   : pct > 70
                                   ? <><strong>📌 À surveiller :</strong> Il te reste <strong style={{color:couleur}}>{reste > 0 ? reste.toLocaleString('fr-FR',{maximumFractionDigits:0}) : 0} €</strong> avant ce seuil. {conseil}</>
-                                  : <><strong>✅ Tout va bien :</strong> Il te reste <strong style={{color:'#2D7A4F'}}>{reste > 0 ? reste.toLocaleString('fr-FR',{maximumFractionDigits:0}) : 0} €</strong> de marge avant ce seuil.</>
+                                  : <><strong>✅ Tout va bien :</strong> Il te reste <strong style={{color:'#00D4A0'}}>{reste > 0 ? reste.toLocaleString('fr-FR',{maximumFractionDigits:0}) : 0} €</strong> de marge avant ce seuil.</>
                                 }
                               </div>
                             </div>
@@ -2033,8 +2033,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       </div>
                     </div>
 
-                    <div style={{fontSize:11,color:'rgba(255,255,255,.35)',lineHeight:1.7,padding:'12px 16px',background:'#F6F0E4',borderRadius:12}}>
-                      ⚠️ <strong style={{color:'#1C1710'}}>Simulation indicative</strong> — Les montants sont calculés sur la base des taux officiels URSSAF {new Date().getFullYear()} pour ton secteur ({(tauxU*100).toFixed(1)}%). Le taux d'imposition réel dépend de ta situation fiscale globale. Ces chiffres ne constituent pas un conseil comptable.
+                    <div style={{fontSize:11,color:'rgba(255,255,255,.35)',lineHeight:1.7,padding:'12px 16px',background:'rgba(255,255,255,0.05)',borderRadius:12}}>
+                      ⚠️ <strong style={{color:'#F0F4FF'}}>Simulation indicative</strong> — Les montants sont calculés sur la base des taux officiels URSSAF {new Date().getFullYear()} pour ton secteur ({(tauxU*100).toFixed(1)}%). Le taux d'imposition réel dépend de ta situation fiscale globale. Ces chiffres ne constituent pas un conseil comptable.
                     </div>
                   </>
                 )
@@ -2046,7 +2046,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               {simMode==='inverse' && (
                 <div className="card">
                   <div className="card-title">🎯 Combien dois-je facturer ?</div>
-                  <p style={{fontSize:13,color:'#6B5E45',marginBottom:'1.5rem',lineHeight:1.7}}>
+                  <p style={{fontSize:13,color:'rgba(255,255,255,0.55)',marginBottom:'1.5rem',lineHeight:1.7}}>
                     Renseigne le revenu net que tu veux toucher chaque mois. Serelyo calcule le CA à facturer en tenant compte de l'URSSAF, des impôts, de tes jours travaillés et de tes congés.
                   </p>
                   <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14,marginBottom:'1.5rem'}}>
@@ -2100,7 +2100,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   {invResult && (
                     <div style={{marginTop:'2rem'}}>
                       {/* Résultat principal */}
-                      <div style={{background:'#1C1710',borderRadius:20,padding:'1.75rem',marginBottom:'1.25rem',textAlign:'center',position:'relative',overflow:'hidden'}}>
+                      <div style={{background:'rgba(255,255,255,0.1)',borderRadius:20,padding:'1.75rem',marginBottom:'1.25rem',textAlign:'center',position:'relative',overflow:'hidden'}}>
                         <div style={{position:'absolute',top:-30,right:-30,width:150,height:150,borderRadius:'50%',background:'rgba(181,121,42,.12)'}}/>
                         <div style={{fontSize:12,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:8}}>Pour toucher {invResult.netMensuel.toLocaleString('fr-FR')} € nets/mois</div>
                         <div style={{fontFamily:"'Playfair Display',serif",fontSize:48,color:'#E8D5A8',marginBottom:6}}>{Math.ceil(invResult.caParMoisActif).toLocaleString('fr-FR')} €</div>
@@ -2109,19 +2109,19 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
                       {/* Grille détails */}
                       <div style={{display:'grid',gridTemplateColumns:'1fr',gap:10,marginBottom:'1rem'}}>
-                        <div style={{background:'#FAF3E0',border:'1px solid #E8D5A8',borderRadius:16,padding:'1rem',textAlign:'center'}}>
-                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>TJM conseillé</div>
-                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#B5792A'}}>{Math.ceil(invResult.tjm).toLocaleString('fr-FR')} €</div>
+                        <div style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>TJM conseillé</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#FFA94D'}}>{Math.ceil(invResult.tjm).toLocaleString('fr-FR')} €</div>
                           <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>par jour ({invJours}j/mois)</div>
                         </div>
-                        <div style={{background:'#FAF3E0',border:'1px solid #E8D5A8',borderRadius:16,padding:'1rem',textAlign:'center'}}>
-                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>Taux horaire</div>
-                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#B5792A'}}>{Math.ceil(invResult.tauxHoraire).toLocaleString('fr-FR')} €</div>
+                        <div style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Taux horaire</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#FFA94D'}}>{Math.ceil(invResult.tauxHoraire).toLocaleString('fr-FR')} €</div>
                           <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>par heure (7h/jour)</div>
                         </div>
-                        <div style={{background:'#FAF3E0',border:'1px solid #E8D5A8',borderRadius:16,padding:'1rem',textAlign:'center'}}>
-                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>CA annuel</div>
-                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#B5792A'}}>{Math.ceil(invResult.caAnnuel).toLocaleString('fr-FR')} €</div>
+                        <div style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:'1rem',textAlign:'center'}}>
+                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>CA annuel</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#FFA94D'}}>{Math.ceil(invResult.caAnnuel).toLocaleString('fr-FR')} €</div>
                           <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>{invResult.moisActifs} mois actifs</div>
                         </div>
                       </div>
@@ -2130,10 +2130,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       <div className="card" style={{marginBottom:'1rem'}}>
                         <div className="card-title" style={{marginBottom:'1rem'}}>Décomposition d'un mois actif</div>
                         {[
-                          {label:'CA facturé',val:Math.ceil(invResult.caParMoisActif),color:'#1C1710',bg:'#1C1710',text:'#fff'},
-                          {label:`URSSAF (${(invResult.tauxU*100).toFixed(1)}%)`,val:Math.round(invResult.urssafMensuel),color:'#8B1A1A',bg:'#FFF3F3',text:'#8B1A1A'},
-                          {label:`Impôts (~${Math.round(invResult.tauxI*100)}%)`,val:Math.round(invResult.impotsMensuel),color:'#7A3A0A',bg:'#FFF4E6',text:'#7A3A0A'},
-                          {label:'Net perçu',val:Math.round(invResult.netMensuel),color:'#2D7A4F',bg:'#EDFAF3',text:'#2D7A4F'},
+                          {label:'CA facturé',val:Math.ceil(invResult.caParMoisActif),color:'#F0F4FF',bg:'rgba(255,255,255,0.1)',text:'#fff'},
+                          {label:`URSSAF (${(invResult.tauxU*100).toFixed(1)}%)`,val:Math.round(invResult.urssafMensuel),color:'#FF8A8A',bg:'rgba(255,100,100,0.12)',text:'#8B1A1A'},
+                          {label:`Impôts (~${Math.round(invResult.tauxI*100)}%)`,val:Math.round(invResult.impotsMensuel),color:'#FFAA80',bg:'rgba(255,160,60,0.12)',text:'#7A3A0A'},
+                          {label:'Net perçu',val:Math.round(invResult.netMensuel),color:'#00D4A0',bg:'rgba(0,200,160,0.12)',text:'#2D7A4F'},
                         ].map(({label,val,bg,text})=>(
                           <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:bg,marginBottom:8}}>
                             <span style={{fontSize:13,color:bg==='#1C1710'?'rgba(255,255,255,.6)':text,fontWeight:500}}>{label}</span>
@@ -2147,8 +2147,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         <div className="seuil-alert">⚠️ Attention : pour atteindre cet objectif, ton CA annuel ({Math.ceil(invResult.caAnnuel).toLocaleString('fr-FR')} €) approche ou dépasse le seuil de TVA ({(profil.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services).toLocaleString('fr-FR')} €). Pense à anticiper.</div>
                       )}
 
-                      <div style={{marginTop:12,fontSize:11,color:'rgba(255,255,255,.35)',background:'#F6F0E4',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
-                        ⚠️ <strong style={{color:'#1C1710'}}>Estimation indicative</strong> — Basée sur ton secteur ({(invResult.tauxU*100).toFixed(1)}% URSSAF) et ton taux d'imposition personnalisé ({Math.round(invResult.tauxI*100)}%). Consulte un expert-comptable pour affiner.
+                      <div style={{marginTop:12,fontSize:11,color:'rgba(255,255,255,.35)',background:'rgba(255,255,255,0.05)',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
+                        ⚠️ <strong style={{color:'#F0F4FF'}}>Estimation indicative</strong> — Basée sur ton secteur ({(invResult.tauxU*100).toFixed(1)}% URSSAF) et ton taux d'imposition personnalisé ({Math.round(invResult.tauxI*100)}%). Consulte un expert-comptable pour affiner.
                       </div>
                     </div>
                   )}
@@ -2188,13 +2188,13 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 return (
                   <>
                     {/* Alerte seuil */}
-                    <div style={{background:caAnnuel > plafond*0.85 ? '#FFF3F3' : '#FAF3E0', border:`1px solid ${caAnnuel > plafond*0.85 ? '#FFCACA' : '#E8D5A8'}`,borderRadius:14,padding:'14px 18px',marginBottom:'1.5rem',display:'flex',gap:14,alignItems:'flex-start'}}>
+                    <div style={{background:caAnnuel > plafond*0.85 ? 'rgba(255,100,100,0.1)' : 'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)',borderRadius:14,padding:'14px 18px',marginBottom:'1.5rem',display:'flex',gap:14,alignItems:'flex-start'}}>
                       <span style={{fontSize:24,flexShrink:0}}>{caAnnuel > plafond*0.85 ? '⚠️' : 'ℹ️'}</span>
                       <div>
-                        <div style={{fontSize:14,fontWeight:600,color:'#1C1710',marginBottom:4}}>
+                        <div style={{fontSize:14,fontWeight:600,color:'#F0F4FF',marginBottom:4}}>
                           {caAnnuel > plafond*0.85 ? 'Tu approches du plafond micro-entreprise !' : 'Simule le passage au régime réel'}
                         </div>
-                        <div style={{fontSize:13,color:'#6B5E45',lineHeight:1.7}}>
+                        <div style={{fontSize:13,color:'rgba(255,255,255,0.55)',lineHeight:1.7}}>
                           Ton CA actuel : <strong>{caAnnuel.toLocaleString('fr-FR')} €</strong> / Plafond : <strong>{plafond.toLocaleString('fr-FR')} €</strong> ({Math.round((caAnnuel/plafond)*100)}% atteint)
                           <br/>Si tu dépasses ce plafond 2 années consécutives, tu bascules automatiquement au régime réel.
                         </div>
@@ -2232,26 +2232,26 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         {/* Comparaison principale */}
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:'1.5rem'}}>
                           {/* MICRO */}
-                          <div style={{background:'#FAF3E0',border:'2px solid #E8D5A8',borderRadius:20,padding:'1.5rem'}}>
+                          <div style={{background:'rgba(255,255,255,0.06)',border:'2px solid #E8D5A8',borderRadius:20,padding:'1.5rem'}}>
                             <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:'1rem'}}>
-                              <div style={{background:'#B5792A',color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>Régime actuel</div>
-                              <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:'#1C1710'}}>Micro-entreprise</div>
+                              <div style={{background:'rgba(0,200,200,0.2)',color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>Régime actuel</div>
+                              <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:'#F0F4FF'}}>Micro-entreprise</div>
                             </div>
-                            <div style={{fontSize:12,color:'#6B5E45',marginBottom:'1rem',lineHeight:1.6}}>
+                            <div style={{fontSize:12,color:'rgba(255,255,255,0.55)',marginBottom:'1rem',lineHeight:1.6}}>
                               Cotisations calculées sur le <strong>CA brut</strong> ({(reelResult.tauxU*100).toFixed(1)}%), pas sur le bénéfice.
                             </div>
                             {[
-                              {label:'CA encaissé',val:reelResult.ca,color:'#1C1710'},
-                              {label:`Cotisations URSSAF (${(reelResult.tauxU*100).toFixed(1)}% du CA)`,val:reelResult.micro_cotis,color:'#8B1A1A',neg:true},
-                              {label:`Impôts (~${Math.round(reelResult.tauxI*100)}% du CA)`,val:reelResult.micro_impots,color:'#7A3A0A',neg:true},
+                              {label:'CA encaissé',val:reelResult.ca,color:'#F0F4FF'},
+                              {label:`Cotisations URSSAF (${(reelResult.tauxU*100).toFixed(1)}% du CA)`,val:reelResult.micro_cotis,color:'#FF8A8A',neg:true},
+                              {label:`Impôts (~${Math.round(reelResult.tauxI*100)}% du CA)`,val:reelResult.micro_impots,color:'#FFAA80',neg:true},
                             ].map(({label,val,color,neg})=>(
                               <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #F0E8D5',fontSize:13}}>
-                                <span style={{color:'#6B5E45'}}>{label}</span>
+                                <span style={{color:'rgba(255,255,255,0.55)'}}>{label}</span>
                                 <span style={{color,fontWeight:600}}>{neg?'−':''}{Math.round(val).toLocaleString('fr-FR')} €</span>
                               </div>
                             ))}
                             <div style={{display:'flex',justifyContent:'space-between',padding:'12px 0',marginTop:4}}>
-                              <span style={{fontSize:14,fontWeight:600,color:'#1C1710'}}>Net estimé</span>
+                              <span style={{fontSize:14,fontWeight:600,color:'#F0F4FF'}}>Net estimé</span>
                               <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:reelResult.micro_net>0?'#2D7A4F':'#8B1A1A'}}>{Math.round(reelResult.micro_net).toLocaleString('fr-FR')} €</span>
                             </div>
                             <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>
@@ -2260,28 +2260,28 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           </div>
 
                           {/* RÉEL */}
-                          <div style={{background:'#EEF4FF',border:'2px solid #C3D8F8',borderRadius:20,padding:'1.5rem'}}>
+                          <div style={{background:'rgba(0,120,220,0.12)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:'1px solid rgba(0,120,220,0.25)',borderRadius:20,padding:'1.5rem'}}>
                             <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:'1rem'}}>
-                              <div style={{background:'#1A4A8A',color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>Régime réel</div>
-                              <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:'#1C1710'}}>EI au réel simplifié</div>
+                              <div style={{background:'rgba(0,120,220,0.2)',color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>Régime réel</div>
+                              <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:'#F0F4FF'}}>EI au réel simplifié</div>
                             </div>
-                            <div style={{fontSize:12,color:'#1A4A8A',marginBottom:'1rem',lineHeight:1.6}}>
+                            <div style={{fontSize:12,color:'#7DC8FF',marginBottom:'1rem',lineHeight:1.6}}>
                               Cotisations calculées sur le <strong>bénéfice net</strong> (CA − charges). Tu déduis tes dépenses pro.
                             </div>
                             {[
-                              {label:'CA encaissé',val:reelResult.ca,color:'#1C1710'},
-                              {label:'Charges déductibles',val:reelResult.charges,color:'#2D7A4F',neg:true},
-                              {label:'Bénéfice net',val:reelResult.benefice,color:'#1A4A8A',bold:true},
-                              {label:'Cotisations TNS (~45% bénéfice)',val:reelResult.reel_cotis,color:'#8B1A1A',neg:true},
-                              {label:`Impôts (~${Math.round(reelResult.tauxI*100)}% bénéfice imposable)`,val:reelResult.reel_impots,color:'#7A3A0A',neg:true},
+                              {label:'CA encaissé',val:reelResult.ca,color:'#F0F4FF'},
+                              {label:'Charges déductibles',val:reelResult.charges,color:'#00D4A0',neg:true},
+                              {label:'Bénéfice net',val:reelResult.benefice,color:'#7DC8FF',bold:true},
+                              {label:'Cotisations TNS (~45% bénéfice)',val:reelResult.reel_cotis,color:'#FF8A8A',neg:true},
+                              {label:`Impôts (~${Math.round(reelResult.tauxI*100)}% bénéfice imposable)`,val:reelResult.reel_impots,color:'#FFAA80',neg:true},
                             ].map(({label,val,color,neg,bold})=>(
                               <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #D4E8FF',fontSize:13}}>
-                                <span style={{color:'#6B5E45',fontWeight:bold?600:400}}>{label}</span>
+                                <span style={{color:'rgba(255,255,255,0.55)',fontWeight:bold?600:400}}>{label}</span>
                                 <span style={{color,fontWeight:bold?700:600}}>{neg?'−':''}{Math.round(val).toLocaleString('fr-FR')} €</span>
                               </div>
                             ))}
                             <div style={{display:'flex',justifyContent:'space-between',padding:'12px 0',marginTop:4}}>
-                              <span style={{fontSize:14,fontWeight:600,color:'#1C1710'}}>Net estimé</span>
+                              <span style={{fontSize:14,fontWeight:600,color:'#F0F4FF'}}>Net estimé</span>
                               <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:reelResult.reel_net>0?'#2D7A4F':'#8B1A1A'}}>{Math.round(reelResult.reel_net).toLocaleString('fr-FR')} €</span>
                             </div>
                           </div>
@@ -2292,7 +2292,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           const diff = reelResult.reel_net - reelResult.micro_net
                           const mieux = diff > 0 ? 'réel' : 'micro'
                           return (
-                            <div style={{background:'#1C1710',borderRadius:20,padding:'1.5rem',marginBottom:'1.5rem',textAlign:'center',position:'relative',overflow:'hidden'}}>
+                            <div style={{background:'rgba(255,255,255,0.1)',borderRadius:20,padding:'1.5rem',marginBottom:'1.5rem',textAlign:'center',position:'relative',overflow:'hidden'}}>
                               <div style={{position:'absolute',top:-40,right:-40,width:180,height:180,borderRadius:'50%',background:'rgba(181,121,42,.12)'}}/>
                               <div style={{position:'relative',zIndex:1}}>
                                 <div style={{fontSize:13,color:'rgba(255,255,255,.5)',marginBottom:8}}>Verdict pour ton cas</div>
@@ -2300,7 +2300,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:'#E8D5A8',marginBottom:8}}>Les deux régimes sont équivalents</div>
                                 ) : (
                                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#E8D5A8',marginBottom:8}}>
-                                    Le régime {mieux==='reel'?'réel':'micro'} te rapporte <span style={{color:'#B5792A'}}>{Math.abs(Math.round(diff)).toLocaleString('fr-FR')} € de plus</span> par an
+                                    Le régime {mieux==='reel'?'réel':'micro'} te rapporte <span style={{color:'#FFA94D'}}>{Math.abs(Math.round(diff)).toLocaleString('fr-FR')} € de plus</span> par an
                                   </div>
                                 )}
                                 <div style={{fontSize:12,color:'rgba(255,255,255,.4)',lineHeight:1.7,maxWidth:600,margin:'0 auto'}}>
@@ -2325,19 +2325,19 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               {emoji:'⚙️',titre:'Complexité administrative',micro:'Simple — une déclaration mensuelle ou trimestrielle',reel:'Plus complexe — liasse fiscale, déclarations TVA, DSN si salarié'},
                               {emoji:'📈',titre:'Optimisation fiscale',micro:'Limitée — taux fixe sur le CA',reel:'Beaucoup plus de leviers : amortissements, provisions, optimisation de la rémunération'},
                             ].map(({emoji,titre,micro,reel})=>(
-                              <div key={titre} style={{border:'1px solid #E2D8C4',borderRadius:14,overflow:'hidden'}}>
-                                <div style={{background:'#F6F0E4',padding:'10px 14px',display:'flex',alignItems:'center',gap:8}}>
+                              <div key={titre} style={{border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,overflow:'hidden'}}>
+                                <div style={{background:'rgba(255,255,255,0.05)',padding:'10px 14px',display:'flex',alignItems:'center',gap:8}}>
                                   <span style={{fontSize:18}}>{emoji}</span>
-                                  <span style={{fontSize:13,fontWeight:600,color:'#1C1710'}}>{titre}</span>
+                                  <span style={{fontSize:13,fontWeight:600,color:'#F0F4FF'}}>{titre}</span>
                                 </div>
                                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr'}}>
-                                  <div style={{padding:'10px 14px',borderRight:'1px solid #E2D8C4',background:'#FFFDF8'}}>
-                                    <div style={{fontSize:10,fontWeight:600,color:'#B5792A',letterSpacing:'1px',textTransform:'uppercase',marginBottom:4}}>Micro-entreprise</div>
-                                    <div style={{fontSize:12,color:'#6B5E45',lineHeight:1.6}}>{micro}</div>
+                                  <div style={{padding:'10px 14px',borderRight:'1px solid #E2D8C4',background:'rgba(255,255,255,0.05)'}}>
+                                    <div style={{fontSize:10,fontWeight:600,color:'#FFA94D',letterSpacing:'1px',textTransform:'uppercase',marginBottom:4}}>Micro-entreprise</div>
+                                    <div style={{fontSize:12,color:'rgba(255,255,255,0.55)',lineHeight:1.6}}>{micro}</div>
                                   </div>
-                                  <div style={{padding:'10px 14px',background:'#F5F9FF'}}>
-                                    <div style={{fontSize:10,fontWeight:600,color:'#1A4A8A',letterSpacing:'1px',textTransform:'uppercase',marginBottom:4}}>Régime réel</div>
-                                    <div style={{fontSize:12,color:'#1A4A8A',lineHeight:1.6}}>{reel}</div>
+                                  <div style={{padding:'10px 14px',background:'rgba(0,120,200,0.1)'}}>
+                                    <div style={{fontSize:10,fontWeight:600,color:'#7DC8FF',letterSpacing:'1px',textTransform:'uppercase',marginBottom:4}}>Régime réel</div>
+                                    <div style={{fontSize:12,color:'#7DC8FF',lineHeight:1.6}}>{reel}</div>
                                   </div>
                                 </div>
                               </div>
@@ -2345,8 +2345,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           </div>
                         </div>
 
-                        <div style={{fontSize:11,color:'rgba(255,255,255,.35)',background:'#F6F0E4',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
-                          ⚠️ <strong style={{color:'#1C1710'}}>Simulation indicative</strong> — Le taux TNS de 45% est une approximation. Le régime réel est complexe et dépend fortement de ta situation personnelle. Consulte un expert-comptable avant de prendre cette décision.
+                        <div style={{fontSize:11,color:'rgba(255,255,255,.35)',background:'rgba(255,255,255,0.05)',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
+                          ⚠️ <strong style={{color:'#F0F4FF'}}>Simulation indicative</strong> — Le taux TNS de 45% est une approximation. Le régime réel est complexe et dépend fortement de ta situation personnelle. Consulte un expert-comptable avant de prendre cette décision.
                         </div>
                       </>
                     )}
@@ -2370,7 +2370,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           </div>
 
           {/* Avertissement légal */}
-          <div style={{background:'#EEF4FF',border:'1px solid #C3D8F8',borderRadius:14,padding:'12px 16px',marginBottom:'1.5rem',fontSize:12,color:'#1A4A8A',lineHeight:1.7}}>
+          <div style={{background:'rgba(0,120,220,0.15)',border:'1px solid rgba(0,120,220,0.3)',borderRadius:14,padding:'12px 16px',marginBottom:'1.5rem',fontSize:12,color:'#7DC8FF',lineHeight:1.7}}>
             ℹ️ <strong>Note légale :</strong> Pour les artisans du bâtiment, réparateurs auto et coiffeurs, le devis est obligatoire au-delà de 150€ et doit contenir des mentions spécifiques. Serelyo génère des devis conformes aux recommandations pour tous les secteurs. En cas de doute, consultez un professionnel juridique.
           </div>
 
@@ -2378,13 +2378,13 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           {devis.length > 0 && (
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:'1.25rem'}}>
               {[
-                ['Total devis',devis.length,'#1C1710','#FFFDF8'],
-                ['En attente',devis.filter(d=>d.statut==='en_attente').length,'#B5792A','#FAF3E0'],
-                ['Acceptés',devis.filter(d=>d.statut==='accepte').length,'#2D7A4F','#EDFAF3'],
-                ['Refusés',devis.filter(d=>d.statut==='refuse').length,'#8B1A1A','#FFF3F3'],
+                ['Total devis',devis.length,'rgba(255,255,255,0.8)','rgba(255,255,255,0.07)'],
+                ['En attente',devis.filter(d=>d.statut==='en_attente').length,'#FFA94D','rgba(255,160,60,0.1)'],
+                ['Acceptés',devis.filter(d=>d.statut==='accepte').length,'#00D4A0','rgba(0,200,160,0.1)'],
+                ['Refusés',devis.filter(d=>d.statut==='refuse').length,'#FF8A8A','rgba(255,100,100,0.1)'],
               ].map(([label,val,color,bg])=>(
-                <div key={label} style={{background:bg,border:`1px solid ${color}22`,borderRadius:16,padding:'1rem',textAlign:'center'}}>
-                  <div style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>{label}</div>
+                <div key={label} style={{background:bg,border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:'1rem',textAlign:'center'}}>
+                  <div style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>{label}</div>
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color}}>{val}</div>
                 </div>
               ))}
@@ -2412,17 +2412,17 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           {devis.length === 0 ? (
             <div className="empty-state">
               <h3>Aucun devis pour l'instant</h3>
-              <p style={{fontSize:13,color:'#A89878',marginBottom:'1.5rem'}}>Crée ton premier devis en quelques clics</p>
+              <p style={{fontSize:13,color:'rgba(255,255,255,0.38)',marginBottom:'1.5rem'}}>Crée ton premier devis en quelques clics</p>
               <button className="btn btn-dark" onClick={()=>setShowDevisForm(true)}>+ Créer un devis</button>
             </div>
           ) : (
             <div style={{display:'flex',flexDirection:'column',gap:10}}>
               {devis.filter(d=>devisFiltre==='tous'||d.statut===devisFiltre).length===0 ? (
-                <div style={{textAlign:'center',padding:'2rem',color:'#A89878',fontSize:13}}>Aucun devis dans cette catégorie</div>
+                <div style={{textAlign:'center',padding:'2rem',color:'rgba(255,255,255,0.38)',fontSize:13}}>Aucun devis dans cette catégorie</div>
               ) : (
                 devis.filter(d=>devisFiltre==='tous'||d.statut===devisFiltre).map(d=>{
                   const statutLabel = {en_attente:'En attente',accepte:'Accepté',refuse:'Refusé',expire:'Expiré'}
-                  const statutColor = {en_attente:{bg:'#FAF3E0',color:'#B5792A'},accepte:{bg:'#EDFAF3',color:'#2D7A4F'},refuse:{bg:'#FFF3F3',color:'#8B1A1A'},expire:{bg:'#F5F5F5',color:'#666'}}
+                  const statutColor = {en_attente:{bg:'rgba(255,160,60,0.12)',color:'#FFA94D'},accepte:{bg:'rgba(0,200,160,0.12)',color:'#00D4A0'},refuse:{bg:'rgba(255,100,100,0.12)',color:'#FF8A8A'},expire:{bg:'#F5F5F5',color:'#666'}}
                   const sc = statutColor[d.statut]||statutColor.en_attente
                   return (
                     <div key={d.id} className="card" style={{padding:'1rem 1.25rem',cursor:'pointer',transition:'all .15s'}}
@@ -2431,26 +2431,26 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     >
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10}}>
                         <div style={{display:'flex',gap:14,alignItems:'center'}} onClick={()=>imprimerDevis(d,profil)}>
-                          <div style={{width:44,height:44,background:'#FAF3E0',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>📄</div>
+                          <div style={{width:44,height:44,background:'rgba(255,255,255,0.06)',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>📄</div>
                           <div>
                             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3,flexWrap:'wrap'}}>
-                              <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:600,color:'#1C1710'}}>{d.numero}</span>
+                              <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:600,color:'#F0F4FF'}}>{d.numero}</span>
                               <span style={{fontSize:10,fontWeight:600,padding:'3px 9px',borderRadius:20,background:sc.bg,color:sc.color}}>{statutLabel[d.statut]||'En attente'}</span>
                             </div>
-                            <div style={{fontSize:14,color:'#1C1710',fontWeight:500}}>{d.client_nom}</div>
+                            <div style={{fontSize:14,color:'#F0F4FF',fontWeight:500}}>{d.client_nom}</div>
                             <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:2}}>
                               Émis le {d.date_emission} · valable jusqu'au {d.date_validite}
                             </div>
                           </div>
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:10,flexShrink:0}}>
-                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:'#1C1710',textAlign:'right'}}>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:'#F0F4FF',textAlign:'right'}}>
                             {(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{minimumFractionDigits:2})} €
-                            <div style={{fontSize:10,color:'#A89878',fontFamily:'Outfit,sans-serif'}}>{d.tva_taux>0?'TTC':'HT'}</div>
+                            <div style={{fontSize:10,color:'rgba(255,255,255,0.38)',fontFamily:'Outfit,sans-serif'}}>{d.tva_taux>0?'TTC':'HT'}</div>
                           </div>
                           <div style={{display:'flex',flexDirection:'column',gap:5}} onClick={e=>e.stopPropagation()}>
                             <select
-                              style={{fontSize:11,padding:'5px 8px',borderRadius:8,border:'1px solid #E2D8C4',background:'#FBF8F1',color:'#6B5E45',fontFamily:'Outfit,sans-serif',cursor:'pointer'}}
+                              style={{fontSize:11,padding:'5px 8px',borderRadius:8,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.55)',fontFamily:'Outfit,sans-serif',cursor:'pointer'}}
                               value={d.statut}
                               onChange={e=>updateStatutDevis(d.id,e.target.value)}
                             >
@@ -2460,8 +2460,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               <option value="expire">Expiré</option>
                             </select>
                             <div style={{display:'flex',gap:5}}>
-                              <button onClick={()=>imprimerDevis(d,profil)} style={{flex:1,padding:'5px 8px',fontSize:11,borderRadius:8,border:'1px solid #E2D8C4',background:'#FBF8F1',color:'#6B5E45',cursor:'pointer',fontFamily:'Outfit,sans-serif'}}>👁 Voir</button>
-                              <button onClick={()=>supprimerDevis(d.id)} style={{padding:'5px 8px',fontSize:11,borderRadius:8,border:'1px solid #FFCACA',background:'#FFF3F3',color:'#8B1A1A',cursor:'pointer',fontFamily:'Outfit,sans-serif'}}>🗑</button>
+                              <button onClick={()=>imprimerDevis(d,profil)} style={{flex:1,padding:'5px 8px',fontSize:11,borderRadius:8,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.55)',cursor:'pointer',fontFamily:'Outfit,sans-serif'}}>👁 Voir</button>
+                              <button onClick={()=>supprimerDevis(d.id)} style={{padding:'5px 8px',fontSize:11,borderRadius:8,border:'1px solid rgba(255,100,100,0.25)',background:'rgba(255,100,100,0.1)',color:'#FF8A8A',cursor:'pointer',fontFamily:'Outfit,sans-serif'}}>🗑</button>
                             </div>
                           </div>
                         </div>
@@ -2500,22 +2500,22 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 <table style={{width:'100%',borderCollapse:'collapse',marginBottom:12}}>
                   <thead>
                     <tr>
-                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'#A89878',padding:'0 4px 8px',textAlign:'left',width:'35%'}}>Désignation *</th>
-                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'#A89878',padding:'0 4px 8px',textAlign:'left',width:'20%'}}>Détail</th>
-                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'#A89878',padding:'0 4px 8px',textAlign:'center',width:'10%'}}>Qté</th>
-                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'#A89878',padding:'0 4px 8px',textAlign:'center',width:'12%'}}>Unité</th>
-                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'#A89878',padding:'0 4px 8px',textAlign:'right',width:'15%'}}>Prix HT</th>
+                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',padding:'0 4px 8px',textAlign:'left',width:'35%'}}>Désignation *</th>
+                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',padding:'0 4px 8px',textAlign:'left',width:'20%'}}>Détail</th>
+                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',padding:'0 4px 8px',textAlign:'center',width:'10%'}}>Qté</th>
+                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',padding:'0 4px 8px',textAlign:'center',width:'12%'}}>Unité</th>
+                      <th style={{fontSize:10,fontWeight:600,letterSpacing:'.8px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',padding:'0 4px 8px',textAlign:'right',width:'15%'}}>Prix HT</th>
                       <th style={{width:'8%'}}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {devisLignes.map(l=>(
-                      <tr key={l.id} style={{borderBottom:'1px solid #FAF3E0'}}>
-                        <td style={{padding:'4px'}}><input style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1.5px solid #E2D8C4',background:'#FBF8F1',fontFamily:'Outfit,sans-serif',fontSize:12}} value={l.designation} onChange={e=>updateLigne(l.id,'designation',e.target.value)} placeholder="Ex: Développement web"/></td>
-                        <td style={{padding:'4px'}}><input style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1.5px solid #E2D8C4',background:'#FBF8F1',fontFamily:'Outfit,sans-serif',fontSize:12}} value={l.detail} onChange={e=>updateLigne(l.id,'detail',e.target.value)} placeholder="Détail optionnel"/></td>
-                        <td style={{padding:'4px'}}><input type="number" style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1.5px solid #E2D8C4',background:'#FBF8F1',fontFamily:'Outfit,sans-serif',fontSize:12,textAlign:'center'}} value={l.quantite} onChange={e=>updateLigne(l.id,'quantite',e.target.value)}/></td>
+                      <tr key={l.id} style={{borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
+                        <td style={{padding:'4px'}}><input style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1.5px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.06)',fontFamily:'Outfit,sans-serif',color:'#F0F4FF',fontSize:12}} value={l.designation} onChange={e=>updateLigne(l.id,'designation',e.target.value)} placeholder="Ex: Développement web"/></td>
+                        <td style={{padding:'4px'}}><input style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1.5px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.06)',fontFamily:'Outfit,sans-serif',color:'#F0F4FF',fontSize:12}} value={l.detail} onChange={e=>updateLigne(l.id,'detail',e.target.value)} placeholder="Détail optionnel"/></td>
+                        <td style={{padding:'4px'}}><input type="number" style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1.5px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.06)',fontFamily:'Outfit,sans-serif',color:'#F0F4FF',fontSize:12,textAlign:'center'}} value={l.quantite} onChange={e=>updateLigne(l.id,'quantite',e.target.value)}/></td>
                         <td style={{padding:'4px'}}>
-                          <select style={{width:'100%',padding:'7px 6px',borderRadius:8,border:'1.5px solid #E2D8C4',background:'#FBF8F1',fontFamily:'Outfit,sans-serif',fontSize:12}} value={l.unite} onChange={e=>updateLigne(l.id,'unite',e.target.value)}>
+                          <select style={{width:'100%',padding:'7px 6px',borderRadius:8,border:'1.5px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.06)',fontFamily:'Outfit,sans-serif',color:'#F0F4FF',fontSize:12}} value={l.unite} onChange={e=>updateLigne(l.id,'unite',e.target.value)}>
                             <option value="heure">heure</option>
                             <option value="jour">jour</option>
                             <option value="forfait">forfait</option>
@@ -2525,19 +2525,19 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             <option value="km">km</option>
                           </select>
                         </td>
-                        <td style={{padding:'4px'}}><input type="number" style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1.5px solid #E2D8C4',background:'#FBF8F1',fontFamily:'Outfit,sans-serif',fontSize:12,textAlign:'right'}} value={l.prix} onChange={e=>updateLigne(l.id,'prix',e.target.value)} placeholder="0"/></td>
-                        <td style={{padding:'4px',textAlign:'center'}}><button onClick={()=>removeLigne(l.id)} style={{background:'none',border:'none',cursor:'pointer',color:'#A89878',fontSize:16,padding:'4px'}}>×</button></td>
+                        <td style={{padding:'4px'}}><input type="number" style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1.5px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.06)',fontFamily:'Outfit,sans-serif',color:'#F0F4FF',fontSize:12,textAlign:'right'}} value={l.prix} onChange={e=>updateLigne(l.id,'prix',e.target.value)} placeholder="0"/></td>
+                        <td style={{padding:'4px',textAlign:'center'}}><button onClick={()=>removeLigne(l.id)} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.38)',fontSize:16,padding:'4px'}}>×</button></td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                <button onClick={addLigne} style={{display:'flex',alignItems:'center',gap:8,background:'transparent',border:'1.5px dashed #E2D8C4',borderRadius:10,padding:'8px 16px',cursor:'pointer',fontFamily:'Outfit,sans-serif',fontSize:12,color:'#6B5E45',width:'100%',marginBottom:'1rem'}}>+ Ajouter une ligne</button>
+                <button onClick={addLigne} style={{display:'flex',alignItems:'center',gap:8,background:'transparent',border:'1.5px dashed #E2D8C4',borderRadius:10,padding:'8px 16px',cursor:'pointer',fontFamily:'Outfit,sans-serif',fontSize:12,color:'rgba(255,255,255,0.55)',width:'100%',marginBottom:'1rem'}}>+ Ajouter une ligne</button>
 
                 {/* Totaux preview */}
-                <div style={{background:'#FAF3E0',borderRadius:12,padding:'12px 16px',marginBottom:'1rem',display:'flex',justifyContent:'flex-end',gap:24}}>
-                  <span style={{fontSize:13,color:'#6B5E45'}}>Total HT : <strong style={{color:'#1C1710'}}>{devisHT.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></span>
-                  <span style={{fontSize:13,color:'#6B5E45'}}>TVA ({devisTva}%) : <strong style={{color:'#1C1710'}}>{devisTVA_montant.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></span>
-                  <span style={{fontSize:13,fontWeight:700,color:'#1C1710'}}>Total : {devisTTC.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</span>
+                <div style={{background:'rgba(255,255,255,0.06)',borderRadius:12,padding:'12px 16px',marginBottom:'1rem',display:'flex',justifyContent:'flex-end',gap:24}}>
+                  <span style={{fontSize:13,color:'rgba(255,255,255,0.55)'}}>Total HT : <strong style={{color:'#F0F4FF'}}>{devisHT.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></span>
+                  <span style={{fontSize:13,color:'rgba(255,255,255,0.55)'}}>TVA ({devisTva}%) : <strong style={{color:'#F0F4FF'}}>{devisTVA_montant.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</strong></span>
+                  <span style={{fontSize:13,fontWeight:700,color:'#F0F4FF'}}>Total : {devisTTC.toLocaleString('fr-FR',{minimumFractionDigits:2})} €</span>
                 </div>
 
                 {/* Conditions */}
@@ -2586,7 +2586,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <p className="page-sub">Tous les liens utiles pour gérer ton auto-entreprise — directs, officiels, gratuits</p>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'#FAF3E0',color:'#B5792A'}}>📋</span>Déclarations & paiements</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(255,255,255,0.06)',color:'#FFA94D'}}>📋</span>Déclarations & paiements</div>
             <div className="res-grid">
               <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-urssaf">URSSAF</span><span className="res-arrow">→</span></div>
@@ -2609,7 +2609,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'#EDFAF3',color:'#2D7A4F'}}>🏢</span>Gérer mon auto-entreprise</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(0,200,160,0.12)',color:'#00D4A0'}}>🏢</span>Gérer mon auto-entreprise</div>
             <div className="res-grid">
               <a href="https://formalites.entreprises.gouv.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
@@ -2632,7 +2632,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'#EEF4FF',color:'#1A4A8A'}}>💰</span>Aides & financement</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(0,120,220,0.15)',color:'#7DC8FF'}}>💰</span>Aides & financement</div>
             <div className="res-grid">
               <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F36613" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-aide">Aide</span><span className="res-arrow">→</span></div>
@@ -2655,7 +2655,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'#FFF4E6',color:'#7A3A0A'}}>🏥</span>Protection sociale & retraite</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(255,160,60,0.1)',color:'#FFAA80'}}>🏥</span>Protection sociale & retraite</div>
             <div className="res-grid">
               <a href="https://www.ameli.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-social">Santé</span><span className="res-arrow">→</span></div>
@@ -2678,7 +2678,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'#F5F0FF',color:'#6B2D7A'}}>📖</span>Se former & s'informer</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(157,78,221,0.12)',color:'#C084FC'}}>📖</span>Se former & s'informer</div>
             <div className="res-grid">
               <a href="https://www.service-public.fr/professionnels-entreprises/vosdroits/F23282" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
@@ -2721,45 +2721,46 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 const CSS = `
 /* ── RESET & BASE ── */
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;margin:0;padding:0}
-html,body{background:#0B1929;color:#E8F4F8;font-family:'Outfit',sans-serif;overflow-x:hidden}
+html{background:#07080F;background-image:radial-gradient(ellipse 700px 500px at 5% 15%,rgba(120,40,220,.5) 0%,transparent 65%),radial-gradient(ellipse 600px 450px at 92% 62%,rgba(0,160,230,.35) 0%,transparent 65%),radial-gradient(ellipse 450px 350px at 55% -5%,rgba(210,40,180,.3) 0%,transparent 60%),radial-gradient(ellipse 400px 350px at 18% 90%,rgba(0,220,180,.2) 0%,transparent 65%);background-attachment:fixed;min-height:100vh}
+body{background:transparent;color:#F0F4FF;font-family:'Outfit',sans-serif;overflow-x:hidden}
 
 /* ── APP BAR ── */
-.app-bar{background:#0D1F35;height:56px;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(0,200,200,.1)}
+.app-bar{background:rgba(7,8,20,.82);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);height:56px;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(255,255,255,.07)}
 .logo{font-family:'Playfair Display',serif;font-size:20px;color:#fff;flex-shrink:0}
 .logo span{color:#00C8C8}
 .bar-right{display:flex;align-items:center;gap:8px}
-.user-tag{font-size:11px;color:rgba(255,255,255,0.45);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.btn-profile{display:flex;align-items:center;gap:6px;background:rgba(0,200,200,.1);border:1px solid rgba(0,200,200,.2);border-radius:20px;padding:6px 12px;cursor:pointer;color:#00C8C8;font-size:12px;font-family:'Outfit',sans-serif;font-weight:500;white-space:nowrap}
-.btn-logout{font-size:12px;color:rgba(255,255,255,0.35);background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;padding:6px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+.user-tag{font-size:11px;color:rgba(255,255,255,.35);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-profile{display:flex;align-items:center;gap:6px;background:rgba(157,78,221,.15);border:1px solid rgba(157,78,221,.3);border-radius:20px;padding:6px 12px;cursor:pointer;color:#C084FC;font-size:12px;font-family:'Outfit',sans-serif;font-weight:500;white-space:nowrap}
+.btn-logout{font-size:12px;color:rgba(255,255,255,.3);background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;padding:6px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 
 /* ── NAV BOTTOM ── */
-.nav-tabs{background:#0D1F35;border-top:1px solid rgba(0,200,200,.1);display:flex;padding:0;position:fixed;bottom:0;left:0;right:0;z-index:300;height:64px;padding-bottom:env(safe-area-inset-bottom)}
-.nav-tab{flex:1;padding:6px 4px 4px;font-size:10px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;color:rgba(255,255,255,.35);border:none;background:none;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:44px}
+.nav-tabs{background:rgba(7,8,20,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,.07);display:flex;padding:0;position:fixed;bottom:0;left:0;right:0;z-index:300;height:64px;padding-bottom:env(safe-area-inset-bottom)}
+.nav-tab{flex:1;padding:6px 4px 4px;font-size:10px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;color:rgba(255,255,255,.3);border:none;background:none;transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:44px}
 .nav-tab.active{color:#00C8C8}
 .nav-tab-icon{font-size:20px;line-height:1;transition:transform .2s}
 .nav-tab.active .nav-tab-icon{transform:scale(1.1)}
 .nav-tab-label{font-size:9px;letter-spacing:.3px}
 
 /* ── MAIN ── */
-.main{max-width:900px;margin:0 auto;padding:1rem 0.875rem 5.5rem}
+.main{max-width:900px;margin:0 auto;padding:1rem .875rem 5.5rem;position:relative;z-index:1}
 @media(min-width:600px){.main{padding:1.5rem 1.5rem 6rem}}
 
 /* ── CARDS ── */
-.card{background:#0D1F35;border:1px solid rgba(0,200,200,.12);border-radius:16px;padding:1rem;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.card{background:rgba(10,12,35,.62)!important;border:1px solid rgba(255,255,255,.1)!important;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:16px;padding:1rem;box-shadow:0 8px 32px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06)}
 @media(min-width:600px){.card{border-radius:20px;padding:1.25rem}}
-.card-title{font-family:'Playfair Display',serif;font-size:16px;margin-bottom:1rem;color:#E8F4F8}
+.card-title{font-family:'Playfair Display',serif;font-size:16px;margin-bottom:1rem;color:#F0F4FF}
 
 /* ── PAGE HEADER ── */
 .page-header{margin-bottom:1.25rem}
-.page-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:#E8F4F8;margin-bottom:4px}
+.page-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:#F0F4FF;margin-bottom:4px}
 @media(min-width:600px){.page-title{font-size:26px}}
 .page-sub{font-size:13px;color:rgba(255,255,255,.4)}
 
 /* ── METRICS ── */
 .metrics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1.25rem}
-.metric-card{background:#112338;border:1px solid rgba(0,200,200,.1);border-radius:14px;padding:1rem}
+.metric-card{background:rgba(157,78,221,.1);border:1px solid rgba(157,78,221,.2);border-radius:14px;padding:1rem;backdrop-filter:blur(12px)}
 .metric-label{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:8px}
-.metric-value{font-family:'Playfair Display',serif;font-size:22px;color:#00C8C8;margin-bottom:4px}
+.metric-value{font-family:'Playfair Display',serif;font-size:22px;color:#C084FC;margin-bottom:4px}
 .metric-sub{font-size:11px;color:rgba(255,255,255,.35)}
 
 /* ── PROGRESS ── */
@@ -2774,8 +2775,8 @@ html,body{background:#0B1929;color:#E8F4F8;font-family:'Outfit',sans-serif;overf
 
 /* ── CAL ── */
 .cal-list{display:flex;flex-direction:column;gap:10px}
-.cal-card{background:#0D1F35;border:1px solid rgba(0,200,200,.12);border-radius:14px;padding:.875rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
-.cal-current{border-color:rgba(0,200,200,.4);background:#112338}
+.cal-card{background:rgba(10,12,35,.6);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:14px;padding:.875rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.cal-current{border-color:rgba(0,200,200,.4)!important;background:rgba(0,200,200,.08)!important}
 .cal-special{border-style:dashed}
 .cal-past{opacity:.5}
 .cal-left{display:flex;align-items:center;gap:12px}
@@ -2784,46 +2785,46 @@ html,body{background:#0B1929;color:#E8F4F8;font-family:'Outfit',sans-serif;overf
 .dot-done{background:#00C8A0}
 .dot-late{background:#FF6B6B}
 .dot-pending{background:rgba(255,255,255,.2)}
-.cal-label{font-size:13px;font-weight:500;color:#E8F4F8;margin-bottom:3px}
+.cal-label{font-size:13px;font-weight:500;color:#F0F4FF;margin-bottom:3px}
 .cal-date{font-size:11px;color:rgba(255,255,255,.4)}
 .badge-current{display:inline-block;font-size:10px;font-weight:600;background:rgba(0,200,200,.2);color:#00C8C8;padding:3px 9px;border-radius:20px;margin-top:5px;border:1px solid rgba(0,200,200,.3)}
 .badge-done{font-size:12px;font-weight:600;color:#00C8A0;background:rgba(0,200,160,.1);padding:6px 14px;border-radius:20px;border:1px solid rgba(0,200,160,.2)}
 
 /* ── INFO BOX ── */
-.info-box{background:rgba(0,100,200,.12);border:1px solid rgba(0,150,255,.2);border-radius:14px;padding:1rem 1.1rem}
+.info-box{background:rgba(0,100,200,.15);border:1px solid rgba(0,150,255,.2);border-radius:14px;padding:1rem 1.1rem;backdrop-filter:blur(12px)}
 .info-title{font-size:13px;font-weight:600;color:#7DC8FF;margin-bottom:8px}
 .info-text{font-size:13px;color:rgba(255,255,255,.6);line-height:1.8}
 .info-text a{color:#00C8C8}
 
 /* ── INPUTS ── */
-.mini-label{font-size:10px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.45);display:block;margin-bottom:6px;text-transform:uppercase}
-.mini-input{padding:12px 14px;border-radius:12px;border:1.5px solid rgba(0,200,200,.2);background:#112338;color:#E8F4F8;font-family:'Outfit',sans-serif;font-size:16px;width:100%;-webkit-appearance:none;transition:border-color .2s}
-.mini-input:focus{outline:none;border-color:#00C8C8;background:#0D2840}
-.mini-input option{background:#112338;color:#E8F4F8}
+.mini-label{font-size:10px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.4);display:block;margin-bottom:6px;text-transform:uppercase}
+.mini-input{padding:12px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.12)!important;background:rgba(255,255,255,.06)!important;color:#F0F4FF;font-family:'Outfit',sans-serif;font-size:16px;width:100%;-webkit-appearance:none;transition:border-color .2s;backdrop-filter:blur(8px)}
+.mini-input:focus{outline:none;border-color:rgba(0,200,200,.5)!important;background:rgba(255,255,255,.1)!important}
+.mini-input option{background:#0A0C1E;color:#F0F4FF}
 
 /* ── TABLE ── */
 .rev-table{width:100%;border-collapse:collapse;font-size:13px}
 .rev-table thead th{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:0 0 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08)}
 .rev-table thead th:not(:first-child){text-align:right}
 .rev-table tbody tr{border-bottom:1px solid rgba(255,255,255,.05)}
-.rev-table tbody td{padding:11px 0;color:#E8F4F8;vertical-align:top}
+.rev-table tbody td{padding:11px 0;color:#F0F4FF;vertical-align:top}
 .rev-table tbody td:not(:first-child){text-align:right}
 .rev-total{border-top:1.5px solid rgba(0,200,200,.3)!important;font-weight:600}
 
 /* ── CALCUL ── */
 .calc-result{}
 .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
-.calc-card{border-radius:14px;padding:1rem;border:1px solid transparent}
-.main-card{background:#00C8C8;color:#0B1929;border-color:#00C8C8}
-.main-card .calc-label{color:rgba(11,25,41,.6)}
-.main-card .calc-big{color:#0B1929}
-.red-card{background:rgba(255,100,100,.1);border-color:rgba(255,100,100,.2)}
+.calc-card{border-radius:14px;padding:1rem;border:1px solid transparent;backdrop-filter:blur(12px)}
+.main-card{background:linear-gradient(135deg,rgba(0,200,200,.85),rgba(0,150,180,.85));color:#07080F;border-color:rgba(0,200,200,.3)!important}
+.main-card .calc-label{color:rgba(7,8,15,.6)}
+.main-card .calc-big{color:#07080F}
+.red-card{background:rgba(255,100,100,.12);border-color:rgba(255,100,100,.25)!important}
 .red-card .calc-big{color:#FF8A8A}
-.orange-card{background:rgba(255,160,60,.1);border-color:rgba(255,160,60,.2)}
+.orange-card{background:rgba(255,160,60,.12);border-color:rgba(255,160,60,.25)!important}
 .orange-card .calc-big{color:#FFA03C}
-.amber-card{background:rgba(0,200,200,.1);border-color:rgba(0,200,200,.2)}
+.amber-card{background:rgba(0,200,200,.12);border-color:rgba(0,200,200,.25)!important}
 .amber-card .calc-big{color:#00C8C8}
-.green-card{background:rgba(0,200,160,.1);border-color:rgba(0,200,160,.2)}
+.green-card{background:rgba(0,200,160,.12);border-color:rgba(0,200,160,.25)!important}
 .green-card .calc-big{color:#00C8A0}
 .calc-label{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;color:rgba(255,255,255,.45)}
 .calc-big{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;margin-bottom:4px}
@@ -2832,28 +2833,28 @@ html,body{background:#0B1929;color:#E8F4F8;font-family:'Outfit',sans-serif;overf
 /* ── CHIPS ── */
 .chips-hint{font-size:11px;color:rgba(255,255,255,.35);font-weight:500;margin-bottom:10px;display:block}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
-.chip{font-size:12px;padding:8px 14px;border-radius:30px;border:1px solid rgba(0,200,200,.2);background:rgba(0,200,200,.06);color:rgba(255,255,255,.6);cursor:pointer;transition:all .16s;min-height:36px;display:inline-flex;align-items:center}
+.chip{font-size:12px;padding:8px 14px;border-radius:30px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);cursor:pointer;transition:all .16s;min-height:36px;display:inline-flex;align-items:center;backdrop-filter:blur(8px)}
 .chip:hover,.chip:active{background:rgba(0,200,200,.15);border-color:rgba(0,200,200,.4);color:#00C8C8}
 
 /* ── TEXTAREA ── */
 .input-wrap{position:relative}
-textarea{width:100%;resize:none;font-family:'Outfit',sans-serif;font-size:15px;font-weight:300;padding:13px 15px 52px;border-radius:13px;border:1.5px solid rgba(0,200,200,.2);background:#112338;color:#E8F4F8;line-height:1.65;min-height:100px;-webkit-appearance:none}
-textarea:focus{outline:none;border-color:#00C8C8;background:#0D2840}
+textarea{width:100%;resize:none;font-family:'Outfit',sans-serif;font-size:15px;font-weight:300;padding:13px 15px 52px;border-radius:13px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#F0F4FF;line-height:1.65;min-height:100px;-webkit-appearance:none;backdrop-filter:blur(8px)}
+textarea:focus{outline:none;border-color:rgba(0,200,200,.5);background:rgba(255,255,255,.09)}
 textarea::placeholder{color:rgba(255,255,255,.25)}
-.btn-gen{position:absolute;bottom:11px;right:11px;padding:9px 20px;border-radius:10px;border:none;background:#00C8C8;color:#0B1929;font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif}
+.btn-gen{position:absolute;bottom:11px;right:11px;padding:9px 20px;border-radius:10px;border:none;background:linear-gradient(135deg,#00C8C8,#0090B8);color:#07080F;font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif}
 .btn-gen:disabled{background:rgba(255,255,255,.1);color:rgba(255,255,255,.3);cursor:not-allowed}
 .hint-text{font-size:11px;color:rgba(255,255,255,.3);margin-top:9px}
 
 /* ── ASSISTANT ── */
 .reponse-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
-.reponse-avatar{width:32px;height:32px;border-radius:50%;background:#00C8C8;color:#0B1929;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'Playfair Display',serif;flex-shrink:0}
+.reponse-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#9D4EDD,#00C8C8);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'Playfair Display',serif;flex-shrink:0}
 .reponse-text{font-size:14px;color:rgba(255,255,255,.8);line-height:1.7}
 .reponse-text p{margin-bottom:.75rem}
 .ring{width:20px;height:20px;flex-shrink:0;border:2px solid rgba(0,200,200,.2);border-top-color:#00C8C8;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.question-preview{background:#112338;border:1px solid rgba(0,200,200,.12);border-radius:12px;padding:.875rem 1rem;margin-bottom:8px;cursor:pointer;transition:all .15s}
-.question-preview:active{border-color:rgba(0,200,200,.3);background:#0D2840}
-.question-text{font-size:13px;color:#E8F4F8;margin-bottom:4px}
+.question-preview{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.875rem 1rem;margin-bottom:8px;cursor:pointer;transition:all .15s;backdrop-filter:blur(8px)}
+.question-preview:active{border-color:rgba(0,200,200,.3);background:rgba(0,200,200,.06)}
+.question-text{font-size:13px;color:#F0F4FF;margin-bottom:4px}
 .question-date{font-size:11px;color:rgba(255,255,255,.3)}
 
 /* ── BUTTONS ── */
@@ -2861,65 +2862,65 @@ textarea::placeholder{color:rgba(255,255,255,.25)}
 .empty-state{text-align:center;padding:3rem 1.5rem}
 .empty-state h3{font-family:'Playfair Display',serif;font-size:20px;color:rgba(255,255,255,.5);margin-bottom:1rem}
 .btn{padding:12px 20px;font-size:14px;font-weight:500;border-radius:12px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .17s;min-height:44px}
-.btn-ghost{background:transparent;border:1px solid rgba(0,200,200,.2);color:rgba(255,255,255,.6)}
-.btn-dark{background:#00C8C8;border:none;color:#0B1929;font-weight:600}
-.btn-dark:active{background:#00AAAA}
-.btn-amber{background:rgba(0,200,200,.1);border:1px solid rgba(0,200,200,.2);color:#00C8C8}
-.btn-amber:active{background:#00C8C8;color:#0B1929}
+.btn-ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);backdrop-filter:blur(8px)}
+.btn-dark{background:linear-gradient(135deg,#00C8C8,#0090B8);border:none;color:#07080F;font-weight:600;box-shadow:0 4px 20px rgba(0,200,200,.3)}
+.btn-dark:active{opacity:.85}
+.btn-amber{background:rgba(0,200,200,.12);border:1px solid rgba(0,200,200,.25);color:#00C8C8}
+.btn-amber:active{background:rgba(0,200,200,.2)}
 .btn-sm{padding:7px 14px;font-size:12px;min-height:36px}
 
 /* ── MODAL ── */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;align-items:flex-start;justify-content:center;padding:.5rem;overflow-y:auto}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;align-items:flex-start;justify-content:center;padding:.5rem;overflow-y:auto;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .overlay.show{display:flex}
 @media(min-width:480px){.overlay{align-items:center;padding:1rem}}
-.modal{background:#0D1F35;border:1px solid rgba(0,200,200,.15);border-radius:20px;padding:1.25rem;width:100%;max-width:620px;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:pop .3s cubic-bezier(.16,1,.3,1);margin:auto}
+.modal{background:rgba(8,10,28,.92)!important;border:1px solid rgba(255,255,255,.12)!important;backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);border-radius:20px;padding:1.25rem;width:100%;max-width:620px;box-shadow:0 24px 60px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.08);animation:pop .3s cubic-bezier(.16,1,.3,1);margin:auto}
 @media(min-width:480px){.modal{padding:2rem}}
 @keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
-.modal-title{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:6px;color:#E8F4F8}
-.modal-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:1.25rem;line-height:1.5}
-.prof-section-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#00C8C8;margin:1.25rem 0 .75rem;padding-bottom:6px;border-bottom:1px solid rgba(0,200,200,.15)}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:6px;color:#F0F4FF}
+.modal-sub{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:1.25rem;line-height:1.5}
+.prof-section-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#00C8C8;margin:1.25rem 0 .75rem;padding-bottom:6px;border-bottom:1px solid rgba(0,200,200,.2)}
 .form-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:.5rem}
 @media(min-width:480px){.form-grid{grid-template-columns:1fr 1fr}}
 .form-grid .full{grid-column:1/-1}
-.field label{font-size:10px;font-weight:600;letter-spacing:.6px;color:rgba(255,255,255,.45);display:block;margin-bottom:6px;text-transform:uppercase}
-.field input,.field select{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(0,200,200,.2);background:#112338;color:#E8F4F8;font-family:'Outfit',sans-serif;font-size:16px;-webkit-appearance:none}
-.field input:focus,.field select:focus{outline:none;border-color:#00C8C8;background:#0D2840}
+.field label{font-size:10px;font-weight:600;letter-spacing:.6px;color:rgba(255,255,255,.4);display:block;margin-bottom:6px;text-transform:uppercase}
+.field input,.field select{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#F0F4FF;font-family:'Outfit',sans-serif;font-size:16px;-webkit-appearance:none;backdrop-filter:blur(8px)}
+.field input:focus,.field select:focus{outline:none;border-color:rgba(0,200,200,.5);background:rgba(255,255,255,.1)}
 .field input::placeholder{color:rgba(255,255,255,.25)}
-.field select option{background:#112338}
+.field select option{background:#0A0C1E}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:1.5rem}
 
 /* ── RESSOURCES ── */
 .res-section{margin-bottom:2rem}
-.res-section-title{display:flex;align-items:center;gap:12px;font-family:'Playfair Display',serif;font-size:17px;color:#E8F4F8;margin-bottom:1rem;font-weight:600}
+.res-section-title{display:flex;align-items:center;gap:12px;font-family:'Playfair Display',serif;font-size:17px;color:#F0F4FF;margin-bottom:1rem;font-weight:600}
 .res-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .res-grid{display:grid;grid-template-columns:1fr;gap:10px}
 @media(min-width:500px){.res-grid{grid-template-columns:1fr 1fr}}
 @media(min-width:800px){.res-grid{grid-template-columns:repeat(3,1fr)}}
-.res-card{display:block;background:#0D1F35;border:1px solid rgba(0,200,200,.12);border-radius:14px;padding:1rem;text-decoration:none;color:inherit;transition:all .18s}
-.res-card:active{border-color:rgba(0,200,200,.3);background:#112338}
+.res-card{display:block;background:rgba(10,12,35,.5);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:14px;padding:1rem;text-decoration:none;color:inherit;transition:all .18s}
+.res-card:active,.res-card:hover{border-color:rgba(0,200,200,.3);background:rgba(0,200,200,.06)}
 .res-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .res-tag{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:.3px}
-.res-tag-urssaf{background:rgba(0,200,200,.1);color:#00C8C8}
-.res-tag-impots{background:rgba(100,150,255,.1);color:#7DC8FF}
-.res-tag-gouv{background:rgba(0,200,160,.1);color:#00C8A0}
-.res-tag-aide{background:rgba(180,100,255,.1);color:#C87DFF}
-.res-tag-social{background:rgba(255,160,60,.1);color:#FFA03C}
+.res-tag-urssaf{background:rgba(0,200,200,.15);color:#00C8C8;border:1px solid rgba(0,200,200,.2)}
+.res-tag-impots{background:rgba(100,150,255,.15);color:#7DC8FF;border:1px solid rgba(100,150,255,.2)}
+.res-tag-gouv{background:rgba(0,200,160,.15);color:#00C8A0;border:1px solid rgba(0,200,160,.2)}
+.res-tag-aide{background:rgba(180,100,255,.15);color:#C87DFF;border:1px solid rgba(180,100,255,.2)}
+.res-tag-social{background:rgba(255,160,60,.15);color:#FFA03C;border:1px solid rgba(255,160,60,.2)}
 .res-arrow{font-size:16px;color:rgba(255,255,255,.2);transition:all .18s}
-.res-card-title{font-family:'Playfair Display',serif;font-size:14px;color:#E8F4F8;margin-bottom:8px;line-height:1.3}
+.res-card-title{font-family:'Playfair Display',serif;font-size:14px;color:#F0F4FF;margin-bottom:8px;line-height:1.3}
 .res-card-desc{font-size:12px;color:rgba(255,255,255,.45);line-height:1.65;margin-bottom:10px}
 .res-card-url{font-size:11px;color:rgba(255,255,255,.25);font-family:monospace}
-.res-disclaimer{background:rgba(0,200,200,.05);border:1px solid rgba(0,200,200,.15);border-radius:14px;padding:1rem;font-size:12px;color:rgba(255,255,255,.45);line-height:1.7;margin-top:1rem}
-.res-disclaimer strong{color:#E8F4F8}
+.res-disclaimer{background:rgba(0,200,200,.06);border:1px solid rgba(0,200,200,.15);backdrop-filter:blur(8px);border-radius:14px;padding:1rem;font-size:12px;color:rgba(255,255,255,.45);line-height:1.7;margin-top:1rem}
+.res-disclaimer strong{color:#F0F4FF}
 
 /* ── FOOTER ── */
-.app-footer{text-align:center;padding:20px 20px 24px;font-size:11px;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.05);margin-top:2rem}
+.app-footer{text-align:center;padding:20px 20px 24px;font-size:11px;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.06);margin-top:2rem;position:relative;z-index:1}
 .app-footer a{color:rgba(255,255,255,.2);text-decoration:none;margin:0 8px}
 
 /* ── WELCOME ── */
 .welcome-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
-.welcome-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:#E8F4F8}
+.welcome-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:#F0F4FF}
 .welcome-sub{font-size:14px;color:rgba(255,255,255,.4);margin-top:4px}
-.next-decl{background:#112338;border:1px solid rgba(0,200,200,.2);border-radius:14px;padding:14px 18px;text-align:right}
+.next-decl{background:rgba(0,200,200,.08);border:1px solid rgba(0,200,200,.2);backdrop-filter:blur(12px);border-radius:14px;padding:14px 18px;text-align:right}
 .next-decl-label{font-size:10px;color:rgba(255,255,255,.35);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
 .next-decl-date{font-family:'Playfair Display',serif;font-size:16px;color:#00C8C8}
 `
