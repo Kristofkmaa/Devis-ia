@@ -120,6 +120,13 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   // Calendrier mobile
   const [calMoisActif, setCalMoisActif] = useState(new Date().getMonth())
   const [calTouchStart, setCalTouchStart] = useState(null)
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 700)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 700)
+    window.addEventListener('resize', check)
+    check()
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   // Simulateur
   const [simMode, setSimMode]         = useState('mensuel') // mensuel | annuel
@@ -885,8 +892,6 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
         const MOIS_COURT = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
         const JOURS_LONG = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
         const JOURS = ['L','M','M','J','V','S','D']
-
-        const isMobile = typeof window !== 'undefined' && window.innerWidth < 700
 
         const moisIdx = calMoisActif
         const nomMois = MOIS_FULL[moisIdx]
