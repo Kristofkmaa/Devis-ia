@@ -1222,7 +1222,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </>
           )}
 
-              {/* Modal ajout RDV */}              {/* Modal ajout RDV */}
+              {/* Modal ajout RDV */}
               {showRdvModal && rdvJour && (
                 <div className="overlay show" onClick={e=>{if(e.target.className.includes('overlay'))setShowRdvModal(false)}}>
                   <div className="modal" style={{maxWidth:440}}>
@@ -1285,8 +1285,6 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   </div>
                 </div>
               )}
-            </>
-          )}
         </div>
         )
       })()}
