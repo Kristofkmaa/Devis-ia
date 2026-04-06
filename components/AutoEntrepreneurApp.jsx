@@ -1443,7 +1443,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 <div
                   onClick={()=>setSimMode('rapide')}
                   style={{
-                    background: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '#1C1710' : '#FFFDF8',
+                    background: simMode==='rapide' ? '#1C1710' : '#FFFDF8',
                     border: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '2px solid #1C1710' : '2px solid #E2D8C4',
                     borderRadius:20, padding:'1.75rem', cursor:'pointer', transition:'all .2s',
                     boxShadow: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '0 8px 32px rgba(28,23,16,.2)' : '0 2px 12px rgba(28,23,16,.05)'
