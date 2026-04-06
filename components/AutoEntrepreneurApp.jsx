@@ -117,6 +117,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [savingRev, setSavingRev]   = useState(false)
   const [histoAnnee, setHistoAnnee] = useState(String(new Date().getFullYear()))
 
+  // Calendrier mobile
+  const [calMoisActif, setCalMoisActif] = useState(new Date().getMonth())
+  const [calTouchStart, setCalTouchStart] = useState(null)
+
   // Simulateur
   const [simMode, setSimMode]         = useState('mensuel') // mensuel | annuel
   const [simCA, setSimCA]             = useState('')
@@ -878,222 +882,216 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       {view==='calendrier' && (() => {
         const calYear = year
         const MOIS_FULL = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
-        const JOURS = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
+        const MOIS_COURT = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
+        const JOURS = ['L','M','M','J','V','S','D']
+
+        const moisIdx = calMoisActif
+        const nomMois = MOIS_FULL[moisIdx]
+
+        const allerMoisPrev = () => setCalMoisActif(m => m === 0 ? 11 : m - 1)
+        const allerMoisNext = () => setCalMoisActif(m => m === 11 ? 0 : m + 1)
 
         // Construire les événements par date limite
-        const eventsParMois = {} // { 'MM': [event, ...] }
+        const eventsParMois = {}
         calendrier.forEach(ev => {
           if (!ev.date_limite) return
           const parts = ev.date_limite.split('/')
           if (parts.length !== 3) return
-          const moisIdx = parseInt(parts[1]) - 1 // 0-based
+          const mi = parseInt(parts[1]) - 1
           const evYear = parseInt(parts[2])
           if (evYear !== calYear && evYear !== calYear+1) return
-          const key = evYear === calYear ? String(moisIdx) : 'next'
+          const key = evYear === calYear ? String(mi) : 'next'
           if (!eventsParMois[key]) eventsParMois[key] = []
           const decl = declarations.find(d=>d.periode===ev.id)
           const statut = decl?.statut || (ev.past ? 'a_verifier' : 'a_faire')
           eventsParMois[key].push({ ...ev, statut, jour: parseInt(parts[0]) })
         })
 
-        // Ajouter revenus saisis par mois
         const revParMois = {}
         revenus.filter(r=>r.mois&&r.mois.startsWith(String(calYear))).forEach(r => {
           const m = parseInt(r.mois.split('-')[1]) - 1
           revParMois[m] = r.montant
         })
 
+        // Données du mois actif
+        const estCourant = moisIdx === month-1
+        const evs = eventsParMois[String(moisIdx)] || []
+        const rev = revParMois[moisIdx]
+        const premierJour = new Date(calYear, moisIdx, 1).getDay()
+        const premierLundi = premierJour === 0 ? 6 : premierJour - 1
+        const nbJours = new Date(calYear, moisIdx+1, 0).getDate()
+        const jours = Array(premierLundi).fill(null).concat(Array.from({length:nbJours},(_,i)=>i+1))
+        while (jours.length % 7 !== 0) jours.push(null)
+        const joursEvenements = {}
+        evs.forEach(ev => { if (ev.jour) joursEvenements[ev.jour] = ev })
+
         return (
         <div className="main">
-          <div className="page-header" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
-            <div>
-              <h2 className="page-title">Calendrier {calYear}</h2>
-              <p className="page-sub">Tes échéances et revenus en un coup d'oeil</p>
-            </div>
-            <div style={{display:'flex',gap:16,flexWrap:'wrap'}}>
-              {[['#2D7A4F','✓ Déclaration faite'],['#B5792A','À faire'],['#4A9EFF','Revenu saisi'],['#E2D8C4','Mois inactif']].map(([c,l])=>(
-                <div key={l} style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'#6B5E45'}}>
-                  <div style={{width:10,height:10,borderRadius:'50%',background:c}}/>
-                  {l}
-                </div>
-              ))}
-            </div>
+          <div className="page-header">
+            <h2 className="page-title">Calendrier {calYear}</h2>
+            <p className="page-sub">Échéances et événements</p>
           </div>
 
           {!profil ? (
             <div className="empty-state"><h3>Configure ton profil d'abord</h3><button className="btn btn-dark" onClick={()=>setShowOnboarding(true)}>Configurer →</button></div>
           ) : (
             <>
-              {/* Grille 12 mois */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14,marginBottom:'1.5rem'}}>
-                {MOIS_FULL.map((nomMois, moisIdx) => {
-                  const estCourant = moisIdx === month-1
-                  const estPasse = moisIdx < month-1
-                  const evs = eventsParMois[String(moisIdx)] || []
-                  const rev = revParMois[moisIdx]
-
-                  // Calcul jours du mois
-                  const premierJour = new Date(calYear, moisIdx, 1).getDay() // 0=dim
-                  const premierLundi = premierJour === 0 ? 6 : premierJour - 1
-                  const nbJours = new Date(calYear, moisIdx+1, 0).getDate()
-                  const jours = Array(premierLundi).fill(null).concat(Array.from({length:nbJours},(_,i)=>i+1))
-                  while (jours.length % 7 !== 0) jours.push(null)
-
-                  // Jours avec événements
-                  const joursEvenements = {}
-                  evs.forEach(ev => {
-                    if (ev.jour) joursEvenements[ev.jour] = ev
-                  })
-
-                  return (
-                    <div key={moisIdx} style={{
-                      background:'#FFFDF8',
-                      border:`2px solid ${estCourant?'#B5792A':'#E2D8C4'}`,
-                      borderRadius:16,
-                      padding:'1rem',
-                      opacity: estPasse && !rev && evs.length===0 ? 0.6 : 1,
-                      boxShadow: estCourant ? '0 4px 20px rgba(181,121,42,.15)' : 'none'
-                    }}>
-                      {/* En-tête mois */}
-                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:600,color:estCourant?'#B5792A':'#1C1710'}}>
-                          {nomMois}
-                          {estCourant && <span style={{fontSize:10,background:'#B5792A',color:'#fff',padding:'2px 7px',borderRadius:20,marginLeft:6,fontFamily:'Outfit,sans-serif'}}>En cours</span>}
-                        </div>
-                        {rev && <span style={{fontSize:11,fontWeight:600,color:'#4A9EFF',background:'#EEF4FF',padding:'2px 8px',borderRadius:20}}>{rev.toLocaleString('fr-FR')} €</span>}
-                      </div>
-
-                      {/* Mini calendrier */}
-                      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:1,marginBottom:8}}>
-                        {JOURS.map(j=>(
-                          <div key={j} style={{textAlign:'center',fontSize:8,color:'#A89878',fontWeight:600,padding:'2px 0'}}>{j}</div>
-                        ))}
-                        {jours.map((jour,i)=>{
-                          const ev = jour ? joursEvenements[jour] : null
-                          const estAujourdhui = estCourant && jour === getNow().day
-                          const dateStr = jour ? `${year}-${String(moisIdx+1).padStart(2,'0')}-${String(jour).padStart(2,'0')}` : null
-                          const rdvsJour = dateStr ? rdvList.filter(r=>r.date===dateStr) : []
-                          const hasRdv = rdvsJour.length > 0
-                          return (
-                            <div key={i}
-                              onClick={()=>jour && openRdvModal(moisIdx, jour, nomMois)}
-                              title={jour ? (hasRdv ? rdvsJour.map(r=>r.titre).join(', ') : `Ajouter un événement`) : ''}
-                              style={{
-                                textAlign:'center',
-                                fontSize:10,
-                                padding:'3px 1px',
-                                borderRadius:4,
-                                fontWeight: ev || estAujourdhui || hasRdv ? 700 : 400,
-                                background: estAujourdhui ? '#1C1710' : hasRdv ? RDV_TYPES[rdvsJour[0].type]?.bg||'#EEF4FF' : ev ? (ev.statut==='faite'?'#EDFAF3':ev.statut==='a_verifier'?'#FFF3F3':'#FAF3E0') : 'transparent',
-                                color: estAujourdhui ? '#fff' : hasRdv ? RDV_TYPES[rdvsJour[0].type]?.color||'#1A4A8A' : ev ? (ev.statut==='faite'?'#2D7A4F':ev.statut==='a_verifier'?'#8B1A1A':'#B5792A') : jour ? '#6B5E45' : 'transparent',
-                                cursor: jour ? 'pointer' : 'default',
-                                outline: hasRdv ? `1.5px solid ${RDV_TYPES[rdvsJour[0].type]?.color||'#1A4A8A'}` : 'none',
-                                position:'relative'
-                              }}>
-                              {jour||''}
-                              {hasRdv && rdvsJour.length > 1 && <span style={{position:'absolute',top:-2,right:-1,fontSize:7,background:'#1A4A8A',color:'#fff',borderRadius:'50%',width:10,height:10,display:'flex',alignItems:'center',justifyContent:'center'}}>{rdvsJour.length}</span>}
-                            </div>
-                          )
-                        })}
-                      </div>
-
-                      {/* Badges événements */}
-                      {evs.length > 0 && (
-                        <div style={{display:'flex',flexDirection:'column',gap:4}}>
-                          {evs.map(ev=>(
-                            <div key={ev.id} style={{
-                              display:'flex',justifyContent:'space-between',alignItems:'center',
-                              padding:'5px 8px',borderRadius:8,fontSize:11,
-                              background: ev.statut==='faite'?'#EDFAF3':ev.statut==='a_verifier'?'#FFF3F3':'#FAF3E0',
-                              border: `1px solid ${ev.statut==='faite'?'#9CDBB8':ev.statut==='a_verifier'?'#FFCACA':'#E8D5A8'}`
-                            }}>
-                              <span style={{color:'#1C1710',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:120}}>
-                                {ev.special ? (ev.type==='cfe'?'💶 CFE':'📋 IR') : '📅 URSSAF'}
-                              </span>
-                              {ev.statut==='faite'
-                                ? <span style={{color:'#2D7A4F',fontWeight:700,flexShrink:0}}>✓</span>
-                                : <button onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')} style={{fontSize:10,background:'#B5792A',border:'none',color:'#fff',padding:'2px 8px',borderRadius:20,cursor:'pointer',fontFamily:'Outfit,sans-serif',flexShrink:0}}>Faire</button>
-                              }
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* RDV personnels du mois */}
-                      {(() => {
-                        const rdvsMois = rdvList.filter(r=>{
-                          if (!r.date) return false
-                          const parts = r.date.split('-')
-                          return parseInt(parts[0])===year && parseInt(parts[1])-1===moisIdx
-                        })
-                        if (rdvsMois.length===0) return null
-                        return (
-                          <div style={{marginTop:6,borderTop:'1px solid #F0EBE0',paddingTop:6,display:'flex',flexDirection:'column',gap:3}}>
-                            {rdvsMois.map(r=>{
-                              const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
-                              return (
-                                <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'3px 6px',borderRadius:6,background:t.bg,fontSize:10}}>
-                                  <span style={{color:t.color,fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:110}}>{t.emoji} {r.titre}</span>
-                                  <div style={{display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
-                                    <span style={{color:'#A89878'}}>{r.heure}</span>
-                                    <button onClick={e=>{e.stopPropagation();deleteRdv(r.id)}} style={{background:'none',border:'none',cursor:'pointer',color:'#C0392B',fontSize:11,padding:0,lineHeight:1}}>×</button>
-                                  </div>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        )
-                      })()}
-
-                      {/* Si pas d'événement et pas de revenu */}
-                      {evs.length===0 && !rev && rdvList.filter(r=>r.date&&parseInt(r.date.split('-')[1])-1===moisIdx&&parseInt(r.date.split('-')[0])===year).length===0 && (
-                        <div style={{fontSize:11,color:'#D0C8B8',textAlign:'center',padding:'4px 0',cursor:'pointer'}} onClick={()=>openRdvModal(moisIdx,1,nomMois)}>
-                          + Ajouter
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
+              {/* Navigation mois */}
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1rem'}}>
+                <button onClick={allerMoisPrev} style={{width:44,height:44,borderRadius:'50%',border:'1px solid rgba(0,200,200,.2)',background:'rgba(0,200,200,.06)',color:'#00C8C8',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
+                <div style={{textAlign:'center'}}>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#E8F4F8',fontWeight:600}}>{nomMois}</div>
+                  <div style={{fontSize:12,color:'rgba(255,255,255,.35)',marginTop:2}}>{calYear}{estCourant?' · Mois en cours':''}</div>
+                </div>
+                <button onClick={allerMoisNext} style={{width:44,height:44,borderRadius:'50%',border:'1px solid rgba(0,200,200,.2)',background:'rgba(0,200,200,.06)',color:'#00C8C8',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>›</button>
               </div>
 
-              {/* Liste récap des échéances à venir */}
-              <div className="card">
-                <div className="card-title">Récapitulatif des échéances</div>
-                <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                  {calendrier.map(ev=>{
-                    const decl = declarations.find(d=>d.periode===ev.id)
-                    const statut = decl?.statut||(ev.past?'a_verifier':'a_faire')
-                    const couleur = statut==='faite'?{bg:'#EDFAF3',border:'#9CDBB8',dot:'#2D7A4F'}:ev.past?{bg:'#FFF3F3',border:'#FFCACA',dot:'#C0392B'}:ev.current?{bg:'#FAF3E0',border:'#E8D5A8',dot:'#B5792A'}:{bg:'#FAFAF8',border:'#F0EBE0',dot:'#E2D8C4'}
+              {/* Sélecteur rapide mois */}
+              <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:8,marginBottom:'1rem',scrollbarWidth:'none'}}>
+                {MOIS_COURT.map((m,i)=>(
+                  <button key={i} onClick={()=>setCalMoisActif(i)} style={{
+                    flexShrink:0,padding:'6px 12px',borderRadius:20,fontSize:12,fontWeight:500,
+                    cursor:'pointer',fontFamily:'Outfit,sans-serif',border:'1.5px solid',transition:'all .15s',
+                    background:calMoisActif===i?'#00C8C8':'transparent',
+                    color:calMoisActif===i?'#0B1929':'rgba(255,255,255,.4)',
+                    borderColor:calMoisActif===i?'#00C8C8':'rgba(255,255,255,.1)',
+                    position:'relative'
+                  }}>
+                    {m}
+                    {(eventsParMois[String(i)]||[]).length > 0 && calMoisActif!==i && (
+                      <span style={{position:'absolute',top:2,right:2,width:6,height:6,borderRadius:'50%',background:'#FFA03C'}}/>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Calendrier du mois — avec swipe */}
+              <div className="card" style={{marginBottom:'1rem',userSelect:'none'}}
+                onTouchStart={e=>setCalTouchStart(e.touches[0].clientX)}
+                onTouchEnd={e=>{
+                  if (calTouchStart===null) return
+                  const diff = calTouchStart - e.changedTouches[0].clientX
+                  if (Math.abs(diff) > 50) diff > 0 ? allerMoisNext() : allerMoisPrev()
+                  setCalTouchStart(null)
+                }}
+              >
+                {/* En-tête jours */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:8}}>
+                  {JOURS.map((j,i)=>(
+                    <div key={i} style={{textAlign:'center',fontSize:11,color:i>=5?'rgba(0,200,200,.5)':'rgba(255,255,255,.3)',fontWeight:600,padding:'4px 0'}}>{j}</div>
+                  ))}
+                </div>
+
+                {/* Jours */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3}}>
+                  {jours.map((jour,i)=>{
+                    const ev = jour ? joursEvenements[jour] : null
+                    const estAujourdhui = estCourant && jour === getNow().day
+                    const dateStr = jour ? `${year}-${String(moisIdx+1).padStart(2,'0')}-${String(jour).padStart(2,'0')}` : null
+                    const rdvsJour = dateStr ? rdvList.filter(r=>r.date===dateStr) : []
+                    const hasRdv = rdvsJour.length > 0
+                    const estWeekend = jour ? ((premierLundi + i) % 7) >= 5 : false
+
                     return (
-                      <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:couleur.bg,border:`1px solid ${couleur.border}`,flexWrap:'wrap',gap:8}}>
-                        <div style={{display:'flex',alignItems:'center',gap:10}}>
-                          <div style={{width:8,height:8,borderRadius:'50%',background:couleur.dot,flexShrink:0}}/>
-                          <div>
-                            <div style={{fontSize:13,fontWeight:500,color:'#E8F4F8'}}>{ev.label}</div>
-                            <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Avant le {ev.date_limite}</div>
-                          </div>
-                        </div>
-                        <div style={{display:'flex',alignItems:'center',gap:8}}>
-                          {ev.current && <span style={{fontSize:10,background:'#B5792A',color:'#fff',padding:'2px 8px',borderRadius:20,fontWeight:600}}>En cours</span>}
-                          {statut==='faite'
-                            ? <span style={{fontSize:12,fontWeight:600,color:'#2D7A4F',background:'#EDFAF3',padding:'4px 12px',borderRadius:20}}>✓ Faite</span>
-                            : <button className="btn btn-sm btn-amber" onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')}>Marquer faite</button>
-                          }
-                        </div>
+                      <div key={i}
+                        onClick={()=>jour && openRdvModal(moisIdx, jour, nomMois)}
+                        style={{
+                          textAlign:'center',
+                          fontSize:13,
+                          padding:'8px 2px',
+                          borderRadius:8,
+                          fontWeight: ev || estAujourdhui || hasRdv ? 700 : 400,
+                          background: estAujourdhui ? '#00C8C8' : hasRdv ? RDV_TYPES[rdvsJour[0].type]?.bg||'rgba(0,100,200,.2)' : ev ? (ev.statut==='faite'?'rgba(0,200,160,.15)':ev.statut==='a_verifier'?'rgba(255,100,100,.15)':'rgba(255,160,60,.15)') : 'transparent',
+                          color: estAujourdhui ? '#0B1929' : hasRdv ? RDV_TYPES[rdvsJour[0].type]?.color||'#7DC8FF' : ev ? (ev.statut==='faite'?'#00C8A0':ev.statut==='a_verifier'?'#FF8A8A':'#FFA03C') : estWeekend&&jour ? 'rgba(0,200,200,.5)' : jour ? 'rgba(255,255,255,.7)' : 'transparent',
+                          cursor: jour ? 'pointer' : 'default',
+                          border: ev ? `1px solid ${ev.statut==='faite'?'rgba(0,200,160,.3)':ev.statut==='a_verifier'?'rgba(255,100,100,.3)':'rgba(255,160,60,.3)'}` : 'none',
+                          position:'relative',
+                          minHeight:36,
+                          display:'flex',
+                          alignItems:'center',
+                          justifyContent:'center',
+                        }}>
+                        {jour||''}
+                        {hasRdv && <span style={{position:'absolute',top:1,right:2,width:5,height:5,borderRadius:'50%',background:'#00C8C8'}}/>}
                       </div>
                     )
                   })}
                 </div>
+
+                {/* Légende */}
+                <div style={{display:'flex',gap:12,marginTop:12,flexWrap:'wrap'}}>
+                  {[['rgba(0,200,160,.3)','#00C8A0','✓ Faite'],['rgba(255,160,60,.3)','#FFA03C','À faire'],['rgba(255,100,100,.3)','#FF8A8A','En retard'],['rgba(0,200,200,.5)','#00C8C8','Aujourd'hui']].map(([bg,color,label])=>(
+                    <div key={label} style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'rgba(255,255,255,.4)'}}>
+                      <div style={{width:10,height:10,borderRadius:3,background:bg,border:`1px solid ${color}`}}/>
+                      {label}
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              {/* Événements du mois */}
+              {(evs.length > 0 || rdvList.filter(r=>r.date&&r.date.startsWith(`${calYear}-${String(moisIdx+1).padStart(2,'0')}`)).length > 0) && (
+                <div className="card" style={{marginBottom:'1rem'}}>
+                  <div className="card-title" style={{marginBottom:'0.875rem'}}>Événements de {nomMois}</div>
+                  <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                    {evs.map(ev=>{
+                      const decl = declarations.find(d=>d.periode===ev.id)
+                      const statut = decl?.statut||(ev.past?'a_verifier':'a_faire')
+                      return (
+                        <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',borderRadius:12,background:statut==='faite'?'rgba(0,200,160,.08)':ev.past?'rgba(255,100,100,.08)':'rgba(255,160,60,.08)',border:`1px solid ${statut==='faite'?'rgba(0,200,160,.2)':ev.past?'rgba(255,100,100,.2)':'rgba(255,160,60,.2)'}`}}>
+                          <div>
+                            <div style={{fontSize:13,fontWeight:500,color:'#E8F4F8'}}>{ev.special?(ev.type==='cfe'?'💶 CFE':'📋 Impôt sur le revenu'):'📅 URSSAF'}</div>
+                            <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:2}}>Avant le {ev.date_limite}</div>
+                          </div>
+                          {statut==='faite'
+                            ? <span style={{fontSize:11,fontWeight:600,color:'#00C8A0',background:'rgba(0,200,160,.1)',padding:'4px 10px',borderRadius:20}}>✓ Faite</span>
+                            : <button onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')} style={{fontSize:11,background:'#00C8C8',border:'none',color:'#0B1929',padding:'6px 12px',borderRadius:20,cursor:'pointer',fontFamily:'Outfit,sans-serif',fontWeight:600}}>Marquer faite</button>
+                          }
+                        </div>
+                      )
+                    })}
+                    {rdvList.filter(r=>r.date&&r.date.startsWith(`${calYear}-${String(moisIdx+1).padStart(2,'0')}`)).map(r=>{
+                      const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
+                      return (
+                        <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',borderRadius:12,background:'rgba(0,200,200,.06)',border:'1px solid rgba(0,200,200,.15)'}}>
+                          <div style={{display:'flex',alignItems:'center',gap:8}}>
+                            <span style={{fontSize:16}}>{t.emoji}</span>
+                            <div>
+                              <div style={{fontSize:13,fontWeight:500,color:'#E8F4F8'}}>{r.titre}</div>
+                              <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:2}}>
+                                {parseInt(r.date.split('-')[2])}/{moisIdx+1} à {r.heure}
+                              </div>
+                            </div>
+                          </div>
+                          <button onClick={()=>deleteRdv(r.id)} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,100,100,.6)',fontSize:18,padding:'4px'}}>×</button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* CA du mois */}
+              {rev && (
+                <div className="card" style={{marginBottom:'1rem',background:'rgba(0,200,200,.06)',border:'1px solid rgba(0,200,200,.15)'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <div>
+                      <div style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:4}}>CA {nomMois}</div>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#00C8C8'}}>{rev.toLocaleString('fr-FR')} €</div>
+                    </div>
+                    <button onClick={()=>setView('revenus')} style={{fontSize:12,background:'rgba(0,200,200,.1)',border:'1px solid rgba(0,200,200,.2)',color:'#00C8C8',padding:'8px 14px',borderRadius:20,cursor:'pointer',fontFamily:'Outfit,sans-serif'}}>Voir revenus →</button>
+                  </div>
+                </div>
+              )}
 
               <div className="info-box" style={{marginTop:'1rem'}}>
                 <div className="info-title">📌 Comment déclarer</div>
                 <div className="info-text">
-                  Va sur <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" style={{color:'#1A4A8A',fontWeight:600}}>autoentrepreneur.urssaf.fr</a> · Connecte-toi avec ton SIRET · Clique "Déclarer et payer" · Saisis ton CA · Valide
+                  Va sur <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer">autoentrepreneur.urssaf.fr</a> · SIRET · "Déclarer et payer" · Saisis ton CA · Valide
                 </div>
               </div>
 
-              {/* Modal ajout RDV */}
+              {/* Modal ajout RDV */}              {/* Modal ajout RDV */}
               {showRdvModal && rdvJour && (
                 <div className="overlay show" onClick={e=>{if(e.target.className.includes('overlay'))setShowRdvModal(false)}}>
                   <div className="modal" style={{maxWidth:440}}>
