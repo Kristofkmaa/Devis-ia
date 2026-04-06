@@ -511,7 +511,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
       {/* APP BAR */}
       <div className="app-bar">
-        <div className="logo">Serelyo</div>
+        <div className="logo">Serely<span>o</span></div>
         <div className="bar-right">
           <span className="user-tag">{profil?`${profil.prenom} ${profil.nom}`:user.email}</span>
           <button className="btn-profile" onClick={()=>setShowOnboarding(true)}>
@@ -674,23 +674,23 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
           {/* ── HERO ── */}
           {profil ? (
-            <div style={{background:'#1C1710',borderRadius:24,padding:'2rem',marginBottom:'1.5rem',position:'relative',overflow:'hidden'}}>
+            <div style={{background:'#0D1F35',borderRadius:20,padding:'1.25rem',marginBottom:'1.5rem',position:'relative',overflow:'hidden'}}>
               {/* Décoration fond */}
-              <div style={{position:'absolute',top:-40,right:-40,width:200,height:200,borderRadius:'50%',background:'rgba(181,121,42,.12)',pointerEvents:'none'}}/>
-              <div style={{position:'absolute',bottom:-60,right:80,width:140,height:140,borderRadius:'50%',background:'rgba(181,121,42,.07)',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',top:-40,right:-40,width:200,height:200,borderRadius:'50%',background:'rgba(0,200,200,.08)',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',bottom:-60,right:80,width:140,height:140,borderRadius:'50%',background:'rgba(0,200,200,.04)',pointerEvents:'none'}}/>
               <div style={{position:'relative',zIndex:1}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'1rem'}}>
                   <div>
-                    <p style={{fontSize:12,color:'rgba(255,255,255,.45)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:6}}>Bonjour</p>
-                    <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:32,fontWeight:600,color:'#fff',marginBottom:4}}>{profil.prenom} {profil.nom}</h1>
-                    <p style={{fontSize:14,color:'rgba(255,255,255,.55)'}}>{profil.activite}</p>
+                    <p style={{fontSize:12,color:'rgba(255,255,255,.35)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:6}}>Bonjour</p>
+                    <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:600,color:'#E8F4F8',marginBottom:4}}>{profil.prenom} {profil.nom}</h1>
+                    <p style={{fontSize:13,color:'rgba(255,255,255,.45)'}}>{profil.activite}</p>
                   </div>
                   {prochaineDecl && (
-                    <div style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:16,padding:'14px 18px',textAlign:'right'}}>
+                    <div style={{background:'rgba(0,200,200,.08)',border:'1px solid rgba(0,200,200,.15)',borderRadius:16,padding:'14px 18px',textAlign:'right'}}>
                       <div style={{fontSize:10,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:5}}>⏰ Prochaine déclaration</div>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:'#E8D5A8'}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
-                      <div style={{fontSize:12,color:'rgba(255,255,255,.4)',marginTop:3}}>avant le {prochaineDecl.date_limite}</div>
-                      <button onClick={()=>setView('calendrier')} style={{marginTop:8,fontSize:11,background:'#B5792A',border:'none',color:'#fff',padding:'4px 12px',borderRadius:20,cursor:'pointer',fontFamily:'Outfit,sans-serif'}}>Voir le calendrier →</button>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:'#00C8C8'}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
+                      <div style={{fontSize:12,color:'rgba(255,255,255,.35)',marginTop:3}}>avant le {prochaineDecl.date_limite}</div>
+                      <button onClick={()=>setView('calendrier')} style={{marginTop:8,fontSize:11,background:'#00C8C8',border:'none',color:'#0B1929',padding:'4px 12px',borderRadius:20,cursor:'pointer',fontFamily:'Outfit,sans-serif',fontWeight:600}}>Voir le calendrier →</button>
                     </div>
                   )}
                 </div>
@@ -698,18 +698,18 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 {/* Métriques dans le hero */}
                 <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10,marginTop:'1.25rem'}}>
                   {[
-                    { label:'CA ce mois', val:`${caMois.toLocaleString('fr-FR')} €`, sub:`Net ~${Math.round(caMois*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €`, color:'#E8D5A8', onClick:()=>setView('revenus') },
-                    { label:`CA ${year}`, val:`${caAnnuel.toLocaleString('fr-FR')} €`, sub:`URSSAF : ${Math.round(cotisAnnuel).toLocaleString('fr-FR')} €`, color:'#E8D5A8', onClick:()=>setView('revenus') },
-                    { label:'Taux URSSAF', val:`${profil?(taux*100).toFixed(1):'—'} %`, sub:profil?.acre?'✓ ACRE actif':'Taux standard', color:'#B5792A', onClick:()=>setShowOnboarding(true) },
-                    { label:'À mettre de côté', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`ce mois (${Math.round((taux+tauxImpot)*100)}% du CA)`, color:'#9CDBB8', onClick:()=>setView('simulateur') },
+                    { label:'CA ce mois', val:`${caMois.toLocaleString('fr-FR')} €`, sub:`Net ~${Math.round(caMois*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €`, color:'#00C8C8', onClick:()=>setView('revenus') },
+                    { label:`CA ${year}`, val:`${caAnnuel.toLocaleString('fr-FR')} €`, sub:`URSSAF : ${Math.round(cotisAnnuel).toLocaleString('fr-FR')} €`, color:'#00C8C8', onClick:()=>setView('revenus') },
+                    { label:'Taux URSSAF', val:`${profil?(taux*100).toFixed(1):'—'} %`, sub:profil?.acre?'✓ ACRE actif':'Taux standard', color:'#FFA03C', onClick:()=>setShowOnboarding(true) },
+                    { label:'À mettre de côté', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`ce mois (${Math.round((taux+tauxImpot)*100)}% du CA)`, color:'#00C8A0', onClick:()=>setView('simulateur') },
                   ].map(({label,val,sub,color,onClick})=>(
-                    <div key={label} onClick={onClick} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.08)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'all .15s'}}
+                    <div key={label} onClick={onClick} style={{background:'rgba(0,200,200,.06)',border:'1px solid rgba(0,200,200,.12)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'all .15s'}}
                       onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,.09)'}}
                       onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,.05)'}}
                     >
-                      <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:8}}>{label}</div>
+                      <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.35)',marginBottom:8}}>{label}</div>
                       <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color,marginBottom:4}}>{val}</div>
-                      <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>{sub}</div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,.3)'}}>{sub}</div>
                     </div>
                   ))}
                 </div>
@@ -740,12 +740,12 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 <div key={label} style={{marginBottom:'1rem'}}>
                   <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
                     <span style={{fontSize:12,fontWeight:500,color:'#1C1710'}}>{label}</span>
-                    <span style={{fontSize:11,color:'#A89878'}}>{Math.round(pct)}% atteint</span>
+                    <span style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>{Math.round(pct)}% atteint</span>
                   </div>
                   <div style={{height:8,background:'#F6F0E4',borderRadius:20,overflow:'hidden'}}>
-                    <div style={{height:'100%',width:pct+'%',background:pct>85?'#C0392B':pct>60?'#B5792A':'#2D7A4F',borderRadius:20,transition:'width .5s'}}/>
+                    <div style={{height:'100%',width:pct+'%',background:pct>85?'#FF6B6B':pct>60?'#FFA03C':'#00C8A0',borderRadius:20,transition:'width .5s'}}/>
                   </div>
-                  <div style={{fontSize:11,color:'#A89878',marginTop:4}}>
+                  <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>
                     {caAnnuel.toLocaleString('fr-FR')} € / {val.toLocaleString('fr-FR')} €
                     {pct>85 && <span style={{color:'#C0392B',marginLeft:6}}>⚠️ Consulte un comptable</span>}
                   </div>
@@ -773,11 +773,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     return (
                       <div key={d.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #FAF3E0',cursor:'pointer'}} onClick={()=>setView('devis')}>
                         <div>
-                          <div style={{fontSize:13,fontWeight:500,color:'#1C1710'}}>{d.client_nom}</div>
-                          <div style={{fontSize:11,color:'#A89878'}}>{d.numero} · {d.date_emission}</div>
+                          <div style={{fontSize:13,fontWeight:500,color:'#E8F4F8'}}>{d.client_nom}</div>
+                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>{d.numero} · {d.date_emission}</div>
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:8}}>
-                          <span style={{fontFamily:"'Playfair Display',serif",fontSize:14,color:'#1C1710'}}>{(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</span>
+                          <span style={{fontFamily:"'Playfair Display',serif",fontSize:14,color:'#E8F4F8'}}>{(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</span>
                           <span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:20,background:s.bg,color:s.c}}>
                             {d.statut==='accepte'?'✓':d.statut==='refuse'?'✗':d.statut==='expire'?'exp.':'att.'}
                           </span>
@@ -811,8 +811,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   return (
                     <div key={r.mois} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #FAF3E0'}}>
                       <div>
-                        <div style={{fontSize:13,fontWeight:500,color:'#1C1710'}}>{r.mois&&r.mois.match(/^\d{4}-\d{2}$/)?formatMois(r.mois):r.mois||'—'}</div>
-                        <div style={{fontSize:11,color:'#A89878'}}>Net ~{Math.round(net).toLocaleString('fr-FR')} €</div>
+                        <div style={{fontSize:13,fontWeight:500,color:'#E8F4F8'}}>{r.mois&&r.mois.match(/^\d{4}-\d{2}$/)?formatMois(r.mois):r.mois||'—'}</div>
+                        <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Net ~{Math.round(net).toLocaleString('fr-FR')} €</div>
                       </div>
                       <span style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:'#1C1710'}}>{r.montant.toLocaleString('fr-FR')} €</span>
                     </div>
@@ -830,9 +830,9 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               <div style={{display:'flex',flexDirection:'column',gap:8}}>
                 {["Quand dois-je déclarer mon CA ?","Combien mettre de côté ce mois ?","Comment fonctionne l'ACRE ?","Qu'est-ce que la CFE ?"].map(q=>(
                   <div key={q} onClick={()=>{setQuestion(q);setView('assistant')}}
-                    style={{padding:'10px 14px',borderRadius:10,border:'1px solid #E2D8C4',fontSize:13,color:'#6B5E45',cursor:'pointer',transition:'all .15s',background:'#FBF8F1'}}
-                    onMouseEnter={e=>{e.currentTarget.style.borderColor='#B5792A';e.currentTarget.style.color='#B5792A'}}
-                    onMouseLeave={e=>{e.currentTarget.style.borderColor='#E2D8C4';e.currentTarget.style.color='#6B5E45'}}
+                    style={{padding:'10px 14px',borderRadius:10,border:'1px solid rgba(0,200,200,.15)',fontSize:13,color:'rgba(255,255,255,.6)',cursor:'pointer',transition:'all .15s',background:'rgba(0,200,200,.05)'}}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(0,200,200,.4)';e.currentTarget.style.color='#00C8C8'}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(0,200,200,.15)';e.currentTarget.style.color='rgba(255,255,255,.6)'}}
                   >
                     💬 {q}
                   </div>
@@ -853,16 +853,16 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   const decl = declarations.find(d=>d.periode===ev.id)
                   const fait = decl?.statut==='faite'
                   return (
-                    <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:ev.current?'#FAF3E0':'#FAFAF8',border:`1px solid ${ev.current?'#E8D5A8':'#F0EBE0'}`}}>
+                    <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:ev.current?'rgba(0,200,200,.08)':'rgba(255,255,255,.03)',border:`1px solid ${ev.current?'rgba(0,200,200,.25)':'rgba(255,255,255,.06)'}`}}>
                       <div style={{display:'flex',alignItems:'center',gap:10}}>
-                        <div style={{width:8,height:8,borderRadius:'50%',background:fait?'#2D7A4F':ev.current?'#B5792A':'#E2D8C4',flexShrink:0}}/>
+                        <div style={{width:8,height:8,borderRadius:'50%',background:fait?'#00C8A0':ev.current?'#00C8C8':'rgba(255,255,255,.15)',flexShrink:0}}/>
                         <div>
-                          <div style={{fontSize:13,fontWeight:500,color:'#1C1710'}}>{ev.label}</div>
-                          <div style={{fontSize:11,color:'#A89878'}}>Avant le {ev.date_limite}</div>
+                          <div style={{fontSize:13,fontWeight:500,color:'#E8F4F8'}}>{ev.label}</div>
+                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Avant le {ev.date_limite}</div>
                         </div>
                       </div>
                       {fait
-                        ? <span style={{fontSize:11,fontWeight:600,color:'#2D7A4F',background:'#EDFAF3',padding:'3px 10px',borderRadius:20}}>✓ Faite</span>
+                        ? <span style={{fontSize:11,fontWeight:600,color:'#00C8A0',background:'rgba(0,200,160,.1)',padding:'3px 10px',borderRadius:20,border:'1px solid rgba(0,200,160,.2)'}}>✓ Faite</span>
                         : <button className="btn btn-sm btn-amber" onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')}>Marquer faite</button>
                       }
                     </div>
@@ -1069,8 +1069,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         <div style={{display:'flex',alignItems:'center',gap:10}}>
                           <div style={{width:8,height:8,borderRadius:'50%',background:couleur.dot,flexShrink:0}}/>
                           <div>
-                            <div style={{fontSize:13,fontWeight:500,color:'#1C1710'}}>{ev.label}</div>
-                            <div style={{fontSize:11,color:'#A89878'}}>Avant le {ev.date_limite}</div>
+                            <div style={{fontSize:13,fontWeight:500,color:'#E8F4F8'}}>{ev.label}</div>
+                            <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Avant le {ev.date_limite}</div>
                           </div>
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:8}}>
@@ -1377,7 +1377,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   <div className="info-box" style={{marginTop:'1rem'}}>
                     <div className="info-text">💡 <strong>Conseil :</strong> Dès que tu encaisses un paiement client, mets <strong>{((calcResult.taux+calcResult.tauxImpot)*100).toFixed(0)}%</strong> de côté immédiatement sur un compte séparé. Tu ne seras jamais pris au dépourvu.</div>
                   </div>
-                  <div style={{marginTop:8,fontSize:11,color:'#A89878',lineHeight:1.6}}>
+                  <div style={{marginTop:8,fontSize:11,color:'rgba(255,255,255,.35)',lineHeight:1.6}}>
                     ⚠️ <strong>Avertissement :</strong> Ces calculs sont des estimations basées sur les taux officiels URSSAF 2025/2026. Le taux d'imposition réel dépend de ta situation fiscale globale. Ces informations ne constituent pas un conseil comptable ou fiscal. En cas de doute, consulte un expert-comptable.
                   </div>
                 </div>
@@ -1608,7 +1608,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         <div className="info-box" style={{marginTop:'1rem'}}>
                           <div className="info-text">💡 <strong>Conseil :</strong> Dès que tu encaisses, mets <strong>{((calcResult.taux+calcResult.tauxImpot)*100).toFixed(0)}%</strong> de côté sur un compte séparé.</div>
                         </div>
-                        <div style={{marginTop:8,fontSize:11,color:'#A89878'}}>⚠️ Estimation basée sur les taux officiels URSSAF. Consulte un comptable pour une simulation précise.</div>
+                        <div style={{marginTop:8,fontSize:11,color:'rgba(255,255,255,.35)'}}>⚠️ Estimation basée sur les taux officiels URSSAF. Consulte un comptable pour une simulation précise.</div>
                         <div style={{marginTop:12,textAlign:'center'}}>
                           <button className="btn btn-ghost" onClick={()=>setSimMode('mensuel')}>📊 Voir la simulation annuelle →</button>
                         </div>
@@ -1790,7 +1790,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           })}
                         </svg>
                       </div>
-                      <div style={{fontSize:11,color:'#A89878',marginTop:8,textAlign:'center'}}>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:8,textAlign:'center'}}>
                         Chiffres en milliers d'euros · Survole une barre pour voir le détail
                       </div>
                     </div>
@@ -1874,7 +1874,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                                   <span style={{fontSize:20}}>{icon}</span>
                                   <div>
                                     <div style={{fontSize:14,fontWeight:600,color:'#1C1710'}}>{label}</div>
-                                    <div style={{fontSize:11,color:'#A89878'}}>Seuil légal : {val.toLocaleString('fr-FR')} €/an</div>
+                                    <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Seuil légal : {val.toLocaleString('fr-FR')} €/an</div>
                                   </div>
                                 </div>
                                 <div style={{display:'flex',alignItems:'center',gap:12}}>
@@ -1901,7 +1901,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       </div>
                     </div>
 
-                    <div style={{fontSize:11,color:'#A89878',lineHeight:1.7,padding:'12px 16px',background:'#F6F0E4',borderRadius:12}}>
+                    <div style={{fontSize:11,color:'rgba(255,255,255,.35)',lineHeight:1.7,padding:'12px 16px',background:'#F6F0E4',borderRadius:12}}>
                       ⚠️ <strong style={{color:'#1C1710'}}>Simulation indicative</strong> — Les montants sont calculés sur la base des taux officiels URSSAF {new Date().getFullYear()} pour ton secteur ({(tauxU*100).toFixed(1)}%). Le taux d'imposition réel dépend de ta situation fiscale globale. Ces chiffres ne constituent pas un conseil comptable.
                     </div>
                   </>
@@ -1980,17 +1980,17 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         <div style={{background:'#FAF3E0',border:'1px solid #E8D5A8',borderRadius:16,padding:'1rem',textAlign:'center'}}>
                           <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>TJM conseillé</div>
                           <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#B5792A'}}>{Math.ceil(invResult.tjm).toLocaleString('fr-FR')} €</div>
-                          <div style={{fontSize:11,color:'#A89878',marginTop:4}}>par jour ({invJours}j/mois)</div>
+                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>par jour ({invJours}j/mois)</div>
                         </div>
                         <div style={{background:'#FAF3E0',border:'1px solid #E8D5A8',borderRadius:16,padding:'1rem',textAlign:'center'}}>
                           <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>Taux horaire</div>
                           <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#B5792A'}}>{Math.ceil(invResult.tauxHoraire).toLocaleString('fr-FR')} €</div>
-                          <div style={{fontSize:11,color:'#A89878',marginTop:4}}>par heure (7h/jour)</div>
+                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>par heure (7h/jour)</div>
                         </div>
                         <div style={{background:'#FAF3E0',border:'1px solid #E8D5A8',borderRadius:16,padding:'1rem',textAlign:'center'}}>
                           <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>CA annuel</div>
                           <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#B5792A'}}>{Math.ceil(invResult.caAnnuel).toLocaleString('fr-FR')} €</div>
-                          <div style={{fontSize:11,color:'#A89878',marginTop:4}}>{invResult.moisActifs} mois actifs</div>
+                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>{invResult.moisActifs} mois actifs</div>
                         </div>
                       </div>
 
@@ -2015,7 +2015,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         <div className="seuil-alert">⚠️ Attention : pour atteindre cet objectif, ton CA annuel ({Math.ceil(invResult.caAnnuel).toLocaleString('fr-FR')} €) approche ou dépasse le seuil de TVA ({(profil.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services).toLocaleString('fr-FR')} €). Pense à anticiper.</div>
                       )}
 
-                      <div style={{marginTop:12,fontSize:11,color:'#A89878',background:'#F6F0E4',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
+                      <div style={{marginTop:12,fontSize:11,color:'rgba(255,255,255,.35)',background:'#F6F0E4',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
                         ⚠️ <strong style={{color:'#1C1710'}}>Estimation indicative</strong> — Basée sur ton secteur ({(invResult.tauxU*100).toFixed(1)}% URSSAF) et ton taux d'imposition personnalisé ({Math.round(invResult.tauxI*100)}%). Consulte un expert-comptable pour affiner.
                       </div>
                     </div>
@@ -2079,7 +2079,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             onChange={e=>setReelCA(e.target.value)}
                             placeholder={caAnnuel > 0 ? String(Math.round(caAnnuel)) : '80 000'}
                             style={{fontSize:16,padding:'11px 14px'}}/>
-                          <div style={{fontSize:11,color:'#A89878',marginTop:4}}>Ton CA actuel cette année : {caAnnuel.toLocaleString('fr-FR')} €</div>
+                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>Ton CA actuel cette année : {caAnnuel.toLocaleString('fr-FR')} €</div>
                         </div>
                         <div>
                           <span className="mini-label">Charges professionnelles (€/an)</span>
@@ -2087,7 +2087,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             onChange={e=>setReelCharges(e.target.value)}
                             placeholder="15 000"
                             style={{fontSize:16,padding:'11px 14px'}}/>
-                          <div style={{fontSize:11,color:'#A89878',marginTop:4}}>Loyer, matériel, logiciels, déplacements…</div>
+                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>Loyer, matériel, logiciels, déplacements…</div>
                         </div>
                       </div>
                       <button className="btn btn-dark" style={{padding:'12px 28px'}} onClick={calcReel}>
@@ -2122,7 +2122,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               <span style={{fontSize:14,fontWeight:600,color:'#1C1710'}}>Net estimé</span>
                               <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:reelResult.micro_net>0?'#2D7A4F':'#8B1A1A'}}>{Math.round(reelResult.micro_net).toLocaleString('fr-FR')} €</span>
                             </div>
-                            <div style={{fontSize:11,color:'#A89878',marginTop:4}}>
+                            <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>
                               Taux global réel : {Math.round(((reelResult.micro_cotis+reelResult.micro_impots)/reelResult.ca)*100)}% du CA
                             </div>
                           </div>
@@ -2213,7 +2213,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           </div>
                         </div>
 
-                        <div style={{fontSize:11,color:'#A89878',background:'#F6F0E4',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
+                        <div style={{fontSize:11,color:'rgba(255,255,255,.35)',background:'#F6F0E4',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
                           ⚠️ <strong style={{color:'#1C1710'}}>Simulation indicative</strong> — Le taux TNS de 45% est une approximation. Le régime réel est complexe et dépend fortement de ta situation personnelle. Consulte un expert-comptable avant de prendre cette décision.
                         </div>
                       </>
@@ -2306,7 +2306,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               <span style={{fontSize:10,fontWeight:600,padding:'3px 9px',borderRadius:20,background:sc.bg,color:sc.color}}>{statutLabel[d.statut]||'En attente'}</span>
                             </div>
                             <div style={{fontSize:14,color:'#1C1710',fontWeight:500}}>{d.client_nom}</div>
-                            <div style={{fontSize:11,color:'#A89878',marginTop:2}}>
+                            <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:2}}>
                               Émis le {d.date_emission} · valable jusqu'au {d.date_validite}
                             </div>
                           </div>
@@ -2587,137 +2587,207 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 }
 
 const CSS = `
-/* ── BASE ── */
-*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
-html{font-size:16px}
-body{overflow-x:hidden;background:#F6F0E4}
+/* ── RESET & BASE ── */
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0B1929;color:#E8F4F8;font-family:'Outfit',sans-serif;overflow-x:hidden}
 
 /* ── APP BAR ── */
-.app-bar{background:#1C1710;height:56px;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.app-bar{background:#0D1F35;height:56px;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(0,200,200,.1)}
 .logo{font-family:'Playfair Display',serif;font-size:20px;color:#fff;flex-shrink:0}
+.logo span{color:#00C8C8}
 .bar-right{display:flex;align-items:center;gap:8px}
-.user-tag{font-size:11px;color:rgba(255,255,255,0.5);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.btn-profile{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:6px 12px;cursor:pointer;color:#fff;font-size:12px;font-family:'Outfit',sans-serif;font-weight:500;white-space:nowrap}
-.btn-logout{font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;padding:6px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+.user-tag{font-size:11px;color:rgba(255,255,255,0.45);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-profile{display:flex;align-items:center;gap:6px;background:rgba(0,200,200,.1);border:1px solid rgba(0,200,200,.2);border-radius:20px;padding:6px 12px;cursor:pointer;color:#00C8C8;font-size:12px;font-family:'Outfit',sans-serif;font-weight:500;white-space:nowrap}
+.btn-logout{font-size:12px;color:rgba(255,255,255,0.35);background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;padding:6px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 
-/* ── NAV TABS — barre fixe en bas sur mobile ── */
-.nav-tabs{background:#1C1710;border-top:1px solid rgba(255,255,255,0.1);display:flex;padding:0;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:sticky;top:56px;z-index:199}
-.nav-tabs::-webkit-scrollbar{display:none}
-.nav-tab{padding:10px 14px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;color:rgba(255,255,255,0.5);border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;transition:all 0.15s;white-space:nowrap;flex-shrink:0;min-height:44px}
-.nav-tab.active{color:#fff;border-bottom-color:#E8D5A8}
+/* ── NAV BOTTOM ── */
+.nav-tabs{background:#0D1F35;border-top:1px solid rgba(0,200,200,.1);display:flex;padding:0;position:fixed;bottom:0;left:0;right:0;z-index:300;height:64px;padding-bottom:env(safe-area-inset-bottom)}
+.nav-tab{flex:1;padding:6px 4px 4px;font-size:10px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;color:rgba(255,255,255,.35);border:none;background:none;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:44px}
+.nav-tab.active{color:#00C8C8}
+.nav-tab-icon{font-size:20px;line-height:1;transition:transform .2s}
+.nav-tab.active .nav-tab-icon{transform:scale(1.1)}
+.nav-tab-label{font-size:9px;letter-spacing:.3px}
 
 /* ── MAIN ── */
-.main{max-width:900px;margin:0 auto;padding:1rem 0.875rem 6rem}
-@media(min-width:600px){.main{padding:1.5rem 1.5rem 5rem}}
-.welcome-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.75rem;flex-wrap:wrap;gap:1rem}
-.welcome-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:600;color:#1C1710}
-.welcome-sub{font-size:14px;color:#6B5E45;margin-top:4px}
-.next-decl{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:14px;padding:14px 18px;text-align:right}
-.next-decl-label{font-size:11px;color:#A89878;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
-.next-decl-date{font-family:'Playfair Display',serif;font-size:16px;color:#B5792A}
-.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
-@media(max-width:480px){.metrics-grid{grid-template-columns:1fr 1fr}}
-.metric-card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1.1rem 1.25rem}
-.metric-label{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#A89878;margin-bottom:8px}
-.metric-value{font-family:'Playfair Display',serif;font-size:24px;color:#1C1710;margin-bottom:4px}
-.metric-sub{font-size:11px;color:#A89878}
-.card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1rem;box-shadow:0 2px 12px rgba(28,23,16,.06)}@media(min-width:600px){.card{border-radius:20px;padding:1.5rem}}
-.card-title{font-family:'Playfair Display',serif;font-size:17px;margin-bottom:1rem;color:#1C1710}
-.seuil-item{} .seuil-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.seuil-label{font-size:13px;color:#6B5E45;font-weight:500} .seuil-val{font-size:12px;color:#A89878}
-.progress-bar{height:10px;background:#F6F0E4;border-radius:20px;overflow:hidden}
+.main{max-width:900px;margin:0 auto;padding:1rem 0.875rem 5.5rem}
+@media(min-width:600px){.main{padding:1.5rem 1.5rem 6rem}}
+
+/* ── CARDS ── */
+.card{background:#0D1F35;border:1px solid rgba(0,200,200,.12);border-radius:16px;padding:1rem;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+@media(min-width:600px){.card{border-radius:20px;padding:1.25rem}}
+.card-title{font-family:'Playfair Display',serif;font-size:16px;margin-bottom:1rem;color:#E8F4F8}
+
+/* ── PAGE HEADER ── */
+.page-header{margin-bottom:1.25rem}
+.page-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:#E8F4F8;margin-bottom:4px}
+@media(min-width:600px){.page-title{font-size:26px}}
+.page-sub{font-size:13px;color:rgba(255,255,255,.4)}
+
+/* ── METRICS ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1.25rem}
+.metric-card{background:#112338;border:1px solid rgba(0,200,200,.1);border-radius:14px;padding:1rem}
+.metric-label{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:8px}
+.metric-value{font-family:'Playfair Display',serif;font-size:22px;color:#00C8C8;margin-bottom:4px}
+.metric-sub{font-size:11px;color:rgba(255,255,255,.35)}
+
+/* ── PROGRESS ── */
+.progress-bar{height:8px;background:rgba(255,255,255,.08);border-radius:20px;overflow:hidden}
 .progress-fill{height:100%;border-radius:20px;transition:width .5s ease}
-.seuil-alert{font-size:12px;color:#8B1A1A;background:#FFF3F3;border:1px solid #FFCACA;border-radius:8px;padding:8px 12px;margin-top:8px}
-.page-header{margin-bottom:1.75rem}
-.page-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:#1C1710;margin-bottom:4px}@media(min-width:600px){.page-title{font-size:26px}}
-.page-sub{font-size:14px;color:#6B5E45}
+.seuil-alert{font-size:12px;color:#FF8A8A;background:rgba(255,100,100,.1);border:1px solid rgba(255,100,100,.2);border-radius:8px;padding:8px 12px;margin-top:8px}
+
+/* ── SEUIL ── */
+.seuil-item{} .seuil-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.seuil-label{font-size:13px;color:rgba(255,255,255,.7);font-weight:500}
+.seuil-val{font-size:12px;color:rgba(255,255,255,.35)}
+
+/* ── CAL ── */
 .cal-list{display:flex;flex-direction:column;gap:10px}
-.cal-card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:14px;padding:0.875rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap}
-.cal-current{border-color:#B5792A;background:#FAF3E0} .cal-special{border-style:dashed} .cal-past{opacity:.65}
-.cal-left{display:flex;align-items:center;gap:14px} .cal-right{flex-shrink:0}
-.cal-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
-.dot-done{background:#2D7A4F} .dot-late{background:#C0392B} .dot-pending{background:#E2D8C4}
-.cal-label{font-size:14px;font-weight:500;color:#1C1710;margin-bottom:3px} .cal-date{font-size:12px;color:#A89878}
-.badge-current{display:inline-block;font-size:10px;font-weight:600;background:#B5792A;color:#fff;padding:3px 9px;border-radius:20px;margin-top:5px}
-.badge-done{font-size:12px;font-weight:600;color:#2D7A4F;background:#EDFAF3;padding:6px 14px;border-radius:20px}
-.info-box{background:#EEF4FF;border:1px solid #C3D8F8;border-radius:14px;padding:1.1rem 1.25rem}
-.info-title{font-size:13px;font-weight:600;color:#1A4A8A;margin-bottom:8px} .info-text{font-size:13px;color:#1A4A8A;line-height:1.8}
-.mini-label{font-size:11px;font-weight:600;letter-spacing:.5px;color:#6B5E45;display:block;margin-bottom:5px;text-transform:uppercase}
-.mini-input{padding:11px 14px;border-radius:12px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;font-family:'Outfit',sans-serif;font-size:16px;width:100%;-webkit-appearance:none}
-.mini-input:focus{outline:none;border-color:#B5792A;background:#fff}
+.cal-card{background:#0D1F35;border:1px solid rgba(0,200,200,.12);border-radius:14px;padding:.875rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.cal-current{border-color:rgba(0,200,200,.4);background:#112338}
+.cal-special{border-style:dashed}
+.cal-past{opacity:.5}
+.cal-left{display:flex;align-items:center;gap:12px}
+.cal-right{flex-shrink:0}
+.cal-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dot-done{background:#00C8A0}
+.dot-late{background:#FF6B6B}
+.dot-pending{background:rgba(255,255,255,.2)}
+.cal-label{font-size:13px;font-weight:500;color:#E8F4F8;margin-bottom:3px}
+.cal-date{font-size:11px;color:rgba(255,255,255,.4)}
+.badge-current{display:inline-block;font-size:10px;font-weight:600;background:rgba(0,200,200,.2);color:#00C8C8;padding:3px 9px;border-radius:20px;margin-top:5px;border:1px solid rgba(0,200,200,.3)}
+.badge-done{font-size:12px;font-weight:600;color:#00C8A0;background:rgba(0,200,160,.1);padding:6px 14px;border-radius:20px;border:1px solid rgba(0,200,160,.2)}
+
+/* ── INFO BOX ── */
+.info-box{background:rgba(0,100,200,.12);border:1px solid rgba(0,150,255,.2);border-radius:14px;padding:1rem 1.1rem}
+.info-title{font-size:13px;font-weight:600;color:#7DC8FF;margin-bottom:8px}
+.info-text{font-size:13px;color:rgba(255,255,255,.6);line-height:1.8}
+.info-text a{color:#00C8C8}
+
+/* ── INPUTS ── */
+.mini-label{font-size:10px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.45);display:block;margin-bottom:6px;text-transform:uppercase}
+.mini-input{padding:12px 14px;border-radius:12px;border:1.5px solid rgba(0,200,200,.2);background:#112338;color:#E8F4F8;font-family:'Outfit',sans-serif;font-size:16px;width:100%;-webkit-appearance:none;transition:border-color .2s}
+.mini-input:focus{outline:none;border-color:#00C8C8;background:#0D2840}
+.mini-input option{background:#112338;color:#E8F4F8}
+
+/* ── TABLE ── */
 .rev-table{width:100%;border-collapse:collapse;font-size:13px}
-.rev-table thead th{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#A89878;padding:0 0 10px;text-align:left;border-bottom:1px solid #E2D8C4}
+.rev-table thead th{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:0 0 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08)}
 .rev-table thead th:not(:first-child){text-align:right}
-.rev-table tbody tr{border-bottom:1px solid #FAF3E0}
-.rev-table tbody td{padding:11px 0;color:#1C1710;vertical-align:top}
+.rev-table tbody tr{border-bottom:1px solid rgba(255,255,255,.05)}
+.rev-table tbody td{padding:11px 0;color:#E8F4F8;vertical-align:top}
 .rev-table tbody td:not(:first-child){text-align:right}
-.rev-total{border-top:1.5px solid #1C1710!important;font-weight:600}
-.calc-result{} .calc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1rem}
-@media(max-width:480px){.calc-grid{grid-template-columns:1fr 1fr}}
-.calc-card{border-radius:16px;padding:1.1rem 1.25rem;border:1px solid transparent}
-.main-card{background:#1C1710;color:#fff;border-color:#1C1710} .main-card .calc-label{color:rgba(255,255,255,.6)} .main-card .calc-big{color:#fff}
-.red-card{background:#FFF3F3;border-color:#FFCACA} .red-card .calc-big{color:#8B1A1A}
-.orange-card{background:#FFF4E6;border-color:#FFD5A0} .orange-card .calc-big{color:#7A3A0A}
-.amber-card{background:#FAF3E0;border-color:#E8D5A8} .amber-card .calc-big{color:#B5792A}
-.green-card{background:#EDFAF3;border-color:#9CDBB8} .green-card .calc-big{color:#2D7A4F}
-.calc-label{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;color:#6B5E45}
-.calc-big{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;margin-bottom:4px}
-.calc-sub{font-size:11px;color:#A89878;line-height:1.5}
-.chips-hint{font-size:11px;color:#A89878;font-weight:500;margin-bottom:10px;display:block}
+.rev-total{border-top:1.5px solid rgba(0,200,200,.3)!important;font-weight:600}
+
+/* ── CALCUL ── */
+.calc-result{}
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.calc-card{border-radius:14px;padding:1rem;border:1px solid transparent}
+.main-card{background:#00C8C8;color:#0B1929;border-color:#00C8C8}
+.main-card .calc-label{color:rgba(11,25,41,.6)}
+.main-card .calc-big{color:#0B1929}
+.red-card{background:rgba(255,100,100,.1);border-color:rgba(255,100,100,.2)}
+.red-card .calc-big{color:#FF8A8A}
+.orange-card{background:rgba(255,160,60,.1);border-color:rgba(255,160,60,.2)}
+.orange-card .calc-big{color:#FFA03C}
+.amber-card{background:rgba(0,200,200,.1);border-color:rgba(0,200,200,.2)}
+.amber-card .calc-big{color:#00C8C8}
+.green-card{background:rgba(0,200,160,.1);border-color:rgba(0,200,160,.2)}
+.green-card .calc-big{color:#00C8A0}
+.calc-label{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;color:rgba(255,255,255,.45)}
+.calc-big{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;margin-bottom:4px}
+.calc-sub{font-size:11px;color:rgba(255,255,255,.35);line-height:1.5}
+
+/* ── CHIPS ── */
+.chips-hint{font-size:11px;color:rgba(255,255,255,.35);font-weight:500;margin-bottom:10px;display:block}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
-.chip{font-size:13px;padding:8px 14px;border-radius:30px;border:1px solid #E2D8C4;background:#FBF8F1;color:#6B5E45;cursor:pointer;transition:all .16s;min-height:36px;display:inline-flex;align-items:center}
-.chip:hover{background:#FAF3E0;border-color:#E8D5A8;color:#B5792A}
+.chip{font-size:12px;padding:8px 14px;border-radius:30px;border:1px solid rgba(0,200,200,.2);background:rgba(0,200,200,.06);color:rgba(255,255,255,.6);cursor:pointer;transition:all .16s;min-height:36px;display:inline-flex;align-items:center}
+.chip:hover,.chip:active{background:rgba(0,200,200,.15);border-color:rgba(0,200,200,.4);color:#00C8C8}
+
+/* ── TEXTAREA ── */
 .input-wrap{position:relative}
-textarea{width:100%;resize:none;font-family:'Outfit',sans-serif;font-size:16px;font-weight:300;padding:13px 15px 52px;border-radius:13px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;line-height:1.65;min-height:100px;-webkit-appearance:none}
-textarea:focus{outline:none;border-color:#B5792A;background:#fff} textarea::placeholder{color:#A89878}
-.btn-gen{position:absolute;bottom:11px;right:11px;padding:9px 20px;border-radius:10px;border:none;background:#1C1710;color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif}
-.btn-gen:hover{background:#B5792A} .btn-gen:disabled{background:#ccc;cursor:not-allowed}
-.hint-text{font-size:11px;color:#A89878;margin-top:9px}
+textarea{width:100%;resize:none;font-family:'Outfit',sans-serif;font-size:15px;font-weight:300;padding:13px 15px 52px;border-radius:13px;border:1.5px solid rgba(0,200,200,.2);background:#112338;color:#E8F4F8;line-height:1.65;min-height:100px;-webkit-appearance:none}
+textarea:focus{outline:none;border-color:#00C8C8;background:#0D2840}
+textarea::placeholder{color:rgba(255,255,255,.25)}
+.btn-gen{position:absolute;bottom:11px;right:11px;padding:9px 20px;border-radius:10px;border:none;background:#00C8C8;color:#0B1929;font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif}
+.btn-gen:disabled{background:rgba(255,255,255,.1);color:rgba(255,255,255,.3);cursor:not-allowed}
+.hint-text{font-size:11px;color:rgba(255,255,255,.3);margin-top:9px}
+
+/* ── ASSISTANT ── */
 .reponse-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
-.reponse-avatar{width:32px;height:32px;border-radius:50%;background:#1C1710;color:#E8D5A8;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'Playfair Display',serif}
-.reponse-text{font-size:14px;color:#1C1710;line-height:1.7} .reponse-text p{margin-bottom:.75rem} .reponse-text p:last-child{margin-bottom:0}
-.ring{width:20px;height:20px;flex-shrink:0;border:2px solid #E2D8C4;border-top-color:#B5792A;border-radius:50%;animation:spin .7s linear infinite}
+.reponse-avatar{width:32px;height:32px;border-radius:50%;background:#00C8C8;color:#0B1929;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'Playfair Display',serif;flex-shrink:0}
+.reponse-text{font-size:14px;color:rgba(255,255,255,.8);line-height:1.7}
+.reponse-text p{margin-bottom:.75rem}
+.ring{width:20px;height:20px;flex-shrink:0;border:2px solid rgba(0,200,200,.2);border-top-color:#00C8C8;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.question-preview{background:#FBF8F1;border:1px solid #E2D8C4;border-radius:12px;padding:.9rem 1rem;margin-bottom:8px;cursor:pointer;transition:all .15s}
-.question-preview:hover{border-color:#E8D5A8;background:#FAF3E0}
-.question-text{font-size:13px;color:#1C1710;margin-bottom:4px} .question-date{font-size:11px;color:#A89878}
-.link-btn{background:none;border:none;color:#B5792A;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:8px;padding:0}
-.link-btn:hover{text-decoration:underline}
-.empty-state{text-align:center;padding:4rem 2rem} .empty-state h3{font-family:'Playfair Display',serif;font-size:20px;color:#6B5E45;margin-bottom:1rem}
-.overlay{display:none;position:fixed;inset:0;background:rgba(28,23,16,.6);z-index:300;align-items:flex-start;justify-content:center;padding:0.5rem;overflow-y:auto}@media(min-width:480px){.overlay{align-items:center;padding:1rem}}
-.overlay.show{display:flex}
-.modal{background:#FFFDF8;border-radius:20px;padding:1.25rem;width:100%;max-width:620px;box-shadow:0 20px 60px rgba(28,23,16,.25);animation:pop .3s cubic-bezier(.16,1,.3,1);margin:auto}@media(min-width:480px){.modal{padding:2rem}}
-@keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
-.modal-title{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:6px;color:#1C1710}
-.modal-sub{font-size:13px;color:#6B5E45;margin-bottom:1.25rem;line-height:1.5}
-.prof-section-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#B5792A;margin:1.25rem 0 .75rem;padding-bottom:6px;border-bottom:1px solid #FAF3E0}
-.form-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:.5rem} .form-grid .full{grid-column:1/-1}@media(min-width:480px){.form-grid{grid-template-columns:1fr 1fr}}
-.field label{font-size:11px;font-weight:600;letter-spacing:.6px;color:#6B5E45;display:block;margin-bottom:5px;text-transform:uppercase}
-.field input,.field select{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;font-family:'Outfit',sans-serif;font-size:16px;-webkit-appearance:none}
-.field input:focus,.field select:focus{outline:none;border-color:#B5792A;background:#fff} .field input::placeholder{color:#A89878}
-.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:1.5rem}
+.question-preview{background:#112338;border:1px solid rgba(0,200,200,.12);border-radius:12px;padding:.875rem 1rem;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.question-preview:active{border-color:rgba(0,200,200,.3);background:#0D2840}
+.question-text{font-size:13px;color:#E8F4F8;margin-bottom:4px}
+.question-date{font-size:11px;color:rgba(255,255,255,.3)}
+
+/* ── BUTTONS ── */
+.link-btn{background:none;border:none;color:#00C8C8;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;padding:0}
+.empty-state{text-align:center;padding:3rem 1.5rem}
+.empty-state h3{font-family:'Playfair Display',serif;font-size:20px;color:rgba(255,255,255,.5);margin-bottom:1rem}
 .btn{padding:12px 20px;font-size:14px;font-weight:500;border-radius:12px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .17s;min-height:44px}
-.btn-ghost{background:transparent;border:1px solid #E2D8C4;color:#6B5E45} .btn-ghost:hover{background:#F6F0E4}
-.btn-dark{background:#1C1710;border:none;color:#fff} .btn-dark:hover{background:#B5792A}
-.btn-amber{background:#FAF3E0;border:1px solid #E8D5A8;color:#B5792A} .btn-amber:hover{background:#B5792A;color:#fff}
-.btn-sm{padding:7px 14px;font-size:12px}
+.btn-ghost{background:transparent;border:1px solid rgba(0,200,200,.2);color:rgba(255,255,255,.6)}
+.btn-dark{background:#00C8C8;border:none;color:#0B1929;font-weight:600}
+.btn-dark:active{background:#00AAAA}
+.btn-amber{background:rgba(0,200,200,.1);border:1px solid rgba(0,200,200,.2);color:#00C8C8}
+.btn-amber:active{background:#00C8C8;color:#0B1929}
+.btn-sm{padding:7px 14px;font-size:12px;min-height:36px}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;align-items:flex-start;justify-content:center;padding:.5rem;overflow-y:auto}
+.overlay.show{display:flex}
+@media(min-width:480px){.overlay{align-items:center;padding:1rem}}
+.modal{background:#0D1F35;border:1px solid rgba(0,200,200,.15);border-radius:20px;padding:1.25rem;width:100%;max-width:620px;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:pop .3s cubic-bezier(.16,1,.3,1);margin:auto}
+@media(min-width:480px){.modal{padding:2rem}}
+@keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:6px;color:#E8F4F8}
+.modal-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:1.25rem;line-height:1.5}
+.prof-section-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#00C8C8;margin:1.25rem 0 .75rem;padding-bottom:6px;border-bottom:1px solid rgba(0,200,200,.15)}
+.form-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:.5rem}
+@media(min-width:480px){.form-grid{grid-template-columns:1fr 1fr}}
+.form-grid .full{grid-column:1/-1}
+.field label{font-size:10px;font-weight:600;letter-spacing:.6px;color:rgba(255,255,255,.45);display:block;margin-bottom:6px;text-transform:uppercase}
+.field input,.field select{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(0,200,200,.2);background:#112338;color:#E8F4F8;font-family:'Outfit',sans-serif;font-size:16px;-webkit-appearance:none}
+.field input:focus,.field select:focus{outline:none;border-color:#00C8C8;background:#0D2840}
+.field input::placeholder{color:rgba(255,255,255,.25)}
+.field select option{background:#112338}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:1.5rem}
+
+/* ── RESSOURCES ── */
 .res-section{margin-bottom:2rem}
-.res-section-title{display:flex;align-items:center;gap:12px;font-family:'Playfair Display',serif;font-size:18px;color:#1C1710;margin-bottom:1rem;font-weight:600}
+.res-section-title{display:flex;align-items:center;gap:12px;font-family:'Playfair Display',serif;font-size:17px;color:#E8F4F8;margin-bottom:1rem;font-weight:600}
 .res-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media(max-width:600px){.res-grid{grid-template-columns:1fr}}
-.res-card{display:block;background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1.1rem 1.25rem;text-decoration:none;color:inherit;transition:all .18s}
-.res-card:hover{border-color:#B5792A;box-shadow:0 4px 20px rgba(181,121,42,.12);transform:translateY(-2px)}
+.res-grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:500px){.res-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:800px){.res-grid{grid-template-columns:repeat(3,1fr)}}
+.res-card{display:block;background:#0D1F35;border:1px solid rgba(0,200,200,.12);border-radius:14px;padding:1rem;text-decoration:none;color:inherit;transition:all .18s}
+.res-card:active{border-color:rgba(0,200,200,.3);background:#112338}
 .res-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .res-tag{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:.3px}
-.res-tag-urssaf{background:#FAF3E0;color:#B5792A} .res-tag-impots{background:#EEF4FF;color:#1A4A8A}
-.res-tag-gouv{background:#EDFAF3;color:#2D7A4F} .res-tag-aide{background:#F5F0FF;color:#6B2D7A} .res-tag-social{background:#FFF4E6;color:#7A3A0A}
-.res-arrow{font-size:16px;color:#E2D8C4;transition:all .18s} .res-card:hover .res-arrow{color:#B5792A}
-.res-card-title{font-family:'Playfair Display',serif;font-size:15px;color:#1C1710;margin-bottom:8px;line-height:1.3}
-.res-card-desc{font-size:12px;color:#6B5E45;line-height:1.65;margin-bottom:10px}
-.res-card-url{font-size:11px;color:#A89878;font-family:monospace} .res-card:hover .res-card-url{color:#B5792A}
-.res-disclaimer{background:#F6F0E4;border:1px solid #E2D8C4;border-radius:14px;padding:1rem 1.25rem;font-size:12px;color:#6B5E45;line-height:1.7;margin-top:1rem}
-.res-disclaimer strong{color:#1C1710}
-.app-footer{text-align:center;padding:24px 20px 40px;font-size:11px;color:#A89878;border-top:1px solid #F0EBE0;margin-top:2rem}
-.app-footer a{color:#A89878;text-decoration:none;margin:0 10px}.app-footer a:hover{color:#B5792A}
+.res-tag-urssaf{background:rgba(0,200,200,.1);color:#00C8C8}
+.res-tag-impots{background:rgba(100,150,255,.1);color:#7DC8FF}
+.res-tag-gouv{background:rgba(0,200,160,.1);color:#00C8A0}
+.res-tag-aide{background:rgba(180,100,255,.1);color:#C87DFF}
+.res-tag-social{background:rgba(255,160,60,.1);color:#FFA03C}
+.res-arrow{font-size:16px;color:rgba(255,255,255,.2);transition:all .18s}
+.res-card-title{font-family:'Playfair Display',serif;font-size:14px;color:#E8F4F8;margin-bottom:8px;line-height:1.3}
+.res-card-desc{font-size:12px;color:rgba(255,255,255,.45);line-height:1.65;margin-bottom:10px}
+.res-card-url{font-size:11px;color:rgba(255,255,255,.25);font-family:monospace}
+.res-disclaimer{background:rgba(0,200,200,.05);border:1px solid rgba(0,200,200,.15);border-radius:14px;padding:1rem;font-size:12px;color:rgba(255,255,255,.45);line-height:1.7;margin-top:1rem}
+.res-disclaimer strong{color:#E8F4F8}
+
+/* ── FOOTER ── */
+.app-footer{text-align:center;padding:20px 20px 24px;font-size:11px;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.05);margin-top:2rem}
+.app-footer a{color:rgba(255,255,255,.2);text-decoration:none;margin:0 8px}
+
+/* ── WELCOME ── */
+.welcome-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
+.welcome-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:#E8F4F8}
+.welcome-sub{font-size:14px;color:rgba(255,255,255,.4);margin-top:4px}
+.next-decl{background:#112338;border:1px solid rgba(0,200,200,.2);border-radius:14px;padding:14px 18px;text-align:right}
+.next-decl-label{font-size:10px;color:rgba(255,255,255,.35);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.next-decl-date{font-family:'Playfair Display',serif;font-size:16px;color:#00C8C8}
 `
