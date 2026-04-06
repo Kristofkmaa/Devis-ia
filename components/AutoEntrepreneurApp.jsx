@@ -118,14 +118,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [histoAnnee, setHistoAnnee] = useState(String(new Date().getFullYear()))
 
   // Simulateur
-  const [simMode, setSimMode]         = useState(null)   
-  const [invNet, setInvNet]           = useState('')   
-  const [invJours, setInvJours]       = useState(20)   
-  const [invConges, setInvConges]     = useState(5)   
-  const [invResult, setInvResult]     = useState(null)   
-  const [reelCA, setReelCA]           = useState('')   
-  const [reelCharges, setReelCharges] = useState('')   
-  const [reelResult, setReelResult]   = useState(null)
+  const [simMode, setSimMode]         = useState('mensuel') // mensuel | annuel
   const [simCA, setSimCA]             = useState('')
   const [simMoisActifs, setSimMoisActifs] = useState(12)
   const [simVariation, setSimVariation]   = useState('stable') // stable | croissance | saisonnalite
@@ -531,8 +524,19 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
       {/* NAV */}
       <div className="nav-tabs">
-        {[['dashboard','🏠 Tableau de bord'],['calendrier','📅 Calendrier'],['revenus','💶 Mes revenus'],['simulateur','🧮 Calculs & Simulation'],['devis','📄 Devis'],['assistant','💬 Assistant IA'],['ressources','📚 Ressources']].map(([v,l])=>(
-          <button key={v} className={`nav-tab ${view===v?'active':''}`} onClick={()=>setView(v)}>{l}</button>
+        {[
+          ['dashboard','🏠','Accueil'],
+          ['calendrier','📅','Calendrier'],
+          ['revenus','💶','Revenus'],
+          ['simulateur','🧮','Calculs'],
+          ['devis','📄','Devis'],
+          ['assistant','💬','Assistant'],
+          ['ressources','📚','Ressources'],
+        ].map(([v,emoji,label])=>(
+          <button key={v} className={`nav-tab ${view===v?'active':''}`} onClick={()=>setView(v)}>
+            <span style={{display:'block',fontSize:18,lineHeight:1,marginBottom:2}}>{emoji}</span>
+            <span style={{fontSize:10,display:'block'}}>{label}</span>
+          </button>
         ))}
       </div>
 
@@ -692,7 +696,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 </div>
 
                 {/* Métriques dans le hero */}
-                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginTop:'1.5rem'}}>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10,marginTop:'1.25rem'}}>
                   {[
                     { label:'CA ce mois', val:`${caMois.toLocaleString('fr-FR')} €`, sub:`Net ~${Math.round(caMois*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €`, color:'#E8D5A8', onClick:()=>setView('revenus') },
                     { label:`CA ${year}`, val:`${caAnnuel.toLocaleString('fr-FR')} €`, sub:`URSSAF : ${Math.round(cotisAnnuel).toLocaleString('fr-FR')} €`, color:'#E8D5A8', onClick:()=>setView('revenus') },
@@ -721,7 +725,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           )}
 
           {/* ── LIGNE 2 : Seuils + Devis récents ── */}
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1rem'}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr',gap:'0.75rem',marginBottom:'0.75rem'}}>
 
             {/* Seuils */}
             <div className="card">
@@ -787,7 +791,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           </div>
 
           {/* ── LIGNE 3 : Revenus récents + Assistant ── */}
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1rem'}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr',gap:'0.75rem',marginBottom:'0.75rem'}}>
 
             {/* Revenus des derniers mois */}
             <div className="card">
@@ -1169,7 +1173,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           {/* Formulaire saisie */}
           <div className="card" style={{marginBottom:'1.5rem'}}>
             <div className="card-title">Saisir un mois</div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr auto',gap:12,alignItems:'flex-end',flexWrap:'wrap'}}>
+            <div style={{display:'flex',flexDirection:'column',gap:10,flexWrap:'wrap'}}>
               <div>
                 <span className="mini-label">Mois</span>
                 <select className="mini-input" value={revMoisNum} onChange={e=>setRevMoisNum(e.target.value)}>
@@ -1193,7 +1197,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   onKeyDown={e=>e.key==='Enter'&&saveRevenu()}
                   placeholder="3 500"/>
               </div>
-              <button className="btn btn-dark" onClick={saveRevenu} disabled={savingRev} style={{whiteSpace:'nowrap'}}>
+              <button className="btn btn-dark" onClick={saveRevenu} disabled={savingRev} style={{whiteSpace:'nowrap',width:'100%',padding:'14px'}}>
                 {savingRev?'Sauvegarde…':'Enregistrer →'}
               </button>
             </div>
@@ -1442,7 +1446,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           ) : (
             <>
               {/* Sélecteur de mode — 2 grandes cartes */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:'2rem'}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:'1.5rem'}}>
                 <div
                   onClick={()=>setSimMode('rapide')}
                   style={{
@@ -1620,7 +1624,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               {/* Formulaire */}
               <div className="card" style={{marginBottom:'1.5rem'}}>
                 <div className="card-title">Paramètres de simulation</div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,flexWrap:'wrap'}}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr',gap:12}}>
                   <div>
                     <span className="mini-label">Mode de saisie</span>
                     <select className="mini-input" value={simMode} onChange={e=>setSimMode(e.target.value)}>
@@ -1703,7 +1707,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 return (
                   <>
                     {/* Récap cartes */}
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:'1.5rem'}}>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:'1.25rem'}}>
                       <div style={{background:'#1C1710',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
                         <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.5)',marginBottom:6}}>CA Total</div>
                         <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#fff'}}>{totCA.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
@@ -1972,7 +1976,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       </div>
 
                       {/* Grille détails */}
-                      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:'1.25rem'}}>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr',gap:10,marginBottom:'1rem'}}>
                         <div style={{background:'#FAF3E0',border:'1px solid #E8D5A8',borderRadius:16,padding:'1rem',textAlign:'center'}}>
                           <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'#A89878',marginBottom:6}}>TJM conseillé</div>
                           <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:'#B5792A'}}>{Math.ceil(invResult.tjm).toLocaleString('fr-FR')} €</div>
@@ -2240,7 +2244,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
           {/* Stats rapides */}
           {devis.length > 0 && (
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:'1.5rem'}}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:'1.25rem'}}>
               {[
                 ['Total devis',devis.length,'#1C1710','#FFFDF8'],
                 ['En attente',devis.filter(d=>d.statut==='en_attente').length,'#B5792A','#FAF3E0'],
@@ -2583,19 +2587,28 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 }
 
 const CSS = `
-.app-bar{background:#1C1710;height:58px;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
-.logo{font-family:'Playfair Display',serif;font-size:21px;color:#fff}
-.bar-right{display:flex;align-items:center;gap:10px}
-.user-tag{font-size:12px;color:rgba(255,255,255,0.5)}
-.btn-profile{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:6px 14px;cursor:pointer;color:#fff;font-size:12px;font-family:'Outfit',sans-serif;font-weight:500}
-.btn-profile:hover{background:rgba(255,255,255,0.15)}
-.btn-logout{font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif}
-.btn-logout:hover{color:rgba(255,255,255,0.7)}
-.nav-tabs{background:#1C1710;border-top:1px solid rgba(255,255,255,0.1);display:flex;padding:0 1rem;gap:2px;flex-wrap:wrap}
-.nav-tab{padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;color:rgba(255,255,255,0.5);border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;transition:all 0.15s;white-space:nowrap}
+/* ── BASE ── */
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+html{font-size:16px}
+body{overflow-x:hidden;background:#F6F0E4}
+
+/* ── APP BAR ── */
+.app-bar{background:#1C1710;height:56px;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.logo{font-family:'Playfair Display',serif;font-size:20px;color:#fff;flex-shrink:0}
+.bar-right{display:flex;align-items:center;gap:8px}
+.user-tag{font-size:11px;color:rgba(255,255,255,0.5);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-profile{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:6px 12px;cursor:pointer;color:#fff;font-size:12px;font-family:'Outfit',sans-serif;font-weight:500;white-space:nowrap}
+.btn-logout{font-size:12px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;padding:6px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+
+/* ── NAV TABS — barre fixe en bas sur mobile ── */
+.nav-tabs{background:#1C1710;border-top:1px solid rgba(255,255,255,0.1);display:flex;padding:0;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:sticky;top:56px;z-index:199}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{padding:10px 14px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;color:rgba(255,255,255,0.5);border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;transition:all 0.15s;white-space:nowrap;flex-shrink:0;min-height:44px}
 .nav-tab.active{color:#fff;border-bottom-color:#E8D5A8}
-.nav-tab:hover{color:rgba(255,255,255,0.8)}
-.main{max-width:900px;margin:0 auto;padding:2rem 1.5rem 5rem}
+
+/* ── MAIN ── */
+.main{max-width:900px;margin:0 auto;padding:1rem 0.875rem 6rem}
+@media(min-width:600px){.main{padding:1.5rem 1.5rem 5rem}}
 .welcome-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.75rem;flex-wrap:wrap;gap:1rem}
 .welcome-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:600;color:#1C1710}
 .welcome-sub{font-size:14px;color:#6B5E45;margin-top:4px}
@@ -2603,12 +2616,12 @@ const CSS = `
 .next-decl-label{font-size:11px;color:#A89878;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
 .next-decl-date{font-family:'Playfair Display',serif;font-size:16px;color:#B5792A}
 .metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
-@media(max-width:700px){.metrics-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.metrics-grid{grid-template-columns:1fr 1fr}}
 .metric-card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1.1rem 1.25rem}
 .metric-label{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#A89878;margin-bottom:8px}
 .metric-value{font-family:'Playfair Display',serif;font-size:24px;color:#1C1710;margin-bottom:4px}
 .metric-sub{font-size:11px;color:#A89878}
-.card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:20px;padding:1.5rem;box-shadow:0 2px 16px rgba(28,23,16,.06)}
+.card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1rem;box-shadow:0 2px 12px rgba(28,23,16,.06)}@media(min-width:600px){.card{border-radius:20px;padding:1.5rem}}
 .card-title{font-family:'Playfair Display',serif;font-size:17px;margin-bottom:1rem;color:#1C1710}
 .seuil-item{} .seuil-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .seuil-label{font-size:13px;color:#6B5E45;font-weight:500} .seuil-val{font-size:12px;color:#A89878}
@@ -2616,10 +2629,10 @@ const CSS = `
 .progress-fill{height:100%;border-radius:20px;transition:width .5s ease}
 .seuil-alert{font-size:12px;color:#8B1A1A;background:#FFF3F3;border:1px solid #FFCACA;border-radius:8px;padding:8px 12px;margin-top:8px}
 .page-header{margin-bottom:1.75rem}
-.page-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:#1C1710;margin-bottom:4px}
+.page-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:#1C1710;margin-bottom:4px}@media(min-width:600px){.page-title{font-size:26px}}
 .page-sub{font-size:14px;color:#6B5E45}
 .cal-list{display:flex;flex-direction:column;gap:10px}
-.cal-card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1.1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.cal-card{background:#FFFDF8;border:1px solid #E2D8C4;border-radius:14px;padding:0.875rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap}
 .cal-current{border-color:#B5792A;background:#FAF3E0} .cal-special{border-style:dashed} .cal-past{opacity:.65}
 .cal-left{display:flex;align-items:center;gap:14px} .cal-right{flex-shrink:0}
 .cal-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
@@ -2630,7 +2643,7 @@ const CSS = `
 .info-box{background:#EEF4FF;border:1px solid #C3D8F8;border-radius:14px;padding:1.1rem 1.25rem}
 .info-title{font-size:13px;font-weight:600;color:#1A4A8A;margin-bottom:8px} .info-text{font-size:13px;color:#1A4A8A;line-height:1.8}
 .mini-label{font-size:11px;font-weight:600;letter-spacing:.5px;color:#6B5E45;display:block;margin-bottom:5px;text-transform:uppercase}
-.mini-input{padding:9px 12px;border-radius:10px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;font-family:'Outfit',sans-serif;font-size:13px;width:100%}
+.mini-input{padding:11px 14px;border-radius:12px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;font-family:'Outfit',sans-serif;font-size:16px;width:100%;-webkit-appearance:none}
 .mini-input:focus{outline:none;border-color:#B5792A;background:#fff}
 .rev-table{width:100%;border-collapse:collapse;font-size:13px}
 .rev-table thead th{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#A89878;padding:0 0 10px;text-align:left;border-bottom:1px solid #E2D8C4}
@@ -2640,7 +2653,7 @@ const CSS = `
 .rev-table tbody td:not(:first-child){text-align:right}
 .rev-total{border-top:1.5px solid #1C1710!important;font-weight:600}
 .calc-result{} .calc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1rem}
-@media(max-width:700px){.calc-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.calc-grid{grid-template-columns:1fr 1fr}}
 .calc-card{border-radius:16px;padding:1.1rem 1.25rem;border:1px solid transparent}
 .main-card{background:#1C1710;color:#fff;border-color:#1C1710} .main-card .calc-label{color:rgba(255,255,255,.6)} .main-card .calc-big{color:#fff}
 .red-card{background:#FFF3F3;border-color:#FFCACA} .red-card .calc-big{color:#8B1A1A}
@@ -2652,10 +2665,10 @@ const CSS = `
 .calc-sub{font-size:11px;color:#A89878;line-height:1.5}
 .chips-hint{font-size:11px;color:#A89878;font-weight:500;margin-bottom:10px;display:block}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
-.chip{font-size:12px;padding:5px 14px;border-radius:30px;border:1px solid #E2D8C4;background:#FBF8F1;color:#6B5E45;cursor:pointer;transition:all .16s}
+.chip{font-size:13px;padding:8px 14px;border-radius:30px;border:1px solid #E2D8C4;background:#FBF8F1;color:#6B5E45;cursor:pointer;transition:all .16s;min-height:36px;display:inline-flex;align-items:center}
 .chip:hover{background:#FAF3E0;border-color:#E8D5A8;color:#B5792A}
 .input-wrap{position:relative}
-textarea{width:100%;resize:none;font-family:'Outfit',sans-serif;font-size:14px;font-weight:300;padding:13px 15px 52px;border-radius:13px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;line-height:1.65;min-height:95px}
+textarea{width:100%;resize:none;font-family:'Outfit',sans-serif;font-size:16px;font-weight:300;padding:13px 15px 52px;border-radius:13px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;line-height:1.65;min-height:100px;-webkit-appearance:none}
 textarea:focus{outline:none;border-color:#B5792A;background:#fff} textarea::placeholder{color:#A89878}
 .btn-gen{position:absolute;bottom:11px;right:11px;padding:9px 20px;border-radius:10px;border:none;background:#1C1710;color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif}
 .btn-gen:hover{background:#B5792A} .btn-gen:disabled{background:#ccc;cursor:not-allowed}
@@ -2671,19 +2684,19 @@ textarea:focus{outline:none;border-color:#B5792A;background:#fff} textarea::plac
 .link-btn{background:none;border:none;color:#B5792A;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:8px;padding:0}
 .link-btn:hover{text-decoration:underline}
 .empty-state{text-align:center;padding:4rem 2rem} .empty-state h3{font-family:'Playfair Display',serif;font-size:20px;color:#6B5E45;margin-bottom:1rem}
-.overlay{display:none;position:fixed;inset:0;background:rgba(28,23,16,.6);z-index:300;align-items:center;justify-content:center;padding:1rem;overflow-y:auto}
+.overlay{display:none;position:fixed;inset:0;background:rgba(28,23,16,.6);z-index:300;align-items:flex-start;justify-content:center;padding:0.5rem;overflow-y:auto}@media(min-width:480px){.overlay{align-items:center;padding:1rem}}
 .overlay.show{display:flex}
-.modal{background:#FFFDF8;border-radius:20px;padding:2rem;width:100%;max-width:620px;box-shadow:0 20px 60px rgba(28,23,16,.25);animation:pop .3s cubic-bezier(.16,1,.3,1);margin:auto}
+.modal{background:#FFFDF8;border-radius:20px;padding:1.25rem;width:100%;max-width:620px;box-shadow:0 20px 60px rgba(28,23,16,.25);animation:pop .3s cubic-bezier(.16,1,.3,1);margin:auto}@media(min-width:480px){.modal{padding:2rem}}
 @keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 .modal-title{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:6px;color:#1C1710}
 .modal-sub{font-size:13px;color:#6B5E45;margin-bottom:1.25rem;line-height:1.5}
 .prof-section-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#B5792A;margin:1.25rem 0 .75rem;padding-bottom:6px;border-bottom:1px solid #FAF3E0}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:.5rem} .form-grid .full{grid-column:1/-1}
+.form-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:.5rem} .form-grid .full{grid-column:1/-1}@media(min-width:480px){.form-grid{grid-template-columns:1fr 1fr}}
 .field label{font-size:11px;font-weight:600;letter-spacing:.6px;color:#6B5E45;display:block;margin-bottom:5px;text-transform:uppercase}
-.field input,.field select{width:100%;padding:10px 13px;border-radius:10px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;font-family:'Outfit',sans-serif;font-size:13px}
+.field input,.field select{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid #E2D8C4;background:#FBF8F1;color:#1C1710;font-family:'Outfit',sans-serif;font-size:16px;-webkit-appearance:none}
 .field input:focus,.field select:focus{outline:none;border-color:#B5792A;background:#fff} .field input::placeholder{color:#A89878}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:1.5rem}
-.btn{padding:10px 20px;font-size:13px;font-weight:500;border-radius:10px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .17s}
+.btn{padding:12px 20px;font-size:14px;font-weight:500;border-radius:12px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .17s;min-height:44px}
 .btn-ghost{background:transparent;border:1px solid #E2D8C4;color:#6B5E45} .btn-ghost:hover{background:#F6F0E4}
 .btn-dark{background:#1C1710;border:none;color:#fff} .btn-dark:hover{background:#B5792A}
 .btn-amber{background:#FAF3E0;border:1px solid #E8D5A8;color:#B5792A} .btn-amber:hover{background:#B5792A;color:#fff}
@@ -2692,7 +2705,7 @@ textarea:focus{outline:none;border-color:#B5792A;background:#fff} textarea::plac
 .res-section-title{display:flex;align-items:center;gap:12px;font-family:'Playfair Display',serif;font-size:18px;color:#1C1710;margin-bottom:1rem;font-weight:600}
 .res-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media(max-width:700px){.res-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.res-grid{grid-template-columns:1fr}}
 .res-card{display:block;background:#FFFDF8;border:1px solid #E2D8C4;border-radius:16px;padding:1.1rem 1.25rem;text-decoration:none;color:inherit;transition:all .18s}
 .res-card:hover{border-color:#B5792A;box-shadow:0 4px 20px rgba(181,121,42,.12);transform:translateY(-2px)}
 .res-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
@@ -2705,6 +2718,6 @@ textarea:focus{outline:none;border-color:#B5792A;background:#fff} textarea::plac
 .res-card-url{font-size:11px;color:#A89878;font-family:monospace} .res-card:hover .res-card-url{color:#B5792A}
 .res-disclaimer{background:#F6F0E4;border:1px solid #E2D8C4;border-radius:14px;padding:1rem 1.25rem;font-size:12px;color:#6B5E45;line-height:1.7;margin-top:1rem}
 .res-disclaimer strong{color:#1C1710}
-.app-footer{text-align:center;padding:24px 20px;font-size:11px;color:#A89878;border-top:1px solid #F0EBE0;margin-top:2rem}
+.app-footer{text-align:center;padding:24px 20px 40px;font-size:11px;color:#A89878;border-top:1px solid #F0EBE0;margin-top:2rem}
 .app-footer a{color:#A89878;text-decoration:none;margin:0 10px}.app-footer a:hover{color:#B5792A}
 `
