@@ -118,7 +118,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [histoAnnee, setHistoAnnee] = useState(String(new Date().getFullYear()))
 
   // Simulateur
-  const [simMode, setSimMode]         = useState('mensuel') // mensuel | annuel
+  const [simMode, setSimMode]         = useState(null)
+  const [invNet, setInvNet]           = useState('')
+  const [invJours, setInvJours]       = useState(20)
+  const [invConges, setInvConges]     = useState(5)
+  const [invResult, setInvResult]     = useState(null)
   const [simCA, setSimCA]             = useState('')
   const [simMoisActifs, setSimMoisActifs] = useState(12)
   const [simVariation, setSimVariation]   = useState('stable') // stable | croissance | saisonnalite
