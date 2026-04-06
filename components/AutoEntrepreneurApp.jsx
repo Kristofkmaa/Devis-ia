@@ -118,11 +118,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [histoAnnee, setHistoAnnee] = useState(String(new Date().getFullYear()))
 
   // Simulateur
-  const [simMode, setSimMode]         = useState(null)
-  const [invNet, setInvNet]           = useState('')
-  const [invJours, setInvJours]       = useState(20)
-  const [invConges, setInvConges]     = useState(5)
-  const [invResult, setInvResult]     = useState(null)
+  const [simMode, setSimMode]         = useState('mensuel') // mensuel | annuel
   const [simCA, setSimCA]             = useState('')
   const [simMoisActifs, setSimMoisActifs] = useState(12)
   const [simVariation, setSimVariation]   = useState('stable') // stable | croissance | saisonnalite
@@ -1439,26 +1435,26 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           ) : (
             <>
               {/* Sélecteur de mode — 2 grandes cartes */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:'2rem'}}>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:'2rem'}}>
                 <div
                   onClick={()=>setSimMode('rapide')}
                   style={{
-                    background: simMode==='rapide' ? '#1C1710' : '#FFFDF8',
-                    border: simMode==='rapide' ? '2px solid #1C1710' : '2px solid #E2D8C4',
+                    background: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '#1C1710' : '#FFFDF8',
+                    border: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '2px solid #1C1710' : '2px solid #E2D8C4',
                     borderRadius:20, padding:'1.75rem', cursor:'pointer', transition:'all .2s',
-                    boxShadow: simMode==='rapide' ? '0 8px 32px rgba(28,23,16,.2)' : '0 2px 12px rgba(28,23,16,.05)'
+                    boxShadow: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '0 8px 32px rgba(28,23,16,.2)' : '0 2px 12px rgba(28,23,16,.05)'
                   }}
                 >
                   <div style={{fontSize:36,marginBottom:12}}>⚡</div>
                   <div style={{
                     fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600,marginBottom:8,
-                    color: simMode==='rapide' ? '#fff' : '#1C1710'
+                    color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '#fff' : '#1C1710'
                   }}>Calcul rapide</div>
                   <div style={{
                     fontSize:13,lineHeight:1.6,
-                    color: simMode==='rapide' ? 'rgba(255,255,255,.65)' : '#6B5E45'
+                    color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? 'rgba(255,255,255,.65)' : '#6B5E45'
                   }}>Tu as encaissé un paiement ?<br/>Calcule instantanément ce que tu dois mettre de côté.</div>
-                  {(simMode==='rapide') && (
+                  {(simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel') && (
                     <div style={{marginTop:14,display:'inline-block',background:'#B5792A',color:'#fff',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
                   )}
                 </div>
@@ -1497,6 +1493,22 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='inverse'?'#fff':'#1C1710'}}>Calculateur inversé</div>
                   <div style={{fontSize:13,lineHeight:1.6,color:simMode==='inverse'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu veux X€ nets par mois ?<br/>Calcule exactement combien tu dois facturer.</div>
                   {simMode==='inverse' && (
+                    <div style={{marginTop:14,display:'inline-block',background:'#B5792A',color:'#fff',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
+                  )}
+                </div>
+                <div
+                  onClick={()=>setSimMode('reel')}
+                  style={{
+                    background: simMode==='reel' ? '#1C1710' : '#FFFDF8',
+                    border: simMode==='reel' ? '2px solid #1C1710' : '2px solid #E2D8C4',
+                    borderRadius:20, padding:'1.75rem', cursor:'pointer', transition:'all .2s',
+                    boxShadow: simMode==='reel' ? '0 8px 32px rgba(28,23,16,.2)' : '0 2px 12px rgba(28,23,16,.05)'
+                  }}
+                >
+                  <div style={{fontSize:36,marginBottom:12}}>⚖️</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='reel'?'#fff':'#1C1710'}}>Micro vs Réel</div>
+                  <div style={{fontSize:13,lineHeight:1.6,color:simMode==='reel'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu approches du plafond ?<br/>Compare concrètement micro-entreprise et régime réel.</div>
+                  {simMode==='reel' && (
                     <div style={{marginTop:14,display:'inline-block',background:'#B5792A',color:'#fff',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
                   )}
                 </div>
@@ -1999,6 +2011,205 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   )}
                 </div>
               )}
+              {/* ── MODE MICRO VS RÉEL ── */}
+              {simMode==='reel' && (() => {
+                const plafond = profil.secteur==='ventes' ? SEUILS.plafond_ventes : SEUILS.plafond_services
+                const seuil_tva = profil.secteur==='ventes' ? SEUILS.tva_ventes : SEUILS.tva_services
+                const tauxU = profil.acre ? TAUX_ACRE[profil.secteur] : TAUX[profil.secteur]
+                const tauxI = (parseFloat(profil.taux_impot_perso)||14)/100
+
+                const calcReel = () => {
+                  const ca = parseFloat(reelCA)||0
+                  const charges = parseFloat(reelCharges)||0
+                  if (!ca) return
+
+                  // ── MICRO ──
+                  const micro_cotis = ca * tauxU
+                  const micro_impots = ca * tauxI
+                  const micro_net = ca - micro_cotis - micro_impots
+
+                  // ── RÉEL ──
+                  // Au réel : cotisations sur le bénéfice (~45% du bénéfice)
+                  // Bénéfice = CA - charges
+                  const benefice = Math.max(ca - charges, 0)
+                  // Cotisations TNS au réel ≈ 45% du bénéfice (simplifié)
+                  const reel_cotis = benefice * 0.45
+                  // Bénéfice imposable = bénéfice - cotisations
+                  const benefice_imposable = Math.max(benefice - reel_cotis, 0)
+                  const reel_impots = benefice_imposable * tauxI
+                  const reel_net = benefice - reel_cotis - reel_impots
+
+                  setReelResult({ ca, charges, benefice, micro_cotis, micro_impots, micro_net, reel_cotis, reel_impots, reel_net, tauxU, tauxI })
+                }
+
+                return (
+                  <>
+                    {/* Alerte seuil */}
+                    <div style={{background:caAnnuel > plafond*0.85 ? '#FFF3F3' : '#FAF3E0', border:`1px solid ${caAnnuel > plafond*0.85 ? '#FFCACA' : '#E8D5A8'}`,borderRadius:14,padding:'14px 18px',marginBottom:'1.5rem',display:'flex',gap:14,alignItems:'flex-start'}}>
+                      <span style={{fontSize:24,flexShrink:0}}>{caAnnuel > plafond*0.85 ? '⚠️' : 'ℹ️'}</span>
+                      <div>
+                        <div style={{fontSize:14,fontWeight:600,color:'#1C1710',marginBottom:4}}>
+                          {caAnnuel > plafond*0.85 ? 'Tu approches du plafond micro-entreprise !' : 'Simule le passage au régime réel'}
+                        </div>
+                        <div style={{fontSize:13,color:'#6B5E45',lineHeight:1.7}}>
+                          Ton CA actuel : <strong>{caAnnuel.toLocaleString('fr-FR')} €</strong> / Plafond : <strong>{plafond.toLocaleString('fr-FR')} €</strong> ({Math.round((caAnnuel/plafond)*100)}% atteint)
+                          <br/>Si tu dépasses ce plafond 2 années consécutives, tu bascules automatiquement au régime réel.
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Formulaire */}
+                    <div className="card" style={{marginBottom:'1.5rem'}}>
+                      <div className="card-title">Paramètres de comparaison</div>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:'1rem'}}>
+                        <div>
+                          <span className="mini-label">CA annuel (€)</span>
+                          <input className="mini-input" type="number" value={reelCA}
+                            onChange={e=>setReelCA(e.target.value)}
+                            placeholder={caAnnuel > 0 ? String(Math.round(caAnnuel)) : '80 000'}
+                            style={{fontSize:16,padding:'11px 14px'}}/>
+                          <div style={{fontSize:11,color:'#A89878',marginTop:4}}>Ton CA actuel cette année : {caAnnuel.toLocaleString('fr-FR')} €</div>
+                        </div>
+                        <div>
+                          <span className="mini-label">Charges professionnelles (€/an)</span>
+                          <input className="mini-input" type="number" value={reelCharges}
+                            onChange={e=>setReelCharges(e.target.value)}
+                            placeholder="15 000"
+                            style={{fontSize:16,padding:'11px 14px'}}/>
+                          <div style={{fontSize:11,color:'#A89878',marginTop:4}}>Loyer, matériel, logiciels, déplacements…</div>
+                        </div>
+                      </div>
+                      <button className="btn btn-dark" style={{padding:'12px 28px'}} onClick={calcReel}>
+                        Comparer →
+                      </button>
+                    </div>
+
+                    {reelResult && (
+                      <>
+                        {/* Comparaison principale */}
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:'1.5rem'}}>
+                          {/* MICRO */}
+                          <div style={{background:'#FAF3E0',border:'2px solid #E8D5A8',borderRadius:20,padding:'1.5rem'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:'1rem'}}>
+                              <div style={{background:'#B5792A',color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>Régime actuel</div>
+                              <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:'#1C1710'}}>Micro-entreprise</div>
+                            </div>
+                            <div style={{fontSize:12,color:'#6B5E45',marginBottom:'1rem',lineHeight:1.6}}>
+                              Cotisations calculées sur le <strong>CA brut</strong> ({(reelResult.tauxU*100).toFixed(1)}%), pas sur le bénéfice.
+                            </div>
+                            {[
+                              {label:'CA encaissé',val:reelResult.ca,color:'#1C1710'},
+                              {label:`Cotisations URSSAF (${(reelResult.tauxU*100).toFixed(1)}% du CA)`,val:reelResult.micro_cotis,color:'#8B1A1A',neg:true},
+                              {label:`Impôts (~${Math.round(reelResult.tauxI*100)}% du CA)`,val:reelResult.micro_impots,color:'#7A3A0A',neg:true},
+                            ].map(({label,val,color,neg})=>(
+                              <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #F0E8D5',fontSize:13}}>
+                                <span style={{color:'#6B5E45'}}>{label}</span>
+                                <span style={{color,fontWeight:600}}>{neg?'−':''}{Math.round(val).toLocaleString('fr-FR')} €</span>
+                              </div>
+                            ))}
+                            <div style={{display:'flex',justifyContent:'space-between',padding:'12px 0',marginTop:4}}>
+                              <span style={{fontSize:14,fontWeight:600,color:'#1C1710'}}>Net estimé</span>
+                              <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:reelResult.micro_net>0?'#2D7A4F':'#8B1A1A'}}>{Math.round(reelResult.micro_net).toLocaleString('fr-FR')} €</span>
+                            </div>
+                            <div style={{fontSize:11,color:'#A89878',marginTop:4}}>
+                              Taux global réel : {Math.round(((reelResult.micro_cotis+reelResult.micro_impots)/reelResult.ca)*100)}% du CA
+                            </div>
+                          </div>
+
+                          {/* RÉEL */}
+                          <div style={{background:'#EEF4FF',border:'2px solid #C3D8F8',borderRadius:20,padding:'1.5rem'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:'1rem'}}>
+                              <div style={{background:'#1A4A8A',color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>Régime réel</div>
+                              <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:'#1C1710'}}>EI au réel simplifié</div>
+                            </div>
+                            <div style={{fontSize:12,color:'#1A4A8A',marginBottom:'1rem',lineHeight:1.6}}>
+                              Cotisations calculées sur le <strong>bénéfice net</strong> (CA − charges). Tu déduis tes dépenses pro.
+                            </div>
+                            {[
+                              {label:'CA encaissé',val:reelResult.ca,color:'#1C1710'},
+                              {label:'Charges déductibles',val:reelResult.charges,color:'#2D7A4F',neg:true},
+                              {label:'Bénéfice net',val:reelResult.benefice,color:'#1A4A8A',bold:true},
+                              {label:'Cotisations TNS (~45% bénéfice)',val:reelResult.reel_cotis,color:'#8B1A1A',neg:true},
+                              {label:`Impôts (~${Math.round(reelResult.tauxI*100)}% bénéfice imposable)`,val:reelResult.reel_impots,color:'#7A3A0A',neg:true},
+                            ].map(({label,val,color,neg,bold})=>(
+                              <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #D4E8FF',fontSize:13}}>
+                                <span style={{color:'#6B5E45',fontWeight:bold?600:400}}>{label}</span>
+                                <span style={{color,fontWeight:bold?700:600}}>{neg?'−':''}{Math.round(val).toLocaleString('fr-FR')} €</span>
+                              </div>
+                            ))}
+                            <div style={{display:'flex',justifyContent:'space-between',padding:'12px 0',marginTop:4}}>
+                              <span style={{fontSize:14,fontWeight:600,color:'#1C1710'}}>Net estimé</span>
+                              <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:reelResult.reel_net>0?'#2D7A4F':'#8B1A1A'}}>{Math.round(reelResult.reel_net).toLocaleString('fr-FR')} €</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Verdict */}
+                        {(() => {
+                          const diff = reelResult.reel_net - reelResult.micro_net
+                          const mieux = diff > 0 ? 'réel' : 'micro'
+                          return (
+                            <div style={{background:'#1C1710',borderRadius:20,padding:'1.5rem',marginBottom:'1.5rem',textAlign:'center',position:'relative',overflow:'hidden'}}>
+                              <div style={{position:'absolute',top:-40,right:-40,width:180,height:180,borderRadius:'50%',background:'rgba(181,121,42,.12)'}}/>
+                              <div style={{position:'relative',zIndex:1}}>
+                                <div style={{fontSize:13,color:'rgba(255,255,255,.5)',marginBottom:8}}>Verdict pour ton cas</div>
+                                {Math.abs(diff) < 500 ? (
+                                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:'#E8D5A8',marginBottom:8}}>Les deux régimes sont équivalents</div>
+                                ) : (
+                                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:'#E8D5A8',marginBottom:8}}>
+                                    Le régime {mieux==='reel'?'réel':'micro'} te rapporte <span style={{color:'#B5792A'}}>{Math.abs(Math.round(diff)).toLocaleString('fr-FR')} € de plus</span> par an
+                                  </div>
+                                )}
+                                <div style={{fontSize:12,color:'rgba(255,255,255,.4)',lineHeight:1.7,maxWidth:600,margin:'0 auto'}}>
+                                  {mieux==='reel'
+                                    ? 'Le régime réel est plus avantageux si tu as des charges importantes à déduire. Mais attention : il implique une comptabilité obligatoire et des obligations administratives plus lourdes.'
+                                    : 'Le régime micro reste plus avantageux dans ton cas grâce à sa simplicité. Pas de comptabilité complexe, pas de charges à justifier.'}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })()}
+
+                        {/* Ce qui change concrètement */}
+                        <div className="card" style={{marginBottom:'1.5rem'}}>
+                          <div className="card-title">Ce qui change concrètement si tu passes au réel</div>
+                          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                            {[
+                              {emoji:'📊',titre:'Comptabilité obligatoire',micro:'Aucune — tu déclares juste ton CA',reel:'Livre de comptes, bilan annuel, bilan comptable — souvent avec un comptable (~1 000-2 000€/an)'},
+                              {emoji:'💰',titre:'Calcul des cotisations',micro:`${(reelResult.tauxU*100).toFixed(1)}% de ton CA brut, même si tu as des charges`,reel:'~45% de ton bénéfice (CA − charges). Beaucoup plus avantageux si tu as des dépenses pro.'},
+                              {emoji:'🧾',titre:'Déduction des charges',micro:'Impossible — abattement forfaitaire seulement',reel:'Toutes les dépenses pro déductibles : loyer, matériel, logiciels, véhicule, formation…'},
+                              {emoji:'📋',titre:'TVA',micro:'Franchise si sous les seuils (36 800€ services)',reel:'TVA obligatoire — tu la collectes et la reverses. Tu récupères aussi la TVA sur tes achats.'},
+                              {emoji:'⚙️',titre:'Complexité administrative',micro:'Simple — une déclaration mensuelle ou trimestrielle',reel:'Plus complexe — liasse fiscale, déclarations TVA, DSN si salarié'},
+                              {emoji:'📈',titre:'Optimisation fiscale',micro:'Limitée — taux fixe sur le CA',reel:'Beaucoup plus de leviers : amortissements, provisions, optimisation de la rémunération'},
+                            ].map(({emoji,titre,micro,reel})=>(
+                              <div key={titre} style={{border:'1px solid #E2D8C4',borderRadius:14,overflow:'hidden'}}>
+                                <div style={{background:'#F6F0E4',padding:'10px 14px',display:'flex',alignItems:'center',gap:8}}>
+                                  <span style={{fontSize:18}}>{emoji}</span>
+                                  <span style={{fontSize:13,fontWeight:600,color:'#1C1710'}}>{titre}</span>
+                                </div>
+                                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr'}}>
+                                  <div style={{padding:'10px 14px',borderRight:'1px solid #E2D8C4',background:'#FFFDF8'}}>
+                                    <div style={{fontSize:10,fontWeight:600,color:'#B5792A',letterSpacing:'1px',textTransform:'uppercase',marginBottom:4}}>Micro-entreprise</div>
+                                    <div style={{fontSize:12,color:'#6B5E45',lineHeight:1.6}}>{micro}</div>
+                                  </div>
+                                  <div style={{padding:'10px 14px',background:'#F5F9FF'}}>
+                                    <div style={{fontSize:10,fontWeight:600,color:'#1A4A8A',letterSpacing:'1px',textTransform:'uppercase',marginBottom:4}}>Régime réel</div>
+                                    <div style={{fontSize:12,color:'#1A4A8A',lineHeight:1.6}}>{reel}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div style={{fontSize:11,color:'#A89878',background:'#F6F0E4',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
+                          ⚠️ <strong style={{color:'#1C1710'}}>Simulation indicative</strong> — Le taux TNS de 45% est une approximation. Le régime réel est complexe et dépend fortement de ta situation personnelle. Consulte un expert-comptable avant de prendre cette décision.
+                        </div>
+                      </>
+                    )}
+                  </>
+                )
+              })()}
             </>
           )}
         </div>
