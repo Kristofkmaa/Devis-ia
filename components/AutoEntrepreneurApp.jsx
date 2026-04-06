@@ -1444,21 +1444,21 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   onClick={()=>setSimMode('rapide')}
                   style={{
                     background: simMode==='rapide' ? '#1C1710' : '#FFFDF8',
-                    border: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '2px solid #1C1710' : '2px solid #E2D8C4',
+                    border: simMode==='rapide' ? '2px solid #1C1710' : '2px solid #E2D8C4',
                     borderRadius:20, padding:'1.75rem', cursor:'pointer', transition:'all .2s',
-                    boxShadow: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '0 8px 32px rgba(28,23,16,.2)' : '0 2px 12px rgba(28,23,16,.05)'
+                    boxShadow: simMode==='rapide' ? '0 8px 32px rgba(28,23,16,.2)' : '0 2px 12px rgba(28,23,16,.05)'
                   }}
                 >
                   <div style={{fontSize:36,marginBottom:12}}>⚡</div>
                   <div style={{
                     fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600,marginBottom:8,
-                    color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '#fff' : '#1C1710'
+                    color: simMode==='rapide' ? '#fff' : '#1C1710'
                   }}>Calcul rapide</div>
                   <div style={{
                     fontSize:13,lineHeight:1.6,
-                    color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? 'rgba(255,255,255,.65)' : '#6B5E45'
+                    color: simMode==='rapide' ? 'rgba(255,255,255,.65)' : '#6B5E45'
                   }}>Tu as encaissé un paiement ?<br/>Calcule instantanément ce que tu dois mettre de côté.</div>
-                  {(simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel') && (
+                  {(simMode==='rapide') && (
                     <div style={{marginTop:14,display:'inline-block',background:'#B5792A',color:'#fff',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
                   )}
                 </div>
