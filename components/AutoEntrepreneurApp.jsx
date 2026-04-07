@@ -134,14 +134,18 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     const onScroll = () => {
       if (!bgRef.current) return
       const s = window.scrollY
-      // One large unified wash that slowly drifts — no visible blobs
-      const cx = 38 + s * 0.004   // center drifts very slowly right
-      const cy = 42 - s * 0.006   // center rises gently as you scroll
+      // Intensité augmente légèrement au scroll → le fond "gagne" en profondeur
+      const intensity = Math.min(1 + s * 0.0004, 1.35)
+      const cx = 38 + s * 0.004
+      const cy = 42 - s * 0.006
+      const alpha1 = Math.min(0.62 * intensity, 0.82)
+      const alpha2 = Math.min(0.38 * intensity, 0.52)
+      const alpha3 = Math.min(0.28 * intensity, 0.42)
       bgRef.current.style.backgroundImage = [
-        // Main atmospheric wash — large, very soft
-        `radial-gradient(ellipse 140% 120% at ${cx}% ${cy}%, rgba(106,13,173,0.55) 0%, rgba(60,5,110,0.30) 40%, transparent 70%)`,
-        // Subtle cool edge — shifts in opposite direction
-        `radial-gradient(ellipse 80% 60% at ${98 - s*0.003}% ${90 + s*0.002}%, rgba(80,0,140,0.25) 0%, transparent 60%)`,
+        // Grande nappe principale — s'intensifie doucement au scroll
+        `radial-gradient(ellipse 140% 120% at ${cx}% ${cy}%, rgba(106,13,173,${alpha1.toFixed(2)}) 0%, rgba(60,5,110,${alpha2.toFixed(2)}) 45%, transparent 72%)`,
+        // Bord sombre qui s'épaissit → effet d'atténuation
+        `radial-gradient(ellipse 90% 70% at ${98 - s*0.003}% ${90 + s*0.002}%, rgba(50,0,90,${alpha3.toFixed(2)}) 0%, transparent 62%)`,
       ].join(',')
     }
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -712,7 +716,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
           {/* ── HERO ── */}
           {profil ? (
-            <div style={{background:'rgba(18,18,18,0.80)',backdropFilter:'blur(40px)',WebkitBackdropFilter:'blur(40px)',border:'1px solid rgba(255,255,255,0.20)',borderRadius:20,padding:'1.25rem',marginBottom:'1.5rem',position:'relative',overflow:'hidden'}}>
+            <div style={{background:'rgba(20,5,40,0.30)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',border:'1px solid rgba(255,255,255,0.18)',borderRadius:20,padding:'1.25rem',marginBottom:'1.5rem',position:'relative',overflow:'hidden'}}>
               {/* Décoration fond */}
               <div style={{position:'absolute',top:-40,right:-40,width:200,height:200,borderRadius:'50%',background:'rgba(243,130,255,0.08)',pointerEvents:'none'}}/>
               <div style={{position:'absolute',bottom:-60,right:80,width:140,height:140,borderRadius:'50%',background:'rgba(0,200,200,.04)',pointerEvents:'none'}}/>
@@ -724,7 +728,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     <p style={{fontSize:13,color:'rgba(255,255,255,.45)'}}>{profil.activite}</p>
                   </div>
                   {prochaineDecl && (
-                    <div style={{background:'rgba(18,18,18,0.80)',border:'1px solid rgba(255,255,255,0.18)',borderRadius:16,padding:'14px 18px',textAlign:'right'}}>
+                    <div style={{background:'rgba(20,5,40,0.30)',border:'1px solid rgba(255,255,255,0.18)',borderRadius:16,padding:'14px 18px',textAlign:'right'}}>
                       <div style={{fontSize:10,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:5}}>⏰ Prochaine déclaration</div>
                       <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,color:'#f382ff'}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
                       <div style={{fontSize:12,color:'rgba(255,255,255,.35)',marginTop:3}}>avant le {prochaineDecl.date_limite}</div>
@@ -741,7 +745,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     { label:'Taux URSSAF', val:`${profil?(taux*100).toFixed(1):'—'} %`, sub:profil?.acre?'✓ ACRE actif':'Taux standard', color:'#f382ff', onClick:()=>setShowOnboarding(true) },
                     { label:'À mettre de côté', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`ce mois (${Math.round((taux+tauxImpot)*100)}% du CA)`, color:'#c081ff', onClick:()=>setView('simulateur') },
                   ].map(({label,val,sub,color,onClick})=>(
-                    <div key={label} onClick={onClick} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.12)',backdropFilter:'blur(12px)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'all .15s'}}
+                    <div key={label} onClick={onClick} style={{background:'rgba(20,5,40,0.22)',border:'1px solid rgba(255,255,255,0.12)',backdropFilter:'blur(20px)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'all .15s'}}
                       onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.1)'}}
                       onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)'}}
                     >
@@ -1146,7 +1150,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   evsM.forEach(ev => { if (ev.jour) joursEvenementsM[ev.jour] = ev })
                   return (
                     <div key={mi} style={{
-                      background:'rgba(18,18,18,0.80)', backdropFilter:'blur(40px)', WebkitBackdropFilter:'blur(40px)', border:`2px solid ${estCourantM?'rgba(0,200,200,0.5)':'rgba(255,255,255,0.08)'}`,
+                      background:'rgba(20,5,40,0.30)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', border:`2px solid ${estCourantM?'rgba(0,200,200,0.5)':'rgba(255,255,255,0.08)'}`,
                       borderRadius:16, padding:'1rem',
                       opacity: estPasseM && !revM && evsM.length===0 ? 0.5 : 1,
                       boxShadow: estCourantM ? '0 4px 20px rgba(0,200,200,.1)' : 'none'
@@ -2759,7 +2763,7 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 
 /* ── APP BAR ── */
 .app-bar{
-  background:rgba(0,0,0,0.60);
+  background:rgba(10,2,25,0.55);
   backdrop-filter:blur(40px);
   -webkit-backdrop-filter:blur(40px);
   height:56px;padding:0 1.25rem;
@@ -2782,7 +2786,7 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 
 /* ── NAV BOTTOM ── */
 .nav-tabs{
-  background:rgba(0,0,0,0.65);
+  background:rgba(10,2,25,0.60);
   backdrop-filter:blur(40px);
   -webkit-backdrop-filter:blur(40px);
   border-top:1px solid rgba(255,255,255,0.10);
@@ -2804,12 +2808,12 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 
 /* ── CARDS (Signature Glass Component) ── */
 .card{
-  background:rgba(18,18,18,0.80)!important;
-  backdrop-filter:blur(40px)!important;
-  -webkit-backdrop-filter:blur(40px)!important;
-  border:1px solid rgba(255,255,255,0.20)!important;
+  background:rgba(20,5,40,0.30)!important;
+  backdrop-filter:blur(28px)!important;
+  -webkit-backdrop-filter:blur(28px)!important;
+  border:1px solid rgba(255,255,255,0.18)!important;
   border-radius:16px;padding:1rem;
-  box-shadow:none!important
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.08)!important
 }
 @media(min-width:600px){.card{border-radius:20px;padding:1.5rem}}
 .card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;margin-bottom:1rem;color:#ffffff;letter-spacing:-.01em}
@@ -2823,10 +2827,10 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 /* ── METRICS ── */
 .metrics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1.25rem}
 .metric-card{
-  background:rgba(18,18,18,0.80);
-  border:1px solid rgba(255,255,255,0.20);
+  background:rgba(20,5,40,0.28);
+  border:1px solid rgba(255,255,255,0.16);
   border-radius:14px;padding:1rem;
-  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px)
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)
 }
 .metric-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:8px;font-family:'Inter',sans-serif}
 .metric-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#f382ff;margin-bottom:4px}
@@ -2844,7 +2848,7 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 
 /* ── CAL ── */
 .cal-list{display:flex;flex-direction:column;gap:10px}
-.cal-card{background:rgba(18,18,18,0.80);border:1px solid rgba(255,255,255,0.20);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border-radius:14px;padding:.875rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.cal-card{background:rgba(20,5,40,0.30);border:1px solid rgba(255,255,255,0.16);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:14px;padding:.875rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
 .cal-current{border-color:rgba(243,130,255,0.5)!important;background:rgba(243,130,255,0.08)!important}
 .cal-special{border-style:dashed}
 .cal-past{opacity:.45}
@@ -2860,7 +2864,7 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 .badge-done{font-size:12px;font-weight:700;color:#c081ff;background:rgba(192,129,255,0.1);padding:6px 14px;border-radius:9999px;border:1px solid rgba(192,129,255,0.25)}
 
 /* ── INFO BOX ── */
-.info-box{background:rgba(18,18,18,0.75);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:1rem 1.1rem;backdrop-filter:blur(24px)}
+.info-box{background:rgba(20,5,40,0.28);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:1rem 1.1rem;backdrop-filter:blur(24px)}
 .info-title{font-size:13px;font-weight:700;color:#dbb4ff;margin-bottom:8px;font-family:'Inter',sans-serif}
 .info-text{font-size:13px;color:rgba(255,255,255,0.6);line-height:1.8}
 .info-text a{color:#f382ff}
@@ -2911,10 +2915,10 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 .chip{
   font-size:12px;padding:8px 14px;border-radius:9999px;
   border:1px solid rgba(255,255,255,0.15);
-  background:rgba(18,18,18,0.65);
+  background:rgba(20,5,40,0.25);
   color:rgba(255,255,255,0.65);cursor:pointer;transition:all .18s;
   min-height:36px;display:inline-flex;align-items:center;
-  backdrop-filter:blur(20px);font-family:'Inter',sans-serif
+  backdrop-filter:blur(16px);font-family:'Inter',sans-serif
 }
 .chip:hover,.chip:active{background:rgba(243,130,255,0.12);border-color:rgba(243,130,255,0.4);color:#f382ff}
 
@@ -2951,7 +2955,7 @@ textarea::placeholder{color:rgba(255,255,255,0.25)}
 .ring{width:20px;height:20px;flex-shrink:0;border:2px solid rgba(243,130,255,0.2);border-top-color:#f382ff;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .question-preview{
-  background:rgba(18,18,18,0.75);border:1px solid rgba(255,255,255,0.14);
+  background:rgba(20,5,40,0.28);border:1px solid rgba(255,255,255,0.14);
   border-radius:12px;padding:.875rem 1rem;margin-bottom:8px;
   cursor:pointer;transition:all .15s;backdrop-filter:blur(20px)
 }
@@ -2965,7 +2969,7 @@ textarea::placeholder{color:rgba(255,255,255,0.25)}
 .empty-state h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.4);margin-bottom:1rem}
 .btn{padding:12px 20px;font-size:14px;font-weight:700;border-radius:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;min-height:44px;letter-spacing:.01em}
 .btn-ghost{
-  background:rgba(255,255,255,0.05);
+  background:rgba(20,5,40,0.25);
   border:1px solid rgba(255,255,255,0.2);
   color:rgba(255,255,255,0.7);
   backdrop-filter:blur(10px)
@@ -2986,7 +2990,7 @@ textarea::placeholder{color:rgba(255,255,255,0.25)}
 .overlay.show{display:flex}
 @media(min-width:480px){.overlay{align-items:center;padding:1rem}}
 .modal{
-  background:rgba(12,12,12,0.92)!important;
+  background:rgba(10,2,25,0.70)!important;
   border:1px solid rgba(255,255,255,0.20)!important;
   backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
   border-radius:20px;padding:1.25rem;width:100%;max-width:620px;
@@ -3022,8 +3026,8 @@ textarea::placeholder{color:rgba(255,255,255,0.25)}
 @media(min-width:500px){.res-grid{grid-template-columns:1fr 1fr}}
 @media(min-width:800px){.res-grid{grid-template-columns:repeat(3,1fr)}}
 .res-card{
-  display:block;background:rgba(18,18,18,0.75);border:1px solid rgba(255,255,255,0.15);
-  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  display:block;background:rgba(20,5,40,0.28);border:1px solid rgba(255,255,255,0.15);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
   border-radius:14px;padding:1rem;text-decoration:none;color:inherit;transition:all .18s
 }
 .res-card:hover{border-color:rgba(243,130,255,0.35);background:rgba(243,130,255,0.05)}
@@ -3038,7 +3042,7 @@ textarea::placeholder{color:rgba(255,255,255,0.25)}
 .res-card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;color:#ffffff;margin-bottom:8px;line-height:1.3}
 .res-card-desc{font-size:12px;color:rgba(255,255,255,0.45);line-height:1.65;margin-bottom:10px;font-family:'Inter',sans-serif}
 .res-card-url{font-size:11px;color:rgba(255,255,255,0.22);font-family:monospace}
-.res-disclaimer{background:rgba(18,18,18,0.75);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(20px);border-radius:14px;padding:1rem;font-size:12px;color:rgba(255,255,255,0.45);line-height:1.7;margin-top:1rem}
+.res-disclaimer{background:rgba(20,5,40,0.28);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(20px);border-radius:14px;padding:1rem;font-size:12px;color:rgba(255,255,255,0.45);line-height:1.7;margin-top:1rem}
 .res-disclaimer strong{color:#ffffff}
 
 /* ── FOOTER ── */
