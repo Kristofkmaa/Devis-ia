@@ -118,7 +118,7 @@ export default function DashboardPage() {
                 <span className="material-symbols-outlined" style={{fontSize:16,color:'#f382ff'}}>{icon}</span>
                 <span style={{fontSize:12,color:'rgba(255,255,255,0.6)',fontWeight:500}}>{label}</span>
               </div>
-            ))}
+            ))} 
           </div>
 
           <a href="/premium" style={{display:'block',padding:'14px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#f382ff,#c081ff)',color:'#07080F',fontFamily:"'Inter',sans-serif",fontSize:15,fontWeight:800,textDecoration:'none',boxShadow:'0 4px 28px rgba(243,130,255,0.35)',marginBottom:12,letterSpacing:'.01em'}}>
