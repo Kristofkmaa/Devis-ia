@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '../lib/supabase'
 
 // ─── Taux URSSAF officiels 2025/2026 (source : autoentrepreneur.urssaf.fr) ───
@@ -126,6 +126,33 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     window.addEventListener('resize', check)
     check()
     return () => window.removeEventListener('resize', check)
+  }, [])
+
+  // ── Background wave on scroll ──────────────────────────────────────────────
+  const bgRef = useRef(null)
+  useEffect(() => {
+    const onScroll = () => {
+      if (!bgRef.current) return
+      const s = window.scrollY
+      // Each blob drifts at a different speed/direction → wave feel
+      const b1x = 15 + s * 0.018   // fuchsia top-left  → drifts right
+      const b1y = 20 - s * 0.010   // → drifts up
+      const b2x = 85 - s * 0.012   // violet bottom-right → drifts left
+      const b2y = 75 - s * 0.008   // → drifts up (slower)
+      const b3x = 58 + s * 0.006   // pink center-top → barely moves
+      const b3y = -10 + s * 0.022  // → drifts down (enters from top)
+      const b4x = 5  + s * 0.004   // deep violet bottom-left
+      const b4y = 88 - s * 0.005
+      bgRef.current.style.backgroundImage = [
+        `radial-gradient(ellipse 900px 650px at ${b1x}% ${b1y}%, rgba(243,130,255,0.42) 0%, transparent 65%)`,
+        `radial-gradient(ellipse 750px 600px at ${b2x}% ${b2y}%, rgba(106,13,173,0.38) 0%, transparent 65%)`,
+        `radial-gradient(ellipse 600px 450px at ${b3x}% ${b3y}%, rgba(210,40,180,0.28) 0%, transparent 58%)`,
+        `radial-gradient(ellipse 500px 400px at ${b4x}% ${b4y}%, rgba(106,13,173,0.22) 0%, transparent 55%)`,
+      ].join(',')
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll() // init
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   // Simulateur
@@ -520,17 +547,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     <>
       <style>{CSS}</style>
 
-      {/* FIXED NEBULA BACKGROUND */}
-      <div style={{
+      {/* FIXED NEBULA BACKGROUND — positions animated via scroll */}
+      <div ref={bgRef} style={{
         position:'fixed',inset:0,zIndex:0,pointerEvents:'none',
-        background:'#000000',
-        backgroundImage:[
-          'radial-gradient(ellipse 900px 700px at 15% 20%, rgba(243,130,255,0.55) 0%, transparent 65%)',
-          'radial-gradient(ellipse 700px 600px at 85% 75%, rgba(106,13,173,0.50) 0%, transparent 65%)',
-          'radial-gradient(ellipse 500px 400px at 60% 0%,  rgba(210,40,180,0.35) 0%, transparent 55%)',
-          'radial-gradient(ellipse 400px 400px at 5%  90%, rgba(106,13,173,0.30) 0%, transparent 55%)',
-          'radial-gradient(ellipse 300px 300px at 95% 10%, rgba(243,130,255,0.20) 0%, transparent 50%)',
-        ].join(','),
+        backgroundColor:'#000000',
       }}/>
 
       {/* APP BAR */}
@@ -698,7 +718,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
           {/* ── HERO ── */}
           {profil ? (
-            <div style={{background:'rgba(8,4,16,0.45)',backdropFilter:'blur(32px)',WebkitBackdropFilter:'blur(32px)',border:'1px solid rgba(255,255,255,0.18)',borderRadius:20,padding:'1.25rem',marginBottom:'1.5rem',position:'relative',overflow:'hidden'}}>
+            <div style={{background:'rgba(18,18,18,0.80)',backdropFilter:'blur(40px)',WebkitBackdropFilter:'blur(40px)',border:'1px solid rgba(255,255,255,0.20)',borderRadius:20,padding:'1.25rem',marginBottom:'1.5rem',position:'relative',overflow:'hidden'}}>
               {/* Décoration fond */}
               <div style={{position:'absolute',top:-40,right:-40,width:200,height:200,borderRadius:'50%',background:'rgba(243,130,255,0.08)',pointerEvents:'none'}}/>
               <div style={{position:'absolute',bottom:-60,right:80,width:140,height:140,borderRadius:'50%',background:'rgba(0,200,200,.04)',pointerEvents:'none'}}/>
@@ -710,7 +730,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     <p style={{fontSize:13,color:'rgba(255,255,255,.45)'}}>{profil.activite}</p>
                   </div>
                   {prochaineDecl && (
-                    <div style={{background:'rgba(8,4,16,0.42)',border:'1px solid rgba(255,255,255,0.18)',borderRadius:16,padding:'14px 18px',textAlign:'right'}}>
+                    <div style={{background:'rgba(18,18,18,0.80)',border:'1px solid rgba(255,255,255,0.18)',borderRadius:16,padding:'14px 18px',textAlign:'right'}}>
                       <div style={{fontSize:10,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:5}}>⏰ Prochaine déclaration</div>
                       <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,color:'#f382ff'}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
                       <div style={{fontSize:12,color:'rgba(255,255,255,.35)',marginTop:3}}>avant le {prochaineDecl.date_limite}</div>
@@ -727,7 +747,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     { label:'Taux URSSAF', val:`${profil?(taux*100).toFixed(1):'—'} %`, sub:profil?.acre?'✓ ACRE actif':'Taux standard', color:'#f382ff', onClick:()=>setShowOnboarding(true) },
                     { label:'À mettre de côté', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`ce mois (${Math.round((taux+tauxImpot)*100)}% du CA)`, color:'#c081ff', onClick:()=>setView('simulateur') },
                   ].map(({label,val,sub,color,onClick})=>(
-                    <div key={label} onClick={onClick} style={{background:'rgba(8,4,16,0.35)',border:'1px solid rgba(255,255,255,0.12)',backdropFilter:'blur(20px)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'all .15s'}}
+                    <div key={label} onClick={onClick} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.12)',backdropFilter:'blur(12px)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'all .15s'}}
                       onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.1)'}}
                       onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)'}}
                     >
@@ -1132,7 +1152,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   evsM.forEach(ev => { if (ev.jour) joursEvenementsM[ev.jour] = ev })
                   return (
                     <div key={mi} style={{
-                      background:'rgba(8,4,16,0.42)', backdropFilter:'blur(28px)', WebkitBackdropFilter:'blur(28px)', border:`2px solid ${estCourantM?'rgba(0,200,200,0.5)':'rgba(255,255,255,0.08)'}`,
+                      background:'rgba(18,18,18,0.80)', backdropFilter:'blur(40px)', WebkitBackdropFilter:'blur(40px)', border:`2px solid ${estCourantM?'rgba(0,200,200,0.5)':'rgba(255,255,255,0.08)'}`,
                       borderRadius:16, padding:'1rem',
                       opacity: estPasseM && !revM && evsM.length===0 ? 0.5 : 1,
                       boxShadow: estCourantM ? '0 4px 20px rgba(0,200,200,.1)' : 'none'
@@ -2745,7 +2765,7 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 
 /* ── APP BAR ── */
 .app-bar{
-  background:rgba(4,0,12,0.55);
+  background:rgba(0,0,0,0.60);
   backdrop-filter:blur(40px);
   -webkit-backdrop-filter:blur(40px);
   height:56px;padding:0 1.25rem;
@@ -2768,7 +2788,7 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 
 /* ── NAV BOTTOM ── */
 .nav-tabs{
-  background:rgba(4,0,12,0.60);
+  background:rgba(0,0,0,0.65);
   backdrop-filter:blur(40px);
   -webkit-backdrop-filter:blur(40px);
   border-top:1px solid rgba(255,255,255,0.10);
@@ -2790,12 +2810,12 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 
 /* ── CARDS (Signature Glass Component) ── */
 .card{
-  background:rgba(8,4,16,0.42)!important;
-  backdrop-filter:blur(32px)!important;
-  -webkit-backdrop-filter:blur(32px)!important;
-  border:1px solid rgba(255,255,255,0.18)!important;
+  background:rgba(18,18,18,0.80)!important;
+  backdrop-filter:blur(40px)!important;
+  -webkit-backdrop-filter:blur(40px)!important;
+  border:1px solid rgba(255,255,255,0.20)!important;
   border-radius:16px;padding:1rem;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.07)!important
+  box-shadow:none!important
 }
 @media(min-width:600px){.card{border-radius:20px;padding:1.5rem}}
 .card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;margin-bottom:1rem;color:#ffffff;letter-spacing:-.01em}
@@ -2809,10 +2829,10 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 /* ── METRICS ── */
 .metrics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1.25rem}
 .metric-card{
-  background:rgba(8,4,16,0.45);
-  border:1px solid rgba(255,255,255,0.18);
+  background:rgba(18,18,18,0.80);
+  border:1px solid rgba(255,255,255,0.20);
   border-radius:14px;padding:1rem;
-  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px)
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px)
 }
 .metric-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:8px;font-family:'Inter',sans-serif}
 .metric-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#f382ff;margin-bottom:4px}
@@ -2830,7 +2850,7 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 
 /* ── CAL ── */
 .cal-list{display:flex;flex-direction:column;gap:10px}
-.cal-card{background:rgba(8,4,16,0.42);border:1px solid rgba(255,255,255,0.18);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);border-radius:14px;padding:.875rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.cal-card{background:rgba(18,18,18,0.80);border:1px solid rgba(255,255,255,0.20);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border-radius:14px;padding:.875rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
 .cal-current{border-color:rgba(243,130,255,0.5)!important;background:rgba(243,130,255,0.08)!important}
 .cal-special{border-style:dashed}
 .cal-past{opacity:.45}
@@ -2846,7 +2866,7 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 .badge-done{font-size:12px;font-weight:700;color:#c081ff;background:rgba(192,129,255,0.1);padding:6px 14px;border-radius:9999px;border:1px solid rgba(192,129,255,0.25)}
 
 /* ── INFO BOX ── */
-.info-box{background:rgba(8,4,16,0.38);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:1rem 1.1rem;backdrop-filter:blur(24px)}
+.info-box{background:rgba(18,18,18,0.75);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:1rem 1.1rem;backdrop-filter:blur(24px)}
 .info-title{font-size:13px;font-weight:700;color:#dbb4ff;margin-bottom:8px;font-family:'Inter',sans-serif}
 .info-text{font-size:13px;color:rgba(255,255,255,0.6);line-height:1.8}
 .info-text a{color:#f382ff}
@@ -2856,7 +2876,7 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 .mini-input{
   padding:12px 14px;border-radius:12px;
   border:1px solid rgba(255,255,255,0.2)!important;
-  background:rgba(8,4,16,0.42)!important;
+  background:rgba(255,255,255,0.05)!important;
   color:#ffffff;font-family:'Inter',sans-serif;font-size:16px;width:100%;-webkit-appearance:none;
   transition:border-color .2s
 }
@@ -2897,10 +2917,10 @@ body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflo
 .chip{
   font-size:12px;padding:8px 14px;border-radius:9999px;
   border:1px solid rgba(255,255,255,0.15);
-  background:rgba(8,4,16,0.35);
+  background:rgba(18,18,18,0.65);
   color:rgba(255,255,255,0.65);cursor:pointer;transition:all .18s;
   min-height:36px;display:inline-flex;align-items:center;
-  backdrop-filter:blur(16px);font-family:'Inter',sans-serif
+  backdrop-filter:blur(20px);font-family:'Inter',sans-serif
 }
 .chip:hover,.chip:active{background:rgba(243,130,255,0.12);border-color:rgba(243,130,255,0.4);color:#f382ff}
 
@@ -2910,9 +2930,9 @@ textarea{
   width:100%;resize:none;font-family:'Inter',sans-serif;font-size:15px;font-weight:400;
   padding:13px 15px 52px;border-radius:14px;
   border:1px solid rgba(255,255,255,0.2);
-  background:rgba(8,4,16,0.40);
+  background:rgba(255,255,255,0.05);
   color:#ffffff;line-height:1.65;min-height:100px;-webkit-appearance:none;
-  backdrop-filter:blur(16px)
+  backdrop-filter:blur(10px)
 }
 textarea:focus{outline:none;border-color:rgba(243,130,255,0.5);background:rgba(255,255,255,0.07)}
 textarea::placeholder{color:rgba(255,255,255,0.25)}
@@ -2937,7 +2957,7 @@ textarea::placeholder{color:rgba(255,255,255,0.25)}
 .ring{width:20px;height:20px;flex-shrink:0;border:2px solid rgba(243,130,255,0.2);border-top-color:#f382ff;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .question-preview{
-  background:rgba(8,4,16,0.38);border:1px solid rgba(255,255,255,0.14);
+  background:rgba(18,18,18,0.75);border:1px solid rgba(255,255,255,0.14);
   border-radius:12px;padding:.875rem 1rem;margin-bottom:8px;
   cursor:pointer;transition:all .15s;backdrop-filter:blur(20px)
 }
@@ -2951,7 +2971,7 @@ textarea::placeholder{color:rgba(255,255,255,0.25)}
 .empty-state h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.4);margin-bottom:1rem}
 .btn{padding:12px 20px;font-size:14px;font-weight:700;border-radius:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;min-height:44px;letter-spacing:.01em}
 .btn-ghost{
-  background:rgba(8,4,16,0.38);
+  background:rgba(255,255,255,0.05);
   border:1px solid rgba(255,255,255,0.2);
   color:rgba(255,255,255,0.7);
   backdrop-filter:blur(10px)
@@ -2972,9 +2992,9 @@ textarea::placeholder{color:rgba(255,255,255,0.25)}
 .overlay.show{display:flex}
 @media(min-width:480px){.overlay{align-items:center;padding:1rem}}
 .modal{
-  background:rgba(8,4,16,0.72)!important;
+  background:rgba(12,12,12,0.92)!important;
   border:1px solid rgba(255,255,255,0.20)!important;
-  backdrop-filter:blur(48px);-webkit-backdrop-filter:blur(48px);
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
   border-radius:20px;padding:1.25rem;width:100%;max-width:620px;
   box-shadow:0 24px 60px rgba(0,0,0,0.8);
   animation:pop .3s cubic-bezier(.16,1,.3,1);margin:auto
@@ -2991,9 +3011,9 @@ textarea::placeholder{color:rgba(255,255,255,0.25)}
 .field input,.field select{
   width:100%;padding:12px 14px;border-radius:12px;
   border:1px solid rgba(255,255,255,0.2);
-  background:rgba(8,4,16,0.45);
+  background:rgba(255,255,255,0.05);
   color:#ffffff;font-family:'Inter',sans-serif;font-size:16px;-webkit-appearance:none;
-  backdrop-filter:blur(16px);transition:border-color .2s
+  backdrop-filter:blur(10px);transition:border-color .2s
 }
 .field input:focus,.field select:focus{outline:none;border-color:rgba(243,130,255,0.5);background:rgba(255,255,255,0.08)}
 .field input::placeholder{color:rgba(255,255,255,0.25)}
@@ -3008,8 +3028,8 @@ textarea::placeholder{color:rgba(255,255,255,0.25)}
 @media(min-width:500px){.res-grid{grid-template-columns:1fr 1fr}}
 @media(min-width:800px){.res-grid{grid-template-columns:repeat(3,1fr)}}
 .res-card{
-  display:block;background:rgba(8,4,16,0.40);border:1px solid rgba(255,255,255,0.15);
-  backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);
+  display:block;background:rgba(18,18,18,0.75);border:1px solid rgba(255,255,255,0.15);
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
   border-radius:14px;padding:1rem;text-decoration:none;color:inherit;transition:all .18s
 }
 .res-card:hover{border-color:rgba(243,130,255,0.35);background:rgba(243,130,255,0.05)}
@@ -3024,7 +3044,7 @@ textarea::placeholder{color:rgba(255,255,255,0.25)}
 .res-card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;color:#ffffff;margin-bottom:8px;line-height:1.3}
 .res-card-desc{font-size:12px;color:rgba(255,255,255,0.45);line-height:1.65;margin-bottom:10px;font-family:'Inter',sans-serif}
 .res-card-url{font-size:11px;color:rgba(255,255,255,0.22);font-family:monospace}
-.res-disclaimer{background:rgba(8,4,16,0.40);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(20px);border-radius:14px;padding:1rem;font-size:12px;color:rgba(255,255,255,0.45);line-height:1.7;margin-top:1rem}
+.res-disclaimer{background:rgba(18,18,18,0.75);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(20px);border-radius:14px;padding:1rem;font-size:12px;color:rgba(255,255,255,0.45);line-height:1.7;margin-top:1rem}
 .res-disclaimer strong{color:#ffffff}
 
 /* ── FOOTER ── */
