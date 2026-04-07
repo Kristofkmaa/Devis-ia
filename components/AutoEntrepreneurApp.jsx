@@ -134,24 +134,18 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     const onScroll = () => {
       if (!bgRef.current) return
       const s = window.scrollY
-      // Each blob drifts at a different speed/direction → wave feel
-      const b1x = 15 + s * 0.018   // fuchsia top-left  → drifts right
-      const b1y = 20 - s * 0.010   // → drifts up
-      const b2x = 85 - s * 0.012   // violet bottom-right → drifts left
-      const b2y = 75 - s * 0.008   // → drifts up (slower)
-      const b3x = 58 + s * 0.006   // pink center-top → barely moves
-      const b3y = -10 + s * 0.022  // → drifts down (enters from top)
-      const b4x = 5  + s * 0.004   // deep violet bottom-left
-      const b4y = 88 - s * 0.005
+      // One large unified wash that slowly drifts — no visible blobs
+      const cx = 38 + s * 0.004   // center drifts very slowly right
+      const cy = 42 - s * 0.006   // center rises gently as you scroll
       bgRef.current.style.backgroundImage = [
-        `radial-gradient(ellipse 900px 650px at ${b1x}% ${b1y}%, rgba(243,130,255,0.42) 0%, transparent 65%)`,
-        `radial-gradient(ellipse 750px 600px at ${b2x}% ${b2y}%, rgba(106,13,173,0.38) 0%, transparent 65%)`,
-        `radial-gradient(ellipse 600px 450px at ${b3x}% ${b3y}%, rgba(210,40,180,0.28) 0%, transparent 58%)`,
-        `radial-gradient(ellipse 500px 400px at ${b4x}% ${b4y}%, rgba(106,13,173,0.22) 0%, transparent 55%)`,
+        // Main atmospheric wash — large, very soft
+        `radial-gradient(ellipse 140% 120% at ${cx}% ${cy}%, rgba(106,13,173,0.55) 0%, rgba(60,5,110,0.30) 40%, transparent 70%)`,
+        // Subtle cool edge — shifts in opposite direction
+        `radial-gradient(ellipse 80% 60% at ${98 - s*0.003}% ${90 + s*0.002}%, rgba(80,0,140,0.25) 0%, transparent 60%)`,
       ].join(',')
     }
     window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll() // init
+    onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
@@ -550,7 +544,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       {/* FIXED NEBULA BACKGROUND — positions animated via scroll */}
       <div ref={bgRef} style={{
         position:'fixed',inset:0,zIndex:0,pointerEvents:'none',
-        backgroundColor:'#000000',
+        backgroundColor:'#080010',
       }}/>
 
       {/* APP BAR */}
@@ -2758,7 +2752,7 @@ const CSS = `
 /* ── RESET & BASE ── */
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;margin:0;padding:0}
 html{
-  background:#000000;
+  background:#080010;
   min-height:100vh
 }
 body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflow-x:hidden}
