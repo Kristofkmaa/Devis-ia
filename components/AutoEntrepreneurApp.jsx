@@ -138,14 +138,14 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       const intensity = Math.min(1 + s * 0.0004, 1.35)
       const cx = 38 + s * 0.004
       const cy = 42 - s * 0.006
-      const alpha1 = Math.min(0.62 * intensity, 0.82)
-      const alpha2 = Math.min(0.38 * intensity, 0.52)
-      const alpha3 = Math.min(0.28 * intensity, 0.42)
+      const alpha1 = Math.min(0.38 * intensity, 0.55)
+      const alpha2 = Math.min(0.22 * intensity, 0.35)
+      const alpha3 = Math.min(0.18 * intensity, 0.28)
       bgRef.current.style.backgroundImage = [
         // Grande nappe principale — s'intensifie doucement au scroll
-        `radial-gradient(ellipse 140% 120% at ${cx}% ${cy}%, rgba(106,13,173,${alpha1.toFixed(2)}) 0%, rgba(60,5,110,${alpha2.toFixed(2)}) 45%, transparent 72%)`,
+        `radial-gradient(ellipse 140% 120% at ${cx}% ${cy}%, rgba(70,8,120,${alpha1.toFixed(2)}) 0%, rgba(35,3,70,${alpha2.toFixed(2)}) 45%, transparent 72%)`,
         // Bord sombre qui s'épaissit → effet d'atténuation
-        `radial-gradient(ellipse 90% 70% at ${98 - s*0.003}% ${90 + s*0.002}%, rgba(50,0,90,${alpha3.toFixed(2)}) 0%, transparent 62%)`,
+        `radial-gradient(ellipse 90% 70% at ${98 - s*0.003}% ${90 + s*0.002}%, rgba(28,0,55,${alpha3.toFixed(2)}) 0%, transparent 62%)`,
       ].join(',')
     }
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -548,7 +548,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       {/* FIXED NEBULA BACKGROUND — positions animated via scroll */}
       <div ref={bgRef} style={{
         position:'fixed',inset:0,zIndex:0,pointerEvents:'none',
-        backgroundColor:'#080010',
+        backgroundColor:'#04000C',
       }}/>
 
       {/* APP BAR */}
@@ -2756,7 +2756,7 @@ const CSS = `
 /* ── RESET & BASE ── */
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;margin:0;padding:0}
 html{
-  background:#080010;
+  background:#04000C;
   min-height:100vh
 }
 body{background:transparent;color:#ffffff;font-family:'Inter',sans-serif;overflow-x:hidden}
