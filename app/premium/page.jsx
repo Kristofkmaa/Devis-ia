@@ -170,7 +170,7 @@ function PremiumInner() {
           )}
 
           {/* Plans grid */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:20,alignItems:'start'}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:20,alignItems:'start'}}>
             {PLANS.map((plan, i) => (
               <div
                 key={plan.id}
