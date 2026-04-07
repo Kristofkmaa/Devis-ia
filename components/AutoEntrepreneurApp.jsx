@@ -29,12 +29,12 @@ const SEUILS = {
   plafond_lmtc:      15000,   // Location meublée tourisme non classé 2026
 }
 const SECTEURS = [
-  { value:'ventes',        label:'🛍 Vente de marchandises — e-commerce, boutique, revendeur…', taux:'12,3%' },
-  { value:'services_bic',  label:'🔧 Services commerciaux/artisanaux (BIC) — artisan, réparateur, restaurateur…', taux:'21,2%' },
-  { value:'services_bnc',  label:'💼 Services (BNC) — freelance, formateur, rédacteur, photographe…', taux:'21,2%' },
-  { value:'liberal_ssi',   label:'🎓 Profession libérale non réglementée (SSI) — coach, consultant, développeur…', taux:'25,6%' },
-  { value:'liberal_cipav', label:'🏛 Profession libérale réglementée (CIPAV) — architecte, expert-comptable, géomètre…', taux:'23,2%' },
-  { value:"lmtc",          label:"🏠 Location meublée tourisme classée (LMTC) — chambre d'hôtes, gîte classé…", taux:"6%" },
+  { value:'ventes',        label:'Vente de marchandises — e-commerce, boutique, revendeur…', taux:'12,3%' },
+  { value:'services_bic',  label:'Services commerciaux/artisanaux (BIC) — artisan, réparateur, restaurateur…', taux:'21,2%' },
+  { value:'services_bnc',  label:'Services (BNC) — freelance, formateur, rédacteur, photographe…', taux:'21,2%' },
+  { value:'liberal_ssi',   label:'Profession libérale non réglementée (SSI) — coach, consultant, développeur…', taux:'25,6%' },
+  { value:'liberal_cipav', label:'Profession libérale réglementée (CIPAV) — architecte, expert-comptable, géomètre…', taux:'23,2%' },
+  { value:"lmtc",          label:"Location meublée tourisme classée (LMTC) — chambre d'hôtes, gîte classé…", taux:"6%" },
 ]
 const MOIS_NOMS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
 
@@ -403,11 +403,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   }
 
   const RDV_TYPES = {
-    rdv:      { label:'Rendez-vous',   color:'#dbb4ff', bg:'rgba(0,120,220,0.18)', emoji:'📅' },
-    client:   { label:'Client',         color:'#c081ff', bg:'rgba(0,200,160,0.12)', emoji:'🤝' },
-    admin:    { label:'Administratif',  color:'#f382ff', bg:'rgba(255,160,60,0.12)', emoji:'📋' },
-    perso:    { label:'Personnel',      color:'#f382ff', bg:'rgba(157,78,221,0.18)', emoji:'👤' },
-    rappel:   { label:'Rappel',         color:'#ff6e84', bg:'rgba(255,100,100,0.12)', emoji:'⏰' },
+    rdv:      { label:'Rendez-vous',   color:'#dbb4ff', bg:'rgba(0,120,220,0.18)', icon:'calendar_month' },
+    client:   { label:'Client',         color:'#c081ff', bg:'rgba(0,200,160,0.12)', icon:'handshake' },
+    admin:    { label:'Administratif',  color:'#f382ff', bg:'rgba(255,160,60,0.12)', icon:'assignment' },
+    perso:    { label:'Personnel',      color:'#f382ff', bg:'rgba(157,78,221,0.18)', icon:'person' },
+    rappel:   { label:'Rappel',         color:'#ff6e84', bg:'rgba(255,100,100,0.12)', icon:'alarm' },
   }
 
   const imprimerDevis = (d, em) => {
@@ -461,7 +461,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     </style></head><body>
     <div class="no-print" style="background:#1C1710;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;margin:-40px -50px 30px;position:sticky;top:0;z-index:10">
       <span style="color:#E8D5A8;font-family:'Playfair Display',serif;font-size:16px">Serelyo — Aperçu du devis</span>
-      <button onclick="window.print()" style="background:#B5792A;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-family:Outfit,sans-serif;font-size:13px;font-weight:600">🖨 Imprimer / Sauvegarder PDF</button>
+      <button onclick="window.print()" style="background:#B5792A;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-family:Outfit,sans-serif;font-size:13px;font-weight:600">Imprimer / Sauvegarder PDF</button>
     </div>
     <div class="stripe"></div>
     <div class="head">
@@ -606,7 +606,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       {showOnboarding && (
         <div className="overlay show" onClick={e=>{if(profil&&e.target.className.includes('overlay'))setShowOnboarding(false)}}>
           <div className="modal" style={{maxWidth:620}}>
-            <div className="modal-title">{profil?'Mon profil':'Bienvenue ! Configurons ton profil 👋'}</div>
+            <div className="modal-title">{profil?'Mon profil':'Bienvenue, configurons ton profil'}</div>
             <p className="modal-sub">Plus ton profil est complet, plus les calculs, alertes et réponses IA seront utiles.</p>
 
             <div className="prof-section-title">Informations de base</div>
@@ -620,7 +620,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   {SECTEURS.map(s=><option key={s.value} value={s.value}>{s.label} → {s.taux}</option>)}
                 </select>
                 <div style={{marginTop:6,fontSize:12,color:'#f382ff',background:'rgba(255,255,255,0.06)',borderRadius:8,padding:'6px 10px'}}>
-                  ⚠️ Ton taux URSSAF : <strong>{TAUX[oForm.secteur]*100}%</strong>
+                  Ton taux URSSAF : <strong>{TAUX[oForm.secteur]*100}%</strong>
                   {oForm.acre && <span> → avec ACRE : <strong>{TAUX_ACRE[oForm.secteur]*100}%</strong></span>}
                 </div>
               </div>
@@ -739,7 +739,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <div style={{background:'rgba(20,5,40,0.38)',backdropFilter:'blur(32px)',WebkitBackdropFilter:'blur(32px)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:22,padding:'1.5rem',marginBottom:'1.25rem',overflow:'hidden'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12,marginBottom:'1.5rem'}}>
                 <div>
-                  <p style={{fontSize:11,color:'rgba(255,255,255,0.38)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:8,fontWeight:700}}>Bonjour 👋</p>
+                  <p style={{fontSize:11,color:'rgba(255,255,255,0.38)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:8,fontWeight:700}}>Bonjour </p>
                   <h1 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?26:32,fontWeight:800,color:'#fff',marginBottom:4,letterSpacing:'-.02em'}}>{profil.prenom} {profil.nom}</h1>
                   <p style={{fontSize:14,color:'rgba(255,255,255,0.42)'}}>{profil.activite}</p>
                 </div>
@@ -774,7 +774,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           ) : (
             <div style={{background:'rgba(255,255,255,0.04)',border:'2px dashed rgba(255,255,255,0.15)',backdropFilter:'blur(16px)',borderRadius:20,padding:'2rem',textAlign:'center',marginBottom:'1.5rem',cursor:'pointer'}} onClick={()=>setShowOnboarding(true)}>
-              <div style={{fontSize:32,marginBottom:8}}>👋</div>
+              
               <h2 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,marginBottom:8,color:'#ffffff'}}>Bienvenue sur Serelyo !</h2>
               <p style={{fontSize:14,color:'rgba(255,255,255,0.55)',marginBottom:'1rem'}}>Configure ton profil pour personnaliser ton tableau de bord</p>
               <button className="btn btn-dark">Configurer mon profil →</button>
@@ -804,7 +804,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   </div>
                   <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>
                     {caAnnuel.toLocaleString('fr-FR')} € / {val.toLocaleString('fr-FR')} €
-                    {pct>85 && <span style={{color:'#ff6e84',marginLeft:6}}>⚠️ Consulte un comptable</span>}
+                    {pct>85 && <span style={{color:'#ff6e84',marginLeft:6}}>Consulte un comptable</span>}
                   </div>
                 </div>
               ))}
@@ -818,7 +818,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
               {devis.length===0 ? (
                 <div style={{textAlign:'center',padding:'1.5rem 0',color:'rgba(255,255,255,0.38)'}}>
-                  <div style={{fontSize:28,marginBottom:8}}>📄</div>
+                  
                   <div style={{fontSize:13}}>Aucun devis</div>
                   <button className="link-btn" style={{marginTop:8}} onClick={()=>setView('devis')}>Créer un devis →</button>
                 </div>
@@ -858,7 +858,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
               {revenus.slice(0,4).length===0 ? (
                 <div style={{textAlign:'center',padding:'1.5rem 0',color:'rgba(255,255,255,0.38)'}}>
-                  <div style={{fontSize:28,marginBottom:8}}>💶</div>
+                  
                   <div style={{fontSize:13}}>Aucun revenu saisi</div>
                   <button className="link-btn" style={{marginTop:8}} onClick={()=>setView('revenus')}>Saisir mes revenus →</button>
                 </div>
@@ -891,7 +891,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(243,130,255,0.3)';e.currentTarget.style.color='#f382ff';e.currentTarget.style.background='rgba(243,130,255,0.07)'}}
                     onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='rgba(255,255,255,0.65)';e.currentTarget.style.background='rgba(20,5,40,0.38)'}}
                   >
-                    💬 {q}
+                    {q}
                   </div>
                 ))}
               </div>
@@ -1095,7 +1095,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       return (
                         <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',borderRadius:12,background:statut==='faite'?'rgba(0,200,160,.08)':ev.past?'rgba(255,100,100,.08)':'rgba(255,160,60,.08)',border:`1px solid ${statut==='faite'?'rgba(0,200,160,.2)':ev.past?'rgba(255,100,100,.2)':'rgba(255,160,60,.2)'}`}}>
                           <div>
-                            <div style={{fontSize:13,fontWeight:500,color:'#ffffff'}}>{ev.special?(ev.type==='cfe'?'💶 CFE':'📋 Impôt sur le revenu'):'📅 URSSAF'}</div>
+                            <div style={{fontSize:13,fontWeight:500,color:'#ffffff'}}>{ev.special?(ev.type==='cfe'?'CFE':'Impôt sur le revenu'):'URSSAF'}</div>
                             <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:2}}>Avant le {ev.date_limite}</div>
                           </div>
                           {statut==='faite'
@@ -1110,7 +1110,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       return (
                         <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',borderRadius:12,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.15)'}}>
                           <div style={{display:'flex',alignItems:'center',gap:8}}>
-                            <span style={{fontSize:16}}>{t.emoji}</span>
+                            <span className="material-symbols-outlined" style={{fontSize:18,color:"rgba(255,255,255,0.6)"}}>{t.icon||"event"}</span>
                             <div>
                               <div style={{fontSize:13,fontWeight:500,color:'#ffffff'}}>{r.titre}</div>
                               <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:2}}>
@@ -1140,7 +1140,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               )}
 
               <div className="info-box" style={{marginTop:'1rem'}}>
-                <div className="info-title">📌 Comment déclarer</div>
+                <div className="info-title">Comment déclarer</div>
                 <div className="info-text">
                   Va sur <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer">autoentrepreneur.urssaf.fr</a> · SIRET · "Déclarer et payer" · Saisis ton CA · Valide
                 </div>
@@ -1205,7 +1205,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           {evsM.map(ev=>(
                             <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'4px 8px',borderRadius:8,fontSize:11,background:ev.statut==='faite'?'rgba(0,200,160,.1)':ev.past?'rgba(255,100,100,.1)':'rgba(255,160,60,.08)',border:`1px solid ${ev.statut==='faite'?'rgba(0,200,160,.2)':ev.past?'rgba(255,100,100,.2)':'rgba(255,160,60,.2)'}`}}>
                               <span style={{color:'#ffffff',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:110}}>
-                                {ev.special?(ev.type==='cfe'?'💶 CFE':'📋 IR'):'📅 URSSAF'}
+                                {ev.special?(ev.type==='cfe'?'CFE':'IR'):'URSSAF'}
                               </span>
                               {ev.statut==='faite'
                                 ? <span style={{color:'#c081ff',fontWeight:700,flexShrink:0}}>✓</span>
@@ -1224,7 +1224,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
                               return (
                                 <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'3px 6px',borderRadius:6,background:'rgba(243,130,255,0.08)',fontSize:10}}>
-                                  <span style={{color:'#f382ff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:100}}>{t.emoji} {r.titre}</span>
+                                  <span style={{color:'#f382ff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:100}}>{r.titre}</span>
                                   <button onClick={e=>{e.stopPropagation();deleteRdv(r.id)}} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,100,100,.6)',fontSize:11,padding:0}}>×</button>
                                 </div>
                               )
@@ -1267,7 +1267,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
 
               <div className="info-box">
-                <div className="info-title">📌 Comment déclarer</div>
+                <div className="info-title">Comment déclarer</div>
                 <div className="info-text">Va sur <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer">autoentrepreneur.urssaf.fr</a> · SIRET · "Déclarer et payer" · Saisis ton CA · Valide</div>
               </div>
             </>
@@ -1318,7 +1318,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
                             return (
                               <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 12px',borderRadius:10,background:t.bg,marginBottom:6}}>
-                                <span style={{fontSize:13,color:t.color,fontWeight:500}}>{t.emoji} {r.heure} — {r.titre}</span>
+                                <span style={{fontSize:13,color:t.color,fontWeight:500}}>{r.heure} — {r.titre}</span>
                                 <button onClick={()=>deleteRdv(r.id)} style={{background:'none',border:'none',cursor:'pointer',color:'#ff6e84',fontSize:18,lineHeight:1}}>×</button>
                               </div>
                             )
@@ -1425,7 +1425,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                                 const {data:ex} = await supabase.from('ae_revenus').select('id').eq('user_id',user.id).eq('mois',r.mois).single()
                                 if(ex) await supabase.from('ae_revenus').delete().eq('id',ex.id)
                                 setRevenus(prev=>prev.filter(x=>x.mois!==r.mois))
-                              }}>🗑</button>
+                              }}></button>
                             </td>
                           </tr>
                         )
@@ -1548,15 +1548,15 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   </div>
                   {(calcResult.alerte_tva||calcResult.alerte_plafond)&&(
                     <div style={{marginTop:'1rem'}}>
-                      {calcResult.alerte_tva&&<div className="seuil-alert">⚠️ Attention : avec ce CA annuel estimé ({calcResult.caAnnuel.toLocaleString('fr-FR')} €), tu approches du seuil de TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €). Renseigne-toi sur tes obligations TVA.</div>}
-                      {calcResult.alerte_plafond&&<div className="seuil-alert" style={{marginTop:8}}>⚠️ Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €). Au-delà tu bascules au régime réel — consulte un comptable.</div>}
+                      {calcResult.alerte_tva&&<div className="seuil-alert">Attention : avec ce CA annuel estimé ({calcResult.caAnnuel.toLocaleString('fr-FR')} €), tu approches du seuil de TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €). Renseigne-toi sur tes obligations TVA.</div>}
+                      {calcResult.alerte_plafond&&<div className="seuil-alert" style={{marginTop:8}}>Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €). Au-delà tu bascules au régime réel — consulte un comptable.</div>}
                     </div>
                   )}
                   <div className="info-box" style={{marginTop:'1rem'}}>
-                    <div className="info-text">💡 <strong>Conseil :</strong> Dès que tu encaisses un paiement client, mets <strong>{((calcResult.taux+calcResult.tauxImpot)*100).toFixed(0)}%</strong> de côté immédiatement sur un compte séparé. Tu ne seras jamais pris au dépourvu.</div>
+                    <div className="info-text"><strong>Conseil :</strong> Dès que tu encaisses un paiement client, mets <strong>{((calcResult.taux+calcResult.tauxImpot)*100).toFixed(0)}%</strong> de côté immédiatement sur un compte séparé. Tu ne seras jamais pris au dépourvu.</div>
                   </div>
                   <div style={{marginTop:8,fontSize:11,color:'rgba(255,255,255,.35)',lineHeight:1.6}}>
-                    ⚠️ <strong>Avertissement :</strong> Ces calculs sont des estimations basées sur les taux officiels URSSAF 2025/2026. Le taux d'imposition réel dépend de ta situation fiscale globale. Ces informations ne constituent pas un conseil comptable ou fiscal. En cas de doute, consulte un expert-comptable.
+                    <strong>Avertissement :</strong> Ces calculs sont des estimations basées sur les taux officiels URSSAF 2025/2026. Le taux d'imposition réel dépend de ta situation fiscale globale. Ces informations ne constituent pas un conseil comptable ou fiscal. En cas de doute, consulte un expert-comptable.
                   </div>
                 </div>
               )}
@@ -1602,7 +1602,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               <div className="card-title" style={{marginBottom:12}}>Questions précédentes</div>
               {histoQ.slice(0,10).map(q=>(
                 <div key={q.id} className="question-preview" onClick={()=>{setQuestion(q.question);setReponse(q.reponse)}}>
-                  <div className="question-text">💬 {q.question}</div>
+                  <div className="question-text">{q.question}</div>
                   <div className="question-date">{new Date(q.created_at).toLocaleDateString('fr-FR')}</div>
                 </div>
               ))}
@@ -1634,7 +1634,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     boxShadow: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
-                  <div style={{fontSize:36,marginBottom:12}}>⚡</div>
+                  <div style={{fontSize:36,marginBottom:12}}><span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>bolt</span>
                   <div style={{
                     fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,
                     color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '#F0F4FF' : 'rgba(255,255,255,0.65)'
@@ -1656,7 +1656,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     boxShadow: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
-                  <div style={{fontSize:36,marginBottom:12}}>📊</div>
+                  <div style={{fontSize:36,marginBottom:12}}><span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>bar_chart</span>
                   <div style={{
                     fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,
                     color: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? '#F0F4FF' : 'rgba(255,255,255,0.65)'
@@ -1678,7 +1678,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     boxShadow: simMode==='inverse' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
-                  <div style={{fontSize:36,marginBottom:12}}>🎯</div>
+                  <div style={{fontSize:36,marginBottom:12}}><span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>my_location</span>
                   <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='inverse'?'#fff':'#1C1710'}}>Calculateur inversé</div>
                   <div style={{fontSize:13,lineHeight:1.6,color:simMode==='inverse'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu veux X€ nets par mois ?<br/>Calcule exactement combien tu dois facturer.</div>
                   {simMode==='inverse' && (
@@ -1694,7 +1694,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     boxShadow: simMode==='reel' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
-                  <div style={{fontSize:36,marginBottom:12}}>⚖️</div>
+                  <div style={{fontSize:36,marginBottom:12}}><span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>balance</span>
                   <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='reel'?'#fff':'#1C1710'}}>Micro vs Réel</div>
                   <div style={{fontSize:13,lineHeight:1.6,color:simMode==='reel'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu approches du plafond ?<br/>Compare concrètement micro-entreprise et régime réel.</div>
                   {simMode==='reel' && (
@@ -1779,16 +1779,16 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         </div>
                         {(calcResult.alerte_tva||calcResult.alerte_plafond)&&(
                           <div style={{marginTop:'1rem'}}>
-                            {calcResult.alerte_tva&&<div className="seuil-alert">⚠️ Tu approches du seuil de TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €).</div>}
-                            {calcResult.alerte_plafond&&<div className="seuil-alert" style={{marginTop:8}}>⚠️ Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €).</div>}
+                            {calcResult.alerte_tva&&<div className="seuil-alert">Tu approches du seuil de TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €).</div>}
+                            {calcResult.alerte_plafond&&<div className="seuil-alert" style={{marginTop:8}}>Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €).</div>}
                           </div>
                         )}
                         <div className="info-box" style={{marginTop:'1rem'}}>
-                          <div className="info-text">💡 <strong>Conseil :</strong> Dès que tu encaisses, mets <strong>{((calcResult.taux+calcResult.tauxImpot)*100).toFixed(0)}%</strong> de côté sur un compte séparé.</div>
+                          <div className="info-text"><strong>Conseil :</strong> Dès que tu encaisses, mets <strong>{((calcResult.taux+calcResult.tauxImpot)*100).toFixed(0)}%</strong> de côté sur un compte séparé.</div>
                         </div>
-                        <div style={{marginTop:8,fontSize:11,color:'rgba(255,255,255,.35)'}}>⚠️ Estimation basée sur les taux officiels URSSAF. Consulte un comptable pour une simulation précise.</div>
+                        <div style={{marginTop:8,fontSize:11,color:'rgba(255,255,255,.35)'}}>Estimation basée sur les taux officiels URSSAF. Consulte un comptable pour une simulation précise.</div>
                         <div style={{marginTop:12,textAlign:'center'}}>
-                          <button className="btn btn-ghost" onClick={()=>setSimMode('mensuel')}>📊 Voir la simulation annuelle →</button>
+                          <button className="btn btn-ghost" onClick={()=>setSimMode('mensuel')}>Voir la simulation annuelle →</button>
                         </div>
                       </div>
                     )}
@@ -2028,7 +2028,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             label:'Seuil de TVA',
                             val: seuil_tva,
                             pct: Math.min((totCA/seuil_tva)*100,100),
-                            icon:'💳',
+                            icon:'credit_card',
                             consequence: "Au-delà, tu dois collecter et reverser la TVA à l'État. Tes prix augmentent de 20% ou ta marge diminue.",
                             conseil: "Prévois-le en avance pour éviter une mauvaise surprise."
                           },
@@ -2036,7 +2036,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             label:'Plafond micro-entreprise',
                             val: plafond,
                             pct: Math.min((totCA/plafond)*100,100),
-                            icon:'🏢',
+                            icon:'apartment',
                             consequence: "Au-delà 2 années consécutives, tu bascules au régime réel — comptabilité obligatoire, charges calculées différemment.",
                             conseil: "Commence à te rapprocher d'un comptable si tu approches de ce seuil."
                           }
@@ -2049,7 +2049,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             <div key={label}>
                               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10,flexWrap:'wrap',gap:8}}>
                                 <div style={{display:'flex',alignItems:'center',gap:10}}>
-                                  <span style={{fontSize:20}}>{icon}</span>
+                                  <span className="material-symbols-outlined" style={{fontSize:22,color:"rgba(255,255,255,0.7)"}}>{icon}</span>
                                   <div>
                                     <div style={{fontSize:14,fontWeight:600,color:'#ffffff'}}>{label}</div>
                                     <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Seuil légal : {val.toLocaleString('fr-FR')} €/an</div>
@@ -2067,10 +2067,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               {/* Info contextuelle */}
                               <div style={{background:bgCouleur,borderRadius:10,padding:'10px 14px',fontSize:12,color:'#ffffff',lineHeight:1.6}}>
                                 {pct > 90
-                                  ? <><strong>⚠️ Alerte :</strong> {consequence} <strong>{conseil}</strong></>
+                                  ? <><strong>Alerte :</strong> {consequence} <strong>{conseil}</strong></>
                                   : pct > 70
-                                  ? <><strong>📌 À surveiller :</strong> Il te reste <strong style={{color:couleur}}>{reste > 0 ? reste.toLocaleString('fr-FR',{maximumFractionDigits:0}) : 0} €</strong> avant ce seuil. {conseil}</>
-                                  : <><strong>✅ Tout va bien :</strong> Il te reste <strong style={{color:'#c081ff'}}>{reste > 0 ? reste.toLocaleString('fr-FR',{maximumFractionDigits:0}) : 0} €</strong> de marge avant ce seuil.</>
+                                  ? <><strong>À surveiller :</strong> Il te reste <strong style={{color:couleur}}>{reste > 0 ? reste.toLocaleString('fr-FR',{maximumFractionDigits:0}) : 0} €</strong> avant ce seuil. {conseil}</>
+                                  : <><strong>Tout va bien :</strong> Il te reste <strong style={{color:'#c081ff'}}>{reste > 0 ? reste.toLocaleString('fr-FR',{maximumFractionDigits:0}) : 0} €</strong> de marge avant ce seuil.</>
                                 }
                               </div>
                             </div>
@@ -2080,7 +2080,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     </div>
 
                     <div style={{fontSize:11,color:'rgba(255,255,255,.35)',lineHeight:1.7,padding:'12px 16px',background:'rgba(255,255,255,0.05)',borderRadius:12}}>
-                      ⚠️ <strong style={{color:'#ffffff'}}>Simulation indicative</strong> — Les montants sont calculés sur la base des taux officiels URSSAF {new Date().getFullYear()} pour ton secteur ({(tauxU*100).toFixed(1)}%). Le taux d'imposition réel dépend de ta situation fiscale globale. Ces chiffres ne constituent pas un conseil comptable.
+                      <strong style={{color:'#ffffff'}}>Simulation indicative</strong> — Les montants sont calculés sur la base des taux officiels URSSAF {new Date().getFullYear()} pour ton secteur ({(tauxU*100).toFixed(1)}%). Le taux d'imposition réel dépend de ta situation fiscale globale. Ces chiffres ne constituent pas un conseil comptable.
                     </div>
                   </>
                 )
@@ -2091,7 +2091,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               {/* ── MODE CALCULATEUR INVERSÉ ── */}
               {simMode==='inverse' && (
                 <div className="card">
-                  <div className="card-title">🎯 Combien dois-je facturer ?</div>
+                  <div className="card-title">Combien dois-je facturer ?</div>
                   <p style={{fontSize:13,color:'rgba(255,255,255,0.55)',marginBottom:'1.5rem',lineHeight:1.7}}>
                     Renseigne le revenu net que tu veux toucher chaque mois. Serelyo calcule le CA à facturer en tenant compte de l'URSSAF, des impôts, de tes jours travaillés et de tes congés.
                   </p>
@@ -2189,11 +2189,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
                       {/* Vérification seuils */}
                       {invResult.caAnnuel > (profil.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services)*0.85 && (
-                        <div className="seuil-alert">⚠️ Attention : pour atteindre cet objectif, ton CA annuel ({Math.ceil(invResult.caAnnuel).toLocaleString('fr-FR')} €) approche ou dépasse le seuil de TVA ({(profil.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services).toLocaleString('fr-FR')} €). Pense à anticiper.</div>
+                        <div className="seuil-alert">Attention : pour atteindre cet objectif, ton CA annuel ({Math.ceil(invResult.caAnnuel).toLocaleString('fr-FR')} €) approche ou dépasse le seuil de TVA ({(profil.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services).toLocaleString('fr-FR')} €). Pense à anticiper.</div>
                       )}
 
                       <div style={{marginTop:12,fontSize:11,color:'rgba(255,255,255,.35)',background:'rgba(255,255,255,0.05)',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
-                        ⚠️ <strong style={{color:'#ffffff'}}>Estimation indicative</strong> — Basée sur ton secteur ({(invResult.tauxU*100).toFixed(1)}% URSSAF) et ton taux d'imposition personnalisé ({Math.round(invResult.tauxI*100)}%). Consulte un expert-comptable pour affiner.
+                        <strong style={{color:'#ffffff'}}>Estimation indicative</strong> — Basée sur ton secteur ({(invResult.tauxU*100).toFixed(1)}% URSSAF) et ton taux d'imposition personnalisé ({Math.round(invResult.tauxI*100)}%). Consulte un expert-comptable pour affiner.
                       </div>
                     </div>
                   )}
@@ -2234,7 +2234,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   <>
                     {/* Alerte seuil */}
                     <div style={{background:caAnnuel > plafond*0.85 ? 'rgba(255,100,100,0.1)' : 'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)',borderRadius:14,padding:'14px 18px',marginBottom:'1.5rem',display:'flex',gap:14,alignItems:'flex-start'}}>
-                      <span style={{fontSize:24,flexShrink:0}}>{caAnnuel > plafond*0.85 ? '⚠️' : 'ℹ️'}</span>
+                      <span style={{fontSize:24,flexShrink:0}}>{caAnnuel > plafond*0.85 ? '!' : 'i'}</span>
                       <div>
                         <div style={{fontSize:14,fontWeight:600,color:'#ffffff',marginBottom:4}}>
                           {caAnnuel > plafond*0.85 ? 'Tu approches du plafond micro-entreprise !' : 'Simule le passage au régime réel'}
@@ -2363,16 +2363,16 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           <div className="card-title">Ce qui change concrètement si tu passes au réel</div>
                           <div style={{display:'flex',flexDirection:'column',gap:10}}>
                             {[
-                              {emoji:'📊',titre:'Comptabilité obligatoire',micro:'Aucune — tu déclares juste ton CA',reel:'Livre de comptes, bilan annuel, bilan comptable — souvent avec un comptable (~1 000-2 000€/an)'},
-                              {emoji:'💰',titre:'Calcul des cotisations',micro:`${(reelResult.tauxU*100).toFixed(1)}% de ton CA brut, même si tu as des charges`,reel:'~45% de ton bénéfice (CA − charges). Beaucoup plus avantageux si tu as des dépenses pro.'},
-                              {emoji:'🧾',titre:'Déduction des charges',micro:'Impossible — abattement forfaitaire seulement',reel:'Toutes les dépenses pro déductibles : loyer, matériel, logiciels, véhicule, formation…'},
-                              {emoji:'📋',titre:'TVA',micro:'Franchise si sous les seuils (36 800€ services)',reel:'TVA obligatoire — tu la collectes et la reverses. Tu récupères aussi la TVA sur tes achats.'},
-                              {emoji:'⚙️',titre:'Complexité administrative',micro:'Simple — une déclaration mensuelle ou trimestrielle',reel:'Plus complexe — liasse fiscale, déclarations TVA, DSN si salarié'},
-                              {emoji:'📈',titre:'Optimisation fiscale',micro:'Limitée — taux fixe sur le CA',reel:'Beaucoup plus de leviers : amortissements, provisions, optimisation de la rémunération'},
+                              {icon:'account_balance',titre:'Comptabilité obligatoire',micro:'Aucune — tu déclares juste ton CA',reel:'Livre de comptes, bilan annuel, bilan comptable — souvent avec un comptable (~1 000-2 000€/an)'},
+                              {icon:'calculate',titre:'Calcul des cotisations',micro:`${(reelResult.tauxU*100).toFixed(1)}% de ton CA brut, même si tu as des charges`,reel:'~45% de ton bénéfice (CA − charges). Beaucoup plus avantageux si tu as des dépenses pro.'},
+                              {icon:'receipt',titre:'Déduction des charges',micro:'Impossible — abattement forfaitaire seulement',reel:'Toutes les dépenses pro déductibles : loyer, matériel, logiciels, véhicule, formation…'},
+                              {icon:'assignment',titre:'TVA',micro:'Franchise si sous les seuils (36 800€ services)',reel:'TVA obligatoire — tu la collectes et la reverses. Tu récupères aussi la TVA sur tes achats.'},
+                              {icon:'settings',titre:'Complexité administrative',micro:'Simple — une déclaration mensuelle ou trimestrielle',reel:'Plus complexe — liasse fiscale, déclarations TVA, DSN si salarié'},
+                              {icon:'trending_up',titre:'Optimisation fiscale',micro:'Limitée — taux fixe sur le CA',reel:'Beaucoup plus de leviers : amortissements, provisions, optimisation de la rémunération'},
                             ].map(({emoji,titre,micro,reel})=>(
                               <div key={titre} style={{border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,overflow:'hidden'}}>
                                 <div style={{background:'rgba(255,255,255,0.05)',padding:'10px 14px',display:'flex',alignItems:'center',gap:8}}>
-                                  <span style={{fontSize:18}}>{emoji}</span>
+                                  <span className="material-symbols-outlined" style={{fontSize:20,color:"#f382ff"}}>{icon}</span>
                                   <span style={{fontSize:13,fontWeight:600,color:'#ffffff'}}>{titre}</span>
                                 </div>
                                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr'}}>
@@ -2391,7 +2391,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         </div>
 
                         <div style={{fontSize:11,color:'rgba(255,255,255,.35)',background:'rgba(255,255,255,0.05)',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
-                          ⚠️ <strong style={{color:'#ffffff'}}>Simulation indicative</strong> — Le taux TNS de 45% est une approximation. Le régime réel est complexe et dépend fortement de ta situation personnelle. Consulte un expert-comptable avant de prendre cette décision.
+                          <strong style={{color:'#ffffff'}}>Simulation indicative</strong> — Le taux TNS de 45% est une approximation. Le régime réel est complexe et dépend fortement de ta situation personnelle. Consulte un expert-comptable avant de prendre cette décision.
                         </div>
                       </>
                     )}
@@ -2476,7 +2476,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     >
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10}}>
                         <div style={{display:'flex',gap:14,alignItems:'center'}} onClick={()=>imprimerDevis(d,profil)}>
-                          <div style={{width:44,height:44,background:'rgba(255,255,255,0.06)',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>📄</div>
+                          <div style={{width:44,height:44,background:'rgba(255,255,255,0.06)',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}
                           <div>
                             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3,flexWrap:'wrap'}}>
                               <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:600,color:'#ffffff'}}>{d.numero}</span>
@@ -2505,8 +2505,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               <option value="expire">Expiré</option>
                             </select>
                             <div style={{display:'flex',gap:5}}>
-                              <button onClick={()=>imprimerDevis(d,profil)} style={{flex:1,padding:'5px 8px',fontSize:11,borderRadius:8,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.55)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>👁 Voir</button>
-                              <button onClick={()=>supprimerDevis(d.id)} style={{padding:'5px 8px',fontSize:11,borderRadius:8,border:'1px solid rgba(255,100,100,0.25)',background:'rgba(255,100,100,0.1)',color:'#ff6e84',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🗑</button>
+                              <button onClick={()=>imprimerDevis(d,profil)} style={{flex:1,padding:'5px 8px',fontSize:11,borderRadius:8,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.55)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Voir</button>
+                              <button onClick={()=>supprimerDevis(d.id)} style={{padding:'5px 8px',fontSize:11,borderRadius:8,border:'1px solid rgba(255,100,100,0.25)',background:'rgba(255,100,100,0.1)',color:'#ff6e84',cursor:'pointer',fontFamily:'Inter,sans-serif'}}></button>
                             </div>
                           </div>
                         </div>
@@ -2631,7 +2631,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <p className="page-sub">Tous les liens utiles pour gérer ton auto-entreprise — directs, officiels, gratuits</p>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(255,255,255,0.06)',color:'#f382ff'}}>📋</span>Déclarations & paiements</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(255,255,255,0.06)',color:'#f382ff'}}><span class="material-symbols-outlined" style={{fontSize:20}}>receipt_long</span>Déclarations & paiements</div>
             <div className="res-grid">
               <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-urssaf">URSSAF</span><span className="res-arrow">→</span></div>
@@ -2654,7 +2654,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(192,129,255,0.12)',color:'#c081ff'}}>🏢</span>Gérer mon auto-entreprise</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(192,129,255,0.12)',color:'#c081ff'}}><span class="material-symbols-outlined" style={{fontSize:20}}>business_center</span>Gérer mon auto-entreprise</div>
             <div className="res-grid">
               <a href="https://formalites.entreprises.gouv.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
@@ -2677,7 +2677,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(106,13,173,0.2)',color:'#dbb4ff'}}>💰</span>Aides & financement</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(106,13,173,0.2)',color:'#dbb4ff'}}><span class="material-symbols-outlined" style={{fontSize:20}}>savings</span>Aides & financement</div>
             <div className="res-grid">
               <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F36613" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-aide">Aide</span><span className="res-arrow">→</span></div>
@@ -2700,7 +2700,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(243,130,255,0.1)',color:'#dbb4ff'}}>🏥</span>Protection sociale & retraite</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(243,130,255,0.1)',color:'#dbb4ff'}}><span class="material-symbols-outlined" style={{fontSize:20}}>health_and_safety</span>Protection sociale & retraite</div>
             <div className="res-grid">
               <a href="https://www.ameli.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-social">Santé</span><span className="res-arrow">→</span></div>
@@ -2723,7 +2723,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(243,130,255,0.08)',color:'#f382ff'}}>📖</span>Se former & s'informer</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(243,130,255,0.08)',color:'#f382ff'}}><span class="material-symbols-outlined" style={{fontSize:20}}>school</span>Se former & s'informer</div>
             <div className="res-grid">
               <a href="https://www.service-public.fr/professionnels-entreprises/vosdroits/F23282" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
