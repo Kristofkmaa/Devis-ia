@@ -38,6 +38,46 @@ const SECTEURS = [
 ]
 const MOIS_NOMS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
 
+// ─── Calcul salaire partagé (même logique partout) ───────────────────────────
+function calcSalaire(brut) {
+  if (!brut) return { net:0, total_sal:0, total_pat:0, cout_total:0, fillon:0, cout_apres_fillon:0 }
+  // Charges salariales
+  const cs_maladie          = brut * 0.0075
+  const cs_vieillesse_plaf  = brut * 0.069
+  const cs_vieillesse_deplaf= brut * 0.004
+  const cs_chomage          = brut * 0.024
+  const cs_csg_ded          = brut * 0.068
+  const cs_csg_crds         = brut * 0.029
+  const cs_retraite_comp    = brut * 0.0315
+  const total_sal = cs_maladie + cs_vieillesse_plaf + cs_vieillesse_deplaf +
+                    cs_chomage + cs_csg_ded + cs_csg_crds + cs_retraite_comp
+  const net = brut - total_sal
+  // Charges patronales
+  const cp_maladie          = brut * 0.07
+  const cp_vieillesse_plaf  = brut * 0.0855
+  const cp_vieillesse_deplaf= brut * 0.019
+  const cp_fam              = brut * 0.0345
+  const cp_at               = brut * 0.0222
+  const cp_chomage          = brut * 0.0405
+  const cp_ags              = brut * 0.0015
+  const cp_retraite_comp    = brut * 0.0472
+  const cp_ceg              = brut * 0.0129
+  const cp_formation        = brut * 0.0155
+  const cp_apprentissage    = brut * 0.0068
+  const cp_csa              = brut * 0.003
+  const total_pat = cp_maladie + cp_vieillesse_plaf + cp_vieillesse_deplaf +
+                    cp_fam + cp_at + cp_chomage + cp_ags + cp_retraite_comp +
+                    cp_ceg + cp_formation + cp_apprentissage + cp_csa
+  const cout_total = brut + total_pat
+  const fillon = brut <= 1801.80*1.6 ? Math.max(0, total_pat*0.3) : 0
+  return {
+    net, total_sal, total_pat, cout_total, fillon,
+    cout_apres_fillon: cout_total - fillon,
+    detail_sal: {cs_maladie,cs_vieillesse_plaf,cs_vieillesse_deplaf,cs_chomage,cs_csg_ded,cs_csg_crds,cs_retraite_comp},
+    detail_pat: {cp_maladie,cp_vieillesse_plaf,cp_vieillesse_deplaf,cp_fam,cp_at,cp_chomage,cp_ags,cp_retraite_comp,cp_ceg,cp_formation,cp_apprentissage,cp_csa}
+  }
+}
+
 const DEFAULT_FORM = {
   prenom:'', nom:'', activite:'', secteur:'services_bnc',
   date_creation:'', regime_declaration:'trimestriel',
@@ -2794,73 +2834,14 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   onKeyDown={e=>{if(e.key==='Enter'){
                     const brut=parseFloat(simSalaire)||0
                     if(!brut)return
-                    // Charges salariales ~22.6%
-                    const cs_maladie=brut*0.0075
-                    const cs_vieillesse_plaf=brut*0.069
-                    const cs_vieillesse_deplaf=brut*0.004
-                    const cs_chomage=brut*0.024
-                    const cs_csg_ded=brut*0.068
-                    const cs_csg_crds=brut*0.029
-                    const cs_retraite_comp=brut*0.0315
-                    const total_sal=cs_maladie+cs_vieillesse_plaf+cs_vieillesse_deplaf+cs_chomage+cs_csg_ded+cs_csg_crds+cs_retraite_comp
-                    const net=brut-total_sal
-                    // Charges patronales ~42%
-                    const cp_maladie=brut*0.07
-                    const cp_vieillesse_plaf=brut*0.0855
-                    const cp_vieillesse_deplaf=brut*0.019
-                    const cp_fam=brut*0.0345
-                    const cp_at=brut*0.0222
-                    const cp_chomage=brut*0.0405
-                    const cp_ags=brut*0.0015
-                    const cp_retraite_comp=brut*0.0472
-                    const cp_ceg=brut*0.0129
-                    const cp_formation=brut*0.0155
-                    const cp_apprentissage=brut*0.0068
-                    const cp_csa=brut*0.003
-                    const total_pat=cp_maladie+cp_vieillesse_plaf+cp_vieillesse_deplaf+cp_fam+cp_at+cp_chomage+cp_ags+cp_retraite_comp+cp_ceg+cp_formation+cp_apprentissage+cp_csa
-                    const cout_total=brut+total_pat
-                    // SMIC 2025
-                    const smic=1801.80
-                    const fillon=brut<=smic*1.6?Math.max(0,total_pat*0.3):0
-                    setSimSalarieResult({brut,net,total_sal,total_pat,cout_total,fillon,cout_apres_fillon:cout_total-fillon,
-                      detail_sal:{cs_maladie,cs_vieillesse_plaf,cs_vieillesse_deplaf,cs_chomage,cs_csg_ded,cs_csg_crds,cs_retraite_comp},
-                      detail_pat:{cp_maladie,cp_vieillesse_plaf,cp_vieillesse_deplaf,cp_fam,cp_at,cp_chomage,cp_ags,cp_retraite_comp,cp_ceg,cp_formation,cp_apprentissage,cp_csa}
-                    })
+                    setSimSalarieResult({brut,...calcSalaire(brut)})
                   }}}
                   placeholder="2 000"/>
               </div>
               <button className="btn btn-dark" style={{padding:'13px 24px',whiteSpace:'nowrap'}} onClick={()=>{
                 const brut=parseFloat(simSalaire)||0
                 if(!brut)return
-                const cs_maladie=brut*0.0075
-                const cs_vieillesse_plaf=brut*0.069
-                const cs_vieillesse_deplaf=brut*0.004
-                const cs_chomage=brut*0.024
-                const cs_csg_ded=brut*0.068
-                const cs_csg_crds=brut*0.029
-                const cs_retraite_comp=brut*0.0315
-                const total_sal=cs_maladie+cs_vieillesse_plaf+cs_vieillesse_deplaf+cs_chomage+cs_csg_ded+cs_csg_crds+cs_retraite_comp
-                const net=brut-total_sal
-                const cp_maladie=brut*0.07
-                const cp_vieillesse_plaf=brut*0.0855
-                const cp_vieillesse_deplaf=brut*0.019
-                const cp_fam=brut*0.0345
-                const cp_at=brut*0.0222
-                const cp_chomage=brut*0.0405
-                const cp_ags=brut*0.0015
-                const cp_retraite_comp=brut*0.0472
-                const cp_ceg=brut*0.0129
-                const cp_formation=brut*0.0155
-                const cp_apprentissage=brut*0.0068
-                const cp_csa=brut*0.003
-                const total_pat=cp_maladie+cp_vieillesse_plaf+cp_vieillesse_deplaf+cp_fam+cp_at+cp_chomage+cp_ags+cp_retraite_comp+cp_ceg+cp_formation+cp_apprentissage+cp_csa
-                const cout_total=brut+total_pat
-                const smic=1801.80
-                const fillon=brut<=smic*1.6?Math.max(0,total_pat*0.3):0
-                setSimSalarieResult({brut,net,total_sal,total_pat,cout_total,fillon,cout_apres_fillon:cout_total-fillon,
-                  detail_sal:{cs_maladie,cs_vieillesse_plaf,cs_vieillesse_deplaf,cs_chomage,cs_csg_ded,cs_csg_crds,cs_retraite_comp},
-                  detail_pat:{cp_maladie,cp_vieillesse_plaf,cp_vieillesse_deplaf,cp_fam,cp_at,cp_chomage,cp_ags,cp_retraite_comp,cp_ceg,cp_formation,cp_apprentissage,cp_csa}
-                })
+                setSimSalarieResult({brut,...calcSalaire(brut)})
               }}>Calculer →</button>
             </div>
 
@@ -2982,7 +2963,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               {[
                 {label:'Salariés actifs', val:salaries.filter(s=>s.statut==='actif').length, unit:''},
                 {label:'Masse salariale brute', val:salaries.filter(s=>s.statut==='actif').reduce((s,e)=>s+(parseFloat(e.salaire_brut)||0),0).toLocaleString('fr-FR'), unit:'€/mois'},
-                {label:'Coût employeur total', val:Math.round(salaries.filter(s=>s.statut==='actif').reduce((s,e)=>s+(parseFloat(e.salaire_brut)||0),0)*1.42).toLocaleString('fr-FR'), unit:'€/mois'},
+                {label:'Coût employeur total', val:Math.round(salaries.filter(s=>s.statut==='actif').reduce((s,e)=>s+calcSalaire(parseFloat(e.salaire_brut)||0).cout_apres_fillon,0)).toLocaleString('fr-FR'), unit:'€/mois'},
               ].map(({label,val,unit})=>(
                 <div key={label} style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                   <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.35)',marginBottom:8}}>{label}</div>
@@ -3011,8 +2992,9 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               <div style={{display:'flex',flexDirection:'column',gap:10}}>
                 {salaries.map(sal=>{
                   const brut = parseFloat(sal.salaire_brut)||0
-                  const net = Math.round(brut*0.774)
-                  const cout = Math.round(brut*1.42)
+                  const {net:netExact, cout_apres_fillon} = calcSalaire(brut)
+                  const net = Math.round(netExact)
+                  const cout = Math.round(cout_apres_fillon)
                   const contratLabel = {cdi:'CDI',cdd:'CDD',interim:'Intérim',alternance:'Alternance',stage:'Stage'}
                   return (
                     <div key={sal.id} style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:14,padding:'1rem 1.25rem'}}>
@@ -3114,8 +3096,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 {salarieForm.salaire_brut && (
                   <div style={{background:'rgba(243,130,255,0.08)',border:'1px solid rgba(243,130,255,0.2)',borderRadius:12,padding:'12px 16px',marginBottom:'1rem',fontSize:13,color:'rgba(255,255,255,0.7)',lineHeight:1.8}}>
                     Brut : <strong style={{color:'#fff'}}>{parseFloat(salarieForm.salaire_brut).toLocaleString('fr-FR')} €</strong> →
-                    Net salarié : <strong style={{color:'#c081ff'}}>~{Math.round(parseFloat(salarieForm.salaire_brut)*0.774).toLocaleString('fr-FR')} €</strong> ·
-                    Coût employeur : <strong style={{color:'#f382ff'}}>~{Math.round(parseFloat(salarieForm.salaire_brut)*1.42).toLocaleString('fr-FR')} €</strong>
+                    Net salarié : <strong style={{color:'#c081ff'}}>~{Math.round(calcSalaire(parseFloat(salarieForm.salaire_brut)).net).toLocaleString('fr-FR')} €</strong> ·
+                    Coût employeur : <strong style={{color:'#f382ff'}}>~{Math.round(calcSalaire(parseFloat(salarieForm.salaire_brut)).cout_apres_fillon).toLocaleString('fr-FR')} €</strong>
                   </div>
                 )}
                 <div className="modal-actions">
