@@ -857,7 +857,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   { label:'URSSAF + impôts', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`${Math.round((taux+tauxImpot)*100)}% du CA`, color:'#ff6e84', onClick:()=>setView('simulateur') },
                   ...(nbSalaries>0 ? [
                     { label:`Charges équipe (${nbSalaries} sal.)`, val:`${Math.round(coutEquipeMensuel).toLocaleString('fr-FR')} €`, sub:`Coût employeur réel/mois`, color:'#dbb4ff', onClick:()=>setView('equipe') },
-                    { label:'Net après tout', val:`${Math.round(netMoisApresEquipe).toLocaleString('fr-FR')} €`, sub:netMoisApresEquipe<0?'Attention : déficit ce mois':'Ce qu'il te reste vraiment', color:netMoisApresEquipe<0?'#ff6e84':'#c081ff', onClick:()=>setView('simulateur') },
+                    { label:'Net après tout', val:`${Math.round(netMoisApresEquipe).toLocaleString('fr-FR')} €`, sub:netMoisApresEquipe<0?'Attention : déficit ce mois':"Ce qu\'il te reste vraiment", color:netMoisApresEquipe<0?'#ff6e84':'#c081ff', onClick:()=>setView('simulateur') },
                   ] : [
                     { label:'Taux URSSAF', val:`${profil?(taux*100).toFixed(1):'—'} %`, sub:profil?.acre?'✓ ACRE actif':'Taux standard', color:'#c081ff', onClick:()=>setShowOnboarding(true) },
                     { label:'Net ce mois', val:`${Math.round(caMois*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €`, sub:'Après URSSAF et impôts', color:'#c081ff', onClick:()=>setView('simulateur') },
@@ -865,9 +865,9 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   { label:`CA ${year}`, val:`${caAnnuel.toLocaleString('fr-FR')} €`, sub:`URSSAF : ${Math.round(cotisAnnuel).toLocaleString('fr-FR')} €`, color:'#dbb4ff', onClick:()=>setView('revenus') },
                   { label:nbSalaries>0?'Net annuel estimé':'À mettre de côté ce mois', val:nbSalaries>0?`${Math.round(netAnnuelApresEquipe).toLocaleString('fr-FR')} €`:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:nbSalaries>0?`Après charges et équipe (${nbSalaries} sal.)`:`${Math.round((taux+tauxImpot)*100)}% du CA`, color:'#f382ff', onClick:()=>setView('simulateur') },
                 ].map(({label,val,sub,color,onClick})=>(
-                  <div key={label} onClick={onClick} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'all .18s'}}
-                    onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.08)';e.currentTarget.style.borderColor='rgba(243,130,255,0.2)'}}
-                    onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.borderColor='rgba(255,255,255,0.09)'}}
+                  <div key={label} onClick={onClick} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'transform .2s cubic-bezier(.16,1,.3,1),border-color .2s,box-shadow .2s,background .2s'}}
+                    onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.08)';e.currentTarget.style.borderColor='rgba(255,255,255,0.5)';e.currentTarget.style.transform='scale(1.03)';e.currentTarget.style.boxShadow='0 0 0 1px rgba(255,255,255,0.08)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.borderColor='rgba(255,255,255,0.09)';e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='none'}}
                   >
                     <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.32)',marginBottom:10}}>{label}</div>
                     <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:24,fontWeight:800,color,marginBottom:5,letterSpacing:'-.01em'}}>{val}</div>
@@ -3289,7 +3289,13 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
   backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
   border:1px solid rgba(255,255,255,0.14);
   border-radius:18px;padding:1.25rem;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.07)
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.07);
+  transition:transform .2s cubic-bezier(.16,1,.3,1),border-color .2s,box-shadow .2s
+}
+.card:hover{
+  transform:scale(1.012);
+  border-color:rgba(255,255,255,0.55);
+  box-shadow:0 0 0 1px rgba(255,255,255,0.08),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.12)
 }
 @media(min-width:640px){.card{border-radius:22px;padding:1.75rem}}
 .card-title{
@@ -3321,6 +3327,7 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
   padding:.875rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap
 }
 .cal-current{border-color:rgba(243,130,255,0.4)!important;background:rgba(243,130,255,0.08)!important}
+.cal-card:hover{transform:scale(1.012);border-color:rgba(255,255,255,0.55);box-shadow:0 0 0 1px rgba(255,255,255,0.08),0 8px 24px rgba(0,0,0,0.3)}
 .cal-past{opacity:.4}
 .cal-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .dot-done{background:#c081ff}
@@ -3420,11 +3427,11 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 .ring{width:20px;height:20px;flex-shrink:0;border:2px solid rgba(243,130,255,0.2);border-top-color:#f382ff;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .question-preview{
-  background:rgba(20,5,40,0.35);border:1px solid rgba(255,255,255,0.11);
+  background:rgba(20,5,40,0.35);border:1px solid rgba(255,255,255,0.11);transition:transform .2s cubic-bezier(.16,1,.3,1),border-color .2s,box-shadow .2s;
   border-radius:14px;padding:1rem 1.25rem;margin-bottom:10px;
   cursor:pointer;transition:all .15s;backdrop-filter:blur(20px)
 }
-.question-preview:hover{border-color:rgba(243,130,255,0.3);background:rgba(243,130,255,0.06)}
+.question-preview:hover{border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.04);transform:scale(1.012);box-shadow:0 0 0 1px rgba(255,255,255,0.07)}
 .question-text{font-size:14px;color:#fff;margin-bottom:4px;font-weight:500}
 .question-date{font-size:11px;color:rgba(255,255,255,0.28)}
 
@@ -3490,7 +3497,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
   text-decoration:none;color:inherit;transition:all .2s;
   min-height:140px
 }
-.res-card:hover{border-color:rgba(243,130,255,0.3);background:rgba(243,130,255,0.06);transform:translateY(-2px)}
+.res-card:hover{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.04);transform:scale(1.012);box-shadow:0 0 0 1px rgba(255,255,255,0.08),0 8px 24px rgba(0,0,0,0.3)}
 .res-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .res-tag{font-size:10px;font-weight:700;padding:4px 10px;border-radius:9999px;letter-spacing:.04em}
 .res-tag-urssaf{background:rgba(243,130,255,0.12);color:#f382ff;border:1px solid rgba(243,130,255,0.2)}
