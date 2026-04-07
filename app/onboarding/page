@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 
-const SECTEURS = [
+const SECTEURS = [ 
   { value:'ventes',        label:'Vente de marchandises',            desc:'E-commerce, boutique, revendeur…',          taux:'12,3%' },
   { value:'services_bic',  label:'Services commerciaux / artisanaux',desc:'Artisan, réparateur, restaurateur…',         taux:'21,2%' },
   { value:'services_bnc',  label:'Services (BNC)',                   desc:'Freelance, formateur, rédacteur…',           taux:'21,2%' },
