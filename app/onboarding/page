@@ -1,0 +1,346 @@
+'use client'
+import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '../../lib/supabase'
+
+const SECTEURS = [
+  { value:'ventes',        label:'Vente de marchandises',            desc:'E-commerce, boutique, revendeur…',          taux:'12,3%' },
+  { value:'services_bic',  label:'Services commerciaux / artisanaux',desc:'Artisan, réparateur, restaurateur…',         taux:'21,2%' },
+  { value:'services_bnc',  label:'Services (BNC)',                   desc:'Freelance, formateur, rédacteur…',           taux:'21,2%' },
+  { value:'liberal_ssi',   label:'Profession libérale (SSI)',         desc:'Coach, consultant, développeur…',            taux:'25,6%' },
+  { value:'liberal_cipav', label:'Profession libérale (CIPAV)',       desc:'Architecte, expert-comptable…',              taux:'23,2%' },
+  { value:'lmtc',          label:'Location meublée classée',          desc:"Chambre d'hôtes, gîte classé…",             taux:'6%'    },
+]
+
+const STEPS = [
+  { id:1, title:'Qui es-tu ?',        desc:'Pour personnaliser ton expérience' },
+  { id:2, title:'Ton activité',       desc:'Pour calculer exactement tes taux URSSAF' },
+  { id:3, title:'Tes objectifs',      desc:'Pour calibrer ton tableau de bord' },
+  { id:4, title:"C'est parti !",      desc:'Ton espace est prêt' },
+]
+
+export default function Onboarding() {
+  const [step, setStep]     = useState(1)
+  const [loading, setLoad]  = useState(false)
+  const [user, setUser]     = useState(null)
+  const bgRef = useRef(null)
+  const router = useRouter()
+
+  const [form, setForm] = useState({
+    prenom:'', nom:'', activite:'',
+    secteur:'services_bnc', date_creation:'',
+    acre:false, regime_declaration:'trimestriel',
+    objectif_ca:'', objectif_ca_mensuel:'',
+    niveau:'debutant', objectif_ae:'complement_revenu',
+  })
+
+  const set = (k) => (e) => setForm(p=>({...p,[k]:e.target.value}))
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({data:{user}}) => {
+      if (!user) { router.push('/login'); return }
+      setUser(user)
+    })
+  }, [])
+
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!bgRef.current) return
+      const x = (e.clientX / window.innerWidth)  * 100
+      const y = (e.clientY / window.innerHeight) * 100
+      bgRef.current.style.backgroundImage = [
+        `radial-gradient(ellipse 140% 120% at ${35 + (x-50)*0.05}% ${40 + (y-50)*0.05}%, rgba(70,8,120,0.38) 0%, rgba(35,3,70,0.22) 45%, transparent 72%)`,
+        `radial-gradient(ellipse 90% 70% at ${98 - x*0.02}% ${90 + y*0.01}%, rgba(28,0,55,0.18) 0%, transparent 62%)`,
+      ].join(',')
+    }
+    window.addEventListener('mousemove', onMove, { passive: true })
+    return () => window.removeEventListener('mousemove', onMove)
+  }, [])
+
+  const saveAndFinish = async () => {
+    if (!user) return
+    setLoad(true)
+    const supabase = createClient()
+    await supabase.from('ae_profiles').upsert({
+      ...form,
+      user_id: user.id,
+      onboarding_done: true,
+      objectif_ca: parseFloat(form.objectif_ca)||0,
+      objectif_ca_mensuel: parseFloat(form.objectif_ca_mensuel)||0,
+    }, { onConflict:'user_id' })
+    setLoad(false)
+    setStep(4)
+  }
+
+  const canNext = () => {
+    if (step===1) return form.prenom.trim() && form.nom.trim()
+    if (step===2) return form.secteur && form.date_creation
+    if (step===3) return true
+    return true
+  }
+
+  const TAUX = {ventes:'12,3%',services_bic:'21,2%',services_bnc:'21,2%',liberal_ssi:'25,6%',liberal_cipav:'23,2%',lmtc:'6%'}
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { background: #04000C; min-height: 100vh; }
+        input, select {
+          width: 100%; padding: 12px 14px; border-radius: 12px;
+          border: 1px solid rgba(255,255,255,0.18);
+          background: rgba(20,5,40,0.45);
+          color: #fff; font-family: 'Inter', sans-serif; font-size: 15px;
+          outline: none; transition: border-color .2s, background .2s;
+          -webkit-appearance: none;
+        }
+        input:focus, select:focus {
+          border-color: rgba(243,130,255,0.5);
+          background: rgba(20,5,40,0.6);
+        }
+        input::placeholder { color: rgba(255,255,255,0.25); }
+        select option { background: #0a0018; color: #fff; }
+        input:-webkit-autofill, input:-webkit-autofill:focus {
+          -webkit-text-fill-color: #fff;
+          -webkit-box-shadow: 0 0 0 1000px rgba(20,5,40,0.6) inset;
+        }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.04); } }
+        .step-content { animation: fadeUp .4s cubic-bezier(.16,1,.3,1) both; }
+        .secteur-card:hover { border-color: rgba(243,130,255,0.4) !important; background: rgba(243,130,255,0.06) !important; }
+      `}</style>
+
+      {/* Background */}
+      <div ref={bgRef} style={{position:'fixed',inset:0,zIndex:0,pointerEvents:'none',backgroundColor:'#04000C',backgroundImage:'radial-gradient(ellipse 140% 120% at 38% 42%, rgba(70,8,120,0.38) 0%, rgba(35,3,70,0.22) 45%, transparent 72%)'}}/>
+
+      <div style={{position:'relative',zIndex:1,minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'1.5rem',fontFamily:"'Inter',sans-serif"}}>
+
+        {/* Logo */}
+        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:800,letterSpacing:'.14em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',marginBottom:'2rem'}}>
+          Serely<span style={{color:'#f382ff'}}>o</span>
+        </div>
+
+        {/* Progress bar */}
+        {step < 4 && (
+          <div style={{width:'100%',maxWidth:520,marginBottom:'2rem'}}>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:10}}>
+              {STEPS.slice(0,3).map(s=>(
+                <div key={s.id} style={{display:'flex',alignItems:'center',gap:6}}>
+                  <div style={{
+                    width:24,height:24,borderRadius:'50%',
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    fontSize:11,fontWeight:800,
+                    background:step>=s.id?'linear-gradient(135deg,#f382ff,#c081ff)':'rgba(255,255,255,0.08)',
+                    color:step>=s.id?'#07080F':'rgba(255,255,255,0.3)',
+                    transition:'all .3s',
+                  }}>
+                    {step>s.id ? '✓' : s.id}
+                  </div>
+                  {s.id < 3 && (
+                    <div style={{width:80,height:2,borderRadius:9999,background:step>s.id?'linear-gradient(90deg,#f382ff,#c081ff)':'rgba(255,255,255,0.08)',transition:'background .3s'}}/>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Card */}
+        <div style={{width:'100%',maxWidth:520,background:'rgba(20,5,40,0.35)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',border:'1px solid rgba(255,255,255,0.16)',borderRadius:24,padding:'2.25rem',boxShadow:'inset 0 1px 0 rgba(255,255,255,0.08)'}}>
+
+          {/* ── STEP 1 : Identité ── */}
+          {step===1 && (
+            <div className="step-content">
+              <div style={{fontSize:10,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#f382ff',marginBottom:12}}>Étape 1 sur 3</div>
+              <h1 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:26,fontWeight:800,letterSpacing:'-.02em',color:'#fff',marginBottom:6}}>{STEPS[0].title}</h1>
+              <p style={{fontSize:14,color:'rgba(255,255,255,0.42)',marginBottom:'2rem'}}>{STEPS[0].desc}</p>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:16}}>
+                <div>
+                  <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:7}}>Prénom *</label>
+                  <input value={form.prenom} onChange={set('prenom')} placeholder="Marie" autoFocus/>
+                </div>
+                <div>
+                  <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:7}}>Nom *</label>
+                  <input value={form.nom} onChange={set('nom')} placeholder="Dupont"/>
+                </div>
+              </div>
+              <div style={{marginBottom:16}}>
+                <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:7}}>Ton activité</label>
+                <input value={form.activite} onChange={set('activite')} placeholder="Développeuse web, coach, plombier…"/>
+              </div>
+              <div>
+                <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:10}}>Ton niveau avec l'admin</label>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                  {[['debutant','Débutant','Je découvre'],['intermediaire','Intermédiaire','Je me débrouille'],['avance','À l\'aise','Pas besoin de tuto']].map(([val,label,sub])=>(
+                    <div key={val} onClick={()=>setForm(p=>({...p,niveau:val}))} style={{background:form.niveau===val?'rgba(243,130,255,0.12)':'rgba(255,255,255,0.04)',border:`1px solid ${form.niveau===val?'rgba(243,130,255,0.35)':'rgba(255,255,255,0.1)'}`,borderRadius:12,padding:'12px 10px',cursor:'pointer',textAlign:'center',transition:'all .15s'}}>
+                      <div style={{fontSize:12,fontWeight:700,color:form.niveau===val?'#f382ff':'rgba(255,255,255,0.7)',marginBottom:3}}>{label}</div>
+                      <div style={{fontSize:10,color:'rgba(255,255,255,0.35)'}}>{sub}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── STEP 2 : Activité ── */}
+          {step===2 && (
+            <div className="step-content">
+              <div style={{fontSize:10,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#f382ff',marginBottom:12}}>Étape 2 sur 3</div>
+              <h1 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:26,fontWeight:800,letterSpacing:'-.02em',color:'#fff',marginBottom:6}}>{STEPS[1].title}</h1>
+              <p style={{fontSize:14,color:'rgba(255,255,255,0.42)',marginBottom:'1.5rem'}}>{STEPS[1].desc}</p>
+
+              <div style={{marginBottom:'1.25rem'}}>
+                <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:10}}>Secteur d'activité *</label>
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  {SECTEURS.map(s=>(
+                    <div key={s.value} className="secteur-card" onClick={()=>setForm(p=>({...p,secteur:s.value}))} style={{background:form.secteur===s.value?'rgba(243,130,255,0.1)':'rgba(255,255,255,0.03)',border:`1px solid ${form.secteur===s.value?'rgba(243,130,255,0.35)':'rgba(255,255,255,0.1)'}`,borderRadius:12,padding:'12px 14px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center',transition:'all .15s'}}>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:600,color:form.secteur===s.value?'#fff':'rgba(255,255,255,0.7)',marginBottom:2}}>{s.label}</div>
+                        <div style={{fontSize:11,color:'rgba(255,255,255,0.35)'}}>{s.desc}</div>
+                      </div>
+                      <div style={{fontSize:16,fontWeight:800,color:'#f382ff',flexShrink:0,marginLeft:12}}>{s.taux}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{marginTop:10,padding:'8px 12px',background:'rgba(243,130,255,0.06)',border:'1px solid rgba(243,130,255,0.15)',borderRadius:10,fontSize:12,color:'rgba(255,255,255,0.5)'}}>
+                  Taux URSSAF : <strong style={{color:'#f382ff'}}>{TAUX[form.secteur]}</strong> de ton CA
+                </div>
+              </div>
+
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:'1rem'}}>
+                <div>
+                  <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:7}}>Date de création *</label>
+                  <input type="date" value={form.date_creation} onChange={set('date_creation')}/>
+                </div>
+                <div>
+                  <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:7}}>Déclarations URSSAF</label>
+                  <select value={form.regime_declaration} onChange={set('regime_declaration')}>
+                    <option value="trimestriel">Trimestrielle</option>
+                    <option value="mensuel">Mensuelle</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:10}}>Tu bénéficies de l'ACRE ?</label>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                  {[[false,'Non','Taux standard'],[true,'Oui','Exonération 1ère année']].map(([val,label,sub])=>(
+                    <div key={String(val)} onClick={()=>setForm(p=>({...p,acre:val}))} style={{background:form.acre===val?'rgba(243,130,255,0.1)':'rgba(255,255,255,0.04)',border:`1px solid ${form.acre===val?'rgba(243,130,255,0.35)':'rgba(255,255,255,0.1)'}`,borderRadius:12,padding:'12px',cursor:'pointer',textAlign:'center',transition:'all .15s'}}>
+                      <div style={{fontSize:13,fontWeight:700,color:form.acre===val?'#f382ff':'rgba(255,255,255,0.65)',marginBottom:3}}>{label}</div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.32)'}}>{sub}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── STEP 3 : Objectifs ── */}
+          {step===3 && (
+            <div className="step-content">
+              <div style={{fontSize:10,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#f382ff',marginBottom:12}}>Étape 3 sur 3</div>
+              <h1 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:26,fontWeight:800,letterSpacing:'-.02em',color:'#fff',marginBottom:6}}>{STEPS[2].title}</h1>
+              <p style={{fontSize:14,color:'rgba(255,255,255,0.42)',marginBottom:'1.75rem'}}>{STEPS[2].desc}</p>
+
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:'1.25rem'}}>
+                <div>
+                  <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:7}}>Objectif CA annuel (€)</label>
+                  <input type="number" value={form.objectif_ca} onChange={set('objectif_ca')} placeholder="30 000"/>
+                </div>
+                <div>
+                  <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:7}}>Objectif CA mensuel (€)</label>
+                  <input type="number" value={form.objectif_ca_mensuel} onChange={set('objectif_ca_mensuel')} placeholder="2 500"/>
+                </div>
+              </div>
+
+              <div style={{marginBottom:'1.25rem'}}>
+                <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:10}}>L'auto-entreprise c'est pour toi…</label>
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  {[['complement_revenu','Un complément de revenu','En plus d\'un salaire ou autre activité'],['revenu_principal','Mon revenu principal','C\'est mon activité à temps plein'],['tester_activite','Tester une idée','Je veux voir si ça marche avant de m\'engager']].map(([val,label,sub])=>(
+                    <div key={val} onClick={()=>setForm(p=>({...p,objectif_ae:val}))} style={{background:form.objectif_ae===val?'rgba(243,130,255,0.1)':'rgba(255,255,255,0.03)',border:`1px solid ${form.objectif_ae===val?'rgba(243,130,255,0.35)':'rgba(255,255,255,0.1)'}`,borderRadius:12,padding:'12px 14px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center',transition:'all .15s'}}>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:600,color:form.objectif_ae===val?'#fff':'rgba(255,255,255,0.65)',marginBottom:2}}>{label}</div>
+                        <div style={{fontSize:11,color:'rgba(255,255,255,0.32)'}}>{sub}</div>
+                      </div>
+                      {form.objectif_ae===val && <div style={{width:18,height:18,borderRadius:'50%',background:'#f382ff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width="10" height="10" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07080F" strokeWidth="2" strokeLinecap="round" fill="none"/></svg></div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── STEP 4 : Welcome ── */}
+          {step===4 && (
+            <div className="step-content" style={{textAlign:'center',padding:'1rem 0'}}>
+              <div style={{width:72,height:72,borderRadius:'50%',background:'linear-gradient(135deg,rgba(243,130,255,0.25),rgba(192,129,255,0.25))',border:'1px solid rgba(243,130,255,0.3)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 1.5rem',animation:'pulse 2s ease-in-out infinite'}}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f382ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/>
+                </svg>
+              </div>
+              <h1 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:28,fontWeight:800,letterSpacing:'-.02em',color:'#fff',marginBottom:10}}>
+                Bienvenue, {form.prenom} !
+              </h1>
+              <p style={{fontSize:14,color:'rgba(255,255,255,0.5)',lineHeight:1.75,marginBottom:'2rem'}}>
+                Ton espace Serelyo est configuré.<br/>
+                Ton tableau de bord t'attend avec tes premiers calculs.
+              </p>
+              <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:'2rem',textAlign:'left'}}>
+                {[
+                  ['calculate','Calculs URSSAF personnalisés selon ton secteur'],
+                  ['calendar_month','Calendrier de tes déclarations URSSAF'],
+                  ['description','Générateur de devis en 2 minutes'],
+                  ['auto_awesome','Assistant IA pour toutes tes questions admin'],
+                ].map(([icon,text])=>(
+                  <div key={icon} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',background:'rgba(255,255,255,0.04)',borderRadius:12,border:'1px solid rgba(255,255,255,0.08)'}}>
+                    <span style={{fontFamily:"'Material Symbols Outlined'",fontSize:18,color:'#f382ff'}}>{icon}</span>
+                    <span style={{fontSize:13,color:'rgba(255,255,255,0.7)'}}>{text}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={()=>router.push('/dashboard')}
+                style={{width:'100%',padding:'14px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#f382ff,#c081ff)',color:'#07080F',fontFamily:"'Inter',sans-serif",fontSize:15,fontWeight:800,cursor:'pointer',boxShadow:'0 4px 24px rgba(243,130,255,0.35)',letterSpacing:'.01em'}}
+              >
+                Accéder à mon tableau de bord →
+              </button>
+            </div>
+          )}
+
+          {/* Navigation buttons */}
+          {step < 4 && (
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'1.75rem',paddingTop:'1.5rem',borderTop:'1px solid rgba(255,255,255,0.08)'}}>
+              <button
+                onClick={()=>step>1?setStep(s=>s-1):null}
+                style={{background:'none',border:'none',color:'rgba(255,255,255,0.35)',fontSize:13,cursor:step>1?'pointer':'default',fontFamily:"'Inter',sans-serif",fontWeight:500,visibility:step>1?'visible':'hidden'}}
+              >
+                ← Précédent
+              </button>
+              <button
+                onClick={()=>{
+                  if (step===3) saveAndFinish()
+                  else setStep(s=>s+1)
+                }}
+                disabled={!canNext()||loading}
+                style={{padding:'11px 28px',borderRadius:12,border:'none',background:canNext()&&!loading?'linear-gradient(135deg,#f382ff,#c081ff)':'rgba(255,255,255,0.08)',color:canNext()&&!loading?'#07080F':'rgba(255,255,255,0.25)',fontFamily:"'Inter',sans-serif",fontSize:14,fontWeight:800,cursor:canNext()&&!loading?'pointer':'not-allowed',transition:'all .2s',letterSpacing:'.01em'}}
+              >
+                {loading?'Sauvegarde…':step===3?'Terminer →':'Continuer →'}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {step < 4 && (
+          <button
+            onClick={()=>router.push('/dashboard')}
+            style={{marginTop:'1.25rem',background:'none',border:'none',color:'rgba(255,255,255,0.2)',fontSize:12,cursor:'pointer',fontFamily:"'Inter',sans-serif"}}
+          >
+            Passer pour l'instant
+          </button>
+        )}
+      </div>
+    </>
+  )
+}
