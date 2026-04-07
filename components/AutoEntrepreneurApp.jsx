@@ -472,67 +472,90 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     const fmt = v => (+v).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})
     const rows = lignes.map(l=>`
       <tr>
-        <td style="padding:10px 8px;border-bottom:1px solid #F6F0E4;vertical-align:top">
-          <strong style="color:#1C1710">${l.designation}</strong>
-          ${l.detail?`<br><span style="font-size:11px;color:#6B5E45">${l.detail}</span>`:''}
+        <td style="padding:11px 0;border-bottom:1px solid #f5f5f8;vertical-align:top">
+          <strong style="font-size:13px;color:#1a1a2e;font-family:'Plus Jakarta Sans',sans-serif">${l.designation}</strong>
+          ${l.detail?`<span style="display:block;font-size:11px;color:#888;margin-top:2px">${l.detail}</span>`:''}
         </td>
-        <td style="padding:10px 8px;border-bottom:1px solid #F6F0E4;text-align:center">${l.quantite} ${l.unite}</td>
-        <td style="padding:10px 8px;border-bottom:1px solid #F6F0E4;text-align:right">${fmt(l.prix)} €</td>
-        <td style="padding:10px 8px;border-bottom:1px solid #F6F0E4;text-align:right;font-weight:600">${fmt(l.quantite*l.prix)} €</td>
+        <td style="padding:11px 0;border-bottom:1px solid #f5f5f8;text-align:right;color:#555">${l.quantite} ${l.unite}</td>
+        <td style="padding:11px 0;border-bottom:1px solid #f5f5f8;text-align:right;color:#555">${fmt(l.prix)} €</td>
+        <td style="padding:11px 0;border-bottom:1px solid #f5f5f8;text-align:right;font-weight:700;color:#1a1a2e">${fmt(l.quantite*l.prix)} €</td>
       </tr>`).join('')
-    const tvaNote = d.tva_taux===0 ? '<p style="margin-top:12px;font-size:10px;color:#A89878">TVA non applicable en vertu de l&#39;article 293B du CGI.</p>' : ''
+    const tvaNote = d.tva_taux===0 ? '<p style="margin-top:12px;font-size:10px;color:#aaa">TVA non applicable — art. 293 B du CGI</p>' : ''
     const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
     <title>Devis ${d.numero}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
       *{box-sizing:border-box;margin:0;padding:0}
-      body{font-family:'Inter',sans-serif;color:#1C1710;background:#fff;padding:40px 50px;max-width:800px;margin:0 auto}
-      .stripe{height:6px;background:linear-gradient(90deg,#B5792A,#D4A456);margin-bottom:36px;border-radius:2px}
-      h1{font-family:'Playfair Display',serif;font-size:38px;font-weight:600;margin-bottom:8px}
-      .badge{display:inline-block;background:#FAF3E0;color:#B5792A;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:24px}
-      .head{display:flex;justify-content:space-between;margin-bottom:28px}
-      .ref{text-align:right;font-size:12px;color:#A89878;line-height:2}
-      .ref strong{font-family:'Playfair Display',serif;font-size:17px;color:#1C1710;display:block}
-      .sep{height:1px;background:#E2D8C4;margin:20px 0}
-      .parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}
-      .plbl{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#A89878;margin-bottom:6px}
-      .pname{font-family:'Playfair Display',serif;font-size:17px;margin-bottom:4px}
-      .psub{font-size:12px;color:#6B5E45;line-height:1.6}
+      body{font-family:'Inter',sans-serif;color:#1a1a2e;background:#fff;padding:40px 48px;max-width:820px;margin:0 auto}
+      /* top bar */
+      .no-print{background:#1a1a2e;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;margin:-40px -48px 36px;position:sticky;top:0;z-index:10}
+      .no-print span{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.5)}
+      .no-print button{background:linear-gradient(135deg,#8b3fc8,#6a2fa0);color:#fff;border:none;padding:9px 20px;border-radius:9px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:700}
+      /* header */
+      .top-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #f0f0f5}
+      .brand{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#ccc;margin-bottom:12px}
+      .doc-type{font-family:'Plus Jakarta Sans',sans-serif;font-size:38px;font-weight:800;letter-spacing:-.03em;color:#1a1a2e;line-height:1}
+      .doc-pill{display:inline-flex;align-items:center;margin-top:10px;font-size:10px;font-weight:700;padding:4px 12px;border-radius:9999px;letter-spacing:.06em;text-transform:uppercase;background:#f5eeff;color:#8b3fc8}
+      .ref-block{text-align:right}
+      .ref-num{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;color:#1a1a2e;display:block;margin-bottom:6px}
+      .ref-dates{font-size:11px;color:#888;line-height:2.1}
+      .ref-dates strong{color:#1a1a2e;font-weight:600}
+      /* accent */
+      .accent-line{height:3px;background:linear-gradient(90deg,#8b3fc8,#8b3fc833);border-radius:2px;margin-bottom:28px}
+      /* parties */
+      .parties{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:28px}
+      .plbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#bbb;margin-bottom:7px}
+      .pname{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:3px}
+      .psub{font-size:11px;color:#666;line-height:1.7}
+      /* table */
       table{width:100%;border-collapse:collapse;margin-bottom:20px}
-      thead tr{border-bottom:2px solid #1C1710}
-      th{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#6B5E45;padding:0 8px 10px;text-align:left}
-      th:not(:first-child){text-align:right} th:nth-child(2){text-align:center}
-      .totals{display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-bottom:24px}
-      .trow{display:flex;gap:60px;font-size:13px;color:#6B5E45}
-      .tgrand{display:flex;gap:60px;align-items:center;background:#FAF3E0;border-radius:12px;padding:12px 20px;margin-top:4px}
-      .tgrand span:first-child{font-size:13px;color:#6B5E45}
-      .tgrand span:last-child{font-family:'Playfair Display',serif;font-size:22px;color:#1C1710}
-      .footer-box{background:#F6F0E4;border-radius:10px;padding:14px 18px;margin-top:20px}
-      .footer-box p{font-size:11px;color:#6B5E45;line-height:1.8;margin-bottom:4px}
-      .footer-box strong{color:#1C1710}
-      .legal{margin-top:24px;font-size:10px;color:#A89878;text-align:center;line-height:1.7;border-top:1px solid #E2D8C4;padding-top:16px}
+      thead tr{border-bottom:1.5px solid #1a1a2e}
+      th{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;padding:0 0 10px;text-align:left}
+      th:not(:first-child){text-align:right}
+      /* totals */
+      .totals{display:flex;flex-direction:column;align-items:flex-end;gap:7px;margin-bottom:24px}
+      .trow{display:flex;gap:64px;font-size:12px;color:#888}
+      .trow span:last-child{color:#1a1a2e;font-weight:500;min-width:90px;text-align:right}
+      .tgrand{display:flex;gap:64px;align-items:center;background:#f5eeff;border-radius:12px;padding:12px 20px;margin-top:6px}
+      .tgrand span:first-child{font-size:12px;color:#8b3fc8;font-weight:600}
+      .tgrand span:last-child{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#1a1a2e;min-width:90px;text-align:right}
+      /* boxes */
+      .footer-box{background:#fafafa;border-radius:10px;padding:14px 18px;margin-bottom:20px;border:1px solid #f0f0f5}
+      .footer-box p{font-size:11px;color:#555;line-height:1.8;margin-bottom:4px}
+      .footer-box strong{color:#1a1a2e;font-weight:600}
+      .sign-box{border:1.5px solid #ebebf5;border-radius:10px;padding:14px 18px;margin-bottom:20px}
+      .sign-label{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#bbb;margin-bottom:10px}
+      .sign-area{height:52px;border-bottom:1px solid #ebebf5;margin-bottom:8px}
+      .sign-sub{font-size:9.5px;color:#ccc}
+      /* footer */
+      .legal{margin-top:16px;font-size:9.5px;color:#bbb;text-align:center;line-height:1.7;border-top:1px solid #f0f0f5;padding-top:14px}
       @media print{.no-print{display:none!important}body{padding:0}@page{margin:12mm 10mm}}
     </style></head><body>
-    <div class="no-print" style="background:#1C1710;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;margin:-40px -50px 30px;position:sticky;top:0;z-index:10">
-      <span style="color:#E8D5A8;font-family:'Playfair Display',serif;font-size:16px">Serelyo — Aperçu du devis</span>
-      <button onclick="window.print()" style="background:#B5792A;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-family:Outfit,sans-serif;font-size:13px;font-weight:600">Imprimer / Sauvegarder PDF</button>
+    <div class="no-print">
+      <span>Serelyo — Aperçu devis</span>
+      <button onclick="window.print()">Imprimer / PDF</button>
     </div>
-    <div class="stripe"></div>
-    <div class="head">
-      <div><h1>Devis</h1><div class="badge">En attente de validation</div></div>
-      <div class="ref">
-        <strong>${d.numero}</strong>
-        Emis le ${d.date_emission}<br>
-        Valable jusqu'au <strong style="color:#1C1710">${d.date_validite}</strong>
+    <div class="top-bar">
+      <div>
+        <div class="brand">Serelyo</div>
+        <div class="doc-type">Devis</div>
+        <div class="doc-pill">En attente de validation</div>
+      </div>
+      <div class="ref-block">
+        <span class="ref-num">${d.numero}</span>
+        <div class="ref-dates">
+          Émis le <strong>${d.date_emission}</strong><br>
+          Valable jusqu'au <strong>${d.date_validite}</strong>
+        </div>
       </div>
     </div>
-    <div class="sep"></div>
+    <div class="accent-line"></div>
     <div class="parties">
       <div>
-        <div class="plbl">Emetteur</div>
+        <div class="plbl">Émetteur</div>
         <div class="pname">${em?.nom||'—'}</div>
         <div class="psub">${[em?.activite,em?.adresse,em?.email,em?.tel].filter(Boolean).join('<br>')}</div>
-        ${em?.siret?`<div class="psub" style="margin-top:6px">SIRET : ${em.siret}</div>`:''}
+        ${em?.siret?`<div class="psub" style="margin-top:5px;font-size:10px;color:#bbb">SIRET : ${em.siret}</div>`:''}
       </div>
       <div>
         <div class="plbl">Client</div>
@@ -545,7 +568,12 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       </div>
     </div>
     <table>
-      <thead><tr><th>Designation</th><th style="text-align:center">Qte</th><th style="text-align:right">Prix unitaire HT</th><th style="text-align:right">Total HT</th></tr></thead>
+      <thead><tr>
+        <th style="width:46%">Désignation</th>
+        <th style="text-align:right">Qté</th>
+        <th style="text-align:right">Prix unitaire HT</th>
+        <th style="text-align:right">Total HT</th>
+      </tr></thead>
       <tbody>${rows}</tbody>
     </table>
     <div class="totals">
@@ -555,21 +583,23 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     </div>
     <div class="footer-box">
       ${d.conditions?`<p><strong>Conditions :</strong> ${d.conditions}</p>`:''}
-      <p><strong>Validite :</strong> Ce devis est valable ${d.validite_jours} jours a compter de sa date d&#39;emission.</p>
+      <p><strong>Validité :</strong> Ce devis est valable ${d.validite_jours} jours à compter de sa date d'émission.</p>
       ${d.notes?`<p><strong>Notes :</strong> ${d.notes}</p>`:''}
-      <p style="margin-top:8px;font-size:10px;color:#A89878">Bon pour accord — Date et signature du client :</p>
-      <div style="border:1px solid #E2D8C4;border-radius:8px;height:50px;margin-top:6px"></div>
+    </div>
+    <div class="sign-box">
+      <div class="sign-label">Bon pour accord — signature du client</div>
+      <div class="sign-area"></div>
+      <div class="sign-sub">Date et signature précédées de "Bon pour accord"</div>
     </div>
     ${tvaNote}
     <div class="legal">
       ${em?.nom||''} ${em?.forme_juridique?'— '+em.forme_juridique:''} ${em?.siret?'— SIRET : '+em.siret:''}<br>
-      Document genere par Serelyo — serelyo.fr
+      Document généré par Serelyo — serelyo.fr
     </div>
     </body></html>`
     const w = window.open('','_blank','width=900,height=700,scrollbars=yes')
     if (w) { w.document.write(html); w.document.close() }
   }
-
   const tauxImpot = profil ? (parseFloat(profil.taux_impot_perso)||14) / 100 : 0.14
 
   const calculer = () => {
