@@ -584,17 +584,20 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       {/* NAV */}
       <div className="nav-tabs">
         {[
-          ['dashboard','🏠','Accueil'],
-          ['calendrier','📅','Calendrier'],
-          ['revenus','💶','Revenus'],
-          ['simulateur','🧮','Calculs'],
-          ['devis','📄','Devis'],
-          ['assistant','💬','Assistant'],
-          ['ressources','📚','Ressources'],
-        ].map(([v,emoji,label])=>(
+          ['dashboard',   'dashboard',        'Accueil'],
+          ['calendrier',  'calendar_month',   'Calendrier'],
+          ['revenus',     'payments',         'Revenus'],
+          ['simulateur',  'calculate',        'Calculs'],
+          ['devis',       'description',      'Devis'],
+          ['assistant',   'auto_awesome',     'Assistant'],
+          ['ressources',  'menu_book',        'Ressources'],
+        ].map(([v, icon, label])=>(
           <button key={v} className={`nav-tab ${view===v?'active':''}`} onClick={()=>setView(v)}>
-            <span style={{display:'block',fontSize:18,lineHeight:1,marginBottom:2}}>{emoji}</span>
-            <span style={{fontSize:10,display:'block'}}>{label}</span>
+            <span className="material-symbols-outlined" style={{
+              fontSize:22,lineHeight:1,marginBottom:3,display:'block',
+              fontVariationSettings: view===v ? "'FILL' 1,'wght' 500" : "'FILL' 0,'wght' 300"
+            }}>{icon}</span>
+            <span style={{fontSize:9,display:'block',fontWeight:700,letterSpacing:'.05em',textTransform:'uppercase'}}>{label}</span>
           </button>
         ))}
       </div>
@@ -2762,6 +2765,21 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
 
 /* ── RESET ── */
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;margin:0;padding:0}
