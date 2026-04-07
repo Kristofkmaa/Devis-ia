@@ -2828,9 +2828,9 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
 .nav-tab.active span:first-child{transform:scale(1.15)}
 
 /* ── MAIN ── */
-.main{max-width:820px;margin:0 auto;padding:1.25rem 1rem 6rem;position:relative;z-index:1}
-@media(min-width:640px){.main{padding:2rem 1.5rem 7rem}}
-@media(min-width:820px){.main{padding:2rem 2rem 7rem}}
+.main{max-width:820px;margin:0 auto;padding:1.25rem 1rem 2rem;position:relative;z-index:1}
+@media(min-width:640px){.main{padding:2rem 1.5rem 2rem}}
+@media(min-width:820px){.main{padding:2rem 2rem 2rem}}
 
 /* ── CARDS ── */
 .card{
@@ -3056,7 +3056,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 .res-disclaimer strong{color:#fff}
 
 /* ── FOOTER ── */
-.app-footer{text-align:center;padding:24px 20px;font-size:12px;color:rgba(255,255,255,0.18);border-top:1px solid rgba(255,255,255,0.06);margin-top:2rem;position:relative;z-index:1}
+.app-footer{text-align:center;padding:24px 20px calc(88px + env(safe-area-inset-bottom));font-size:12px;color:rgba(255,255,255,0.18);border-top:1px solid rgba(255,255,255,0.06);margin-top:2rem;position:relative;z-index:1}
 .app-footer a{color:rgba(255,255,255,0.18);text-decoration:none;margin:0 10px;transition:color .2s}
 .app-footer a:hover{color:rgba(255,255,255,0.5)}
 
