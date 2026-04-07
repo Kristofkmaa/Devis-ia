@@ -128,7 +128,6 @@ Contact : contact@serelyo.fr`
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { background: #04000C; min-height: 100vh; }
         body {
@@ -172,7 +171,7 @@ Contact : contact@serelyo.fr`
           letter-spacing: -.02em; color: #fff; margin-bottom: 12px;
         }
         .legal-date { font-size: 13px; color: rgba(255,255,255,0.3); }
-        .legal-body { max-width: 760px; margin: 0 auto; padding: 60px 5% 100px; }
+        .legal-body { max-width: 760px; margin: 0 auto; padding: 60px 5% 120px; }
         .legal-toc {
           background: rgba(20,5,40,0.40); backdrop-filter: blur(28px);
           border: 1px solid rgba(255,255,255,0.14);
@@ -208,14 +207,16 @@ Contact : contact@serelyo.fr`
         .legal-footer {
           background: rgba(4,0,12,0.85); backdrop-filter: blur(40px);
           border-top: 1px solid rgba(255,255,255,0.06);
-          padding: 36px 5%; text-align: center;
+          padding: 36px 5% calc(48px + env(safe-area-inset-bottom)); text-align: center;
           font-size: 12px; color: rgba(255,255,255,0.22);
         }
         .legal-footer a { color: rgba(243,130,255,0.7); text-decoration: none; margin: 0 12px; transition: color .2s; }
         .legal-footer a:hover { color: #f382ff; }
+        /* Hide app bottom nav if present on this page */
+        .nav-tabs { display: none !important; }
         @media (max-width: 600px) {
           .legal-hero { padding: 60px 5% 40px; }
-          .legal-body { padding: 40px 5% 80px; }
+          .legal-body { padding: 40px 5% 100px; }
         }
       `}</style>
 
