@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 
@@ -66,7 +66,7 @@ const PLANS = [
   },
 ]
 
-export default function Premium() {
+function PremiumInner() {
   const [loading, setLoading]   = useState(null)
   const [error, setError]       = useState('')
   const [user, setUser]         = useState(null)
@@ -261,5 +261,13 @@ export default function Premium() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function Premium() {
+  return (
+    <Suspense fallback={null}>
+      <PremiumInner />
+    </Suspense>
   )
 }
