@@ -160,6 +160,18 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [simVariation, setSimVariation]   = useState('stable') // stable | croissance | saisonnalite
   const [simResult, setSimResult]     = useState(null)
 
+  // Calculateur inversé
+  const [invNet, setInvNet]         = useState('')
+  const [invJours, setInvJours]     = useState(20)
+  const [invConges, setInvConges]   = useState(5)
+  const [invResult, setInvResult]   = useState(null)
+
+  // Micro vs Réel
+  const [reelCA, setReelCA]           = useState('')
+  const [reelCharges, setReelCharges] = useState('')
+  const [reelResult, setReelResult]   = useState(null)
+
+
   // Rendez-vous personnels
   const [rdvList, setRdvList]         = useState([])
   const [showRdvModal, setShowRdvModal] = useState(false)
@@ -1962,7 +1974,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     <div className="card" style={{marginBottom:'1.5rem'}}>
                       <div className="card-title">Détail mois par mois</div>
                       <div style={{overflowX:'auto'}}>
-                        <div style={{overflowX:'auto'}}><table className="rev-table">
+                        <table className="rev-table">
                           <thead>
                             <tr>
                               <th>Mois</th>
@@ -2114,7 +2126,6 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     const caAnnuel = caParMoisActif * moisActifs
                     const caParMoisCalendaire = caAnnuel / 12
                     // Taux journalier moyen (TJM)
-                    const moisActifMoyJours = invJours * (moisActifs/12)
                     const tjm = caParMoisActif / invJours
                     // Taux horaire (7h/jour)
                     const tauxHoraire = tjm / 7
