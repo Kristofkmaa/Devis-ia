@@ -197,6 +197,18 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [savingDevis, setSavingDevis] = useState(false)
   const [devisCounter, setDevisCounter] = useState(1)
 
+  // Équipe
+  const [salaries, setSalaries]           = useState([])
+  const [showSalarieForm, setShowSalarieForm] = useState(false)
+  const [salarieEditing, setSalarieEditing]   = useState(null)
+  const [salarieForm, setSalarieForm] = useState({
+    prenom:'', nom:'', poste:'', type_contrat:'cdi',
+    salaire_brut:'', date_embauche:'', statut:'actif', notes:''
+  })
+  const [savingSalarie, setSavingSalarie] = useState(false)
+  const [simSalaire, setSimSalaire]       = useState('')
+  const [simSalarieResult, setSimSalarieResult] = useState(null)
+
   useEffect(() => { if (user) loadAll() }, [user])
 
   const loadAll = async () => {
@@ -232,6 +244,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     if (dv) { setDevis(dv); if(dv.length>0) setDevisCounter(dv.length+1) }
     const { data:rdv } = await supabase.from('ae_rdv').select('*').eq('user_id',user.id).order('date',{ascending:true})
     if (rdv) setRdvList(rdv)
+    const { data:sal } = await supabase.from('ae_salaries').select('*').eq('user_id',user.id).order('created_at',{ascending:true})
+    if (sal) setSalaries(sal)
     setLoading(false)
   }
 
@@ -590,6 +604,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           ['simulateur',  'calculate',        'Calculs'],
           ['devis',       'description',      'Devis'],
           ['assistant',   'auto_awesome',     'Assistant'],
+          ['equipe',      'group',            'Équipe'],
           ['ressources',  'menu_book',        'Ressources'],
         ].map(([v, icon, label])=>(
           <button key={v} className={`nav-tab ${view===v?'active':''}`} onClick={()=>setView(v)}>
@@ -2753,6 +2768,378 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           </div>
         </div>
       )}
+
+      {/* ── ÉQUIPE ── */}
+      {view==='equipe' && (
+        <div className="main">
+          <div className="page-header" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12}}>
+            <div>
+              <h2 className="page-title">Mon équipe</h2>
+              <p className="page-sub">Calcule le coût réel de tes salariés et gère ton équipe</p>
+            </div>
+            <button className="btn btn-dark" onClick={()=>{setSalarieForm({prenom:'',nom:'',poste:'',type_contrat:'cdi',salaire_brut:'',date_embauche:'',statut:'actif',notes:''});setSalarieEditing(null);setShowSalarieForm(true)}}>+ Ajouter un salarié</button>
+          </div>
+
+          {/* ── SIMULATEUR RAPIDE ── */}
+          <div className="card" style={{marginBottom:'1.25rem'}}>
+            <div className="card-title">Simulateur de coût — combien me coûte vraiment un salarié ?</div>
+            <p style={{fontSize:13,color:'rgba(255,255,255,0.45)',marginBottom:'1.25rem',lineHeight:1.6}}>
+              Saisis un salaire brut pour voir le détail complet : charges salariales, charges patronales, coût employeur réel.
+            </p>
+            <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'flex-end',marginBottom:'1.25rem'}}>
+              <div style={{flex:1,minWidth:180}}>
+                <span className="mini-label">Salaire brut mensuel (€)</span>
+                <input className="mini-input" type="number" value={simSalaire}
+                  onChange={e=>setSimSalaire(e.target.value)}
+                  onKeyDown={e=>{if(e.key==='Enter'){
+                    const brut=parseFloat(simSalaire)||0
+                    if(!brut)return
+                    // Charges salariales ~22.6%
+                    const cs_maladie=brut*0.0075
+                    const cs_vieillesse_plaf=brut*0.069
+                    const cs_vieillesse_deplaf=brut*0.004
+                    const cs_chomage=brut*0.024
+                    const cs_csg_ded=brut*0.068
+                    const cs_csg_crds=brut*0.029
+                    const cs_retraite_comp=brut*0.0315
+                    const total_sal=cs_maladie+cs_vieillesse_plaf+cs_vieillesse_deplaf+cs_chomage+cs_csg_ded+cs_csg_crds+cs_retraite_comp
+                    const net=brut-total_sal
+                    // Charges patronales ~42%
+                    const cp_maladie=brut*0.07
+                    const cp_vieillesse_plaf=brut*0.0855
+                    const cp_vieillesse_deplaf=brut*0.019
+                    const cp_fam=brut*0.0345
+                    const cp_at=brut*0.0222
+                    const cp_chomage=brut*0.0405
+                    const cp_ags=brut*0.0015
+                    const cp_retraite_comp=brut*0.0472
+                    const cp_ceg=brut*0.0129
+                    const cp_formation=brut*0.0155
+                    const cp_apprentissage=brut*0.0068
+                    const cp_csa=brut*0.003
+                    const total_pat=cp_maladie+cp_vieillesse_plaf+cp_vieillesse_deplaf+cp_fam+cp_at+cp_chomage+cp_ags+cp_retraite_comp+cp_ceg+cp_formation+cp_apprentissage+cp_csa
+                    const cout_total=brut+total_pat
+                    // SMIC 2025
+                    const smic=1801.80
+                    const fillon=brut<=smic*1.6?Math.max(0,total_pat*0.3):0
+                    setSimSalarieResult({brut,net,total_sal,total_pat,cout_total,fillon,cout_apres_fillon:cout_total-fillon,
+                      detail_sal:{cs_maladie,cs_vieillesse_plaf,cs_vieillesse_deplaf,cs_chomage,cs_csg_ded,cs_csg_crds,cs_retraite_comp},
+                      detail_pat:{cp_maladie,cp_vieillesse_plaf,cp_vieillesse_deplaf,cp_fam,cp_at,cp_chomage,cp_ags,cp_retraite_comp,cp_ceg,cp_formation,cp_apprentissage,cp_csa}
+                    })
+                  }}}
+                  placeholder="2 000"/>
+              </div>
+              <button className="btn btn-dark" style={{padding:'13px 24px',whiteSpace:'nowrap'}} onClick={()=>{
+                const brut=parseFloat(simSalaire)||0
+                if(!brut)return
+                const cs_maladie=brut*0.0075
+                const cs_vieillesse_plaf=brut*0.069
+                const cs_vieillesse_deplaf=brut*0.004
+                const cs_chomage=brut*0.024
+                const cs_csg_ded=brut*0.068
+                const cs_csg_crds=brut*0.029
+                const cs_retraite_comp=brut*0.0315
+                const total_sal=cs_maladie+cs_vieillesse_plaf+cs_vieillesse_deplaf+cs_chomage+cs_csg_ded+cs_csg_crds+cs_retraite_comp
+                const net=brut-total_sal
+                const cp_maladie=brut*0.07
+                const cp_vieillesse_plaf=brut*0.0855
+                const cp_vieillesse_deplaf=brut*0.019
+                const cp_fam=brut*0.0345
+                const cp_at=brut*0.0222
+                const cp_chomage=brut*0.0405
+                const cp_ags=brut*0.0015
+                const cp_retraite_comp=brut*0.0472
+                const cp_ceg=brut*0.0129
+                const cp_formation=brut*0.0155
+                const cp_apprentissage=brut*0.0068
+                const cp_csa=brut*0.003
+                const total_pat=cp_maladie+cp_vieillesse_plaf+cp_vieillesse_deplaf+cp_fam+cp_at+cp_chomage+cp_ags+cp_retraite_comp+cp_ceg+cp_formation+cp_apprentissage+cp_csa
+                const cout_total=brut+total_pat
+                const smic=1801.80
+                const fillon=brut<=smic*1.6?Math.max(0,total_pat*0.3):0
+                setSimSalarieResult({brut,net,total_sal,total_pat,cout_total,fillon,cout_apres_fillon:cout_total-fillon,
+                  detail_sal:{cs_maladie,cs_vieillesse_plaf,cs_vieillesse_deplaf,cs_chomage,cs_csg_ded,cs_csg_crds,cs_retraite_comp},
+                  detail_pat:{cp_maladie,cp_vieillesse_plaf,cp_vieillesse_deplaf,cp_fam,cp_at,cp_chomage,cp_ags,cp_retraite_comp,cp_ceg,cp_formation,cp_apprentissage,cp_csa}
+                })
+              }}>Calculer →</button>
+            </div>
+
+            {simSalarieResult && (() => {
+              const r = simSalarieResult
+              const fmt = v => Math.round(v).toLocaleString('fr-FR')
+              return (
+                <>
+                  {/* 3 grandes cartes résultat */}
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:'1.25rem'}}>
+                    <div style={{background:'rgba(20,5,40,0.5)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Salaire brut</div>
+                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#fff'}}>{fmt(r.brut)} €</div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que tu affiches</div>
+                    </div>
+                    <div style={{background:'rgba(192,129,255,0.12)',border:'1px solid rgba(192,129,255,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Salaire net</div>
+                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#c081ff'}}>{fmt(r.net)} €</div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que touche ton salarié</div>
+                    </div>
+                    <div style={{background:'rgba(243,130,255,0.1)',border:'1px solid rgba(243,130,255,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Coût employeur</div>
+                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#f382ff'}}>{fmt(r.cout_apres_fillon)} €</div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que tu paies vraiment</div>
+                    </div>
+                  </div>
+
+                  {r.fillon > 0 && (
+                    <div style={{background:'rgba(192,129,255,0.08)',border:'1px solid rgba(192,129,255,0.2)',borderRadius:12,padding:'10px 14px',marginBottom:'1.25rem',fontSize:13,color:'#dbb4ff'}}>
+                      Réduction Fillon applicable (salaire ≤ 1,6 SMIC) — économie estimée : <strong>{fmt(r.fillon)} €/mois</strong> soit {fmt(r.fillon*12)} €/an
+                    </div>
+                  )}
+
+                  {/* Détail des charges en 2 colonnes */}
+                  <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:12}}>
+                    {/* Charges salariales */}
+                    <div style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:'1rem'}}>
+                      <div style={{fontSize:12,fontWeight:700,color:'#c081ff',marginBottom:12,letterSpacing:'.04em',textTransform:'uppercase'}}>
+                        Charges salariales — {Math.round((r.total_sal/r.brut)*100)}%
+                      </div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10}}>Retenues sur le brut — supportées par le salarié</div>
+                      {[
+                        ['Assurance maladie','0,75%',r.detail_sal.cs_maladie],
+                        ['Retraite de base plafonnée','6,9%',r.detail_sal.cs_vieillesse_plaf],
+                        ['Retraite de base déplafonnée','0,4%',r.detail_sal.cs_vieillesse_deplaf],
+                        ['Assurance chômage','2,4%',r.detail_sal.cs_chomage],
+                        ['CSG déductible','6,8%',r.detail_sal.cs_csg_ded],
+                        ['CSG/CRDS non déductible','2,9%',r.detail_sal.cs_csg_crds],
+                        ['Retraite complémentaire AGIRC-ARRCO','3,15%',r.detail_sal.cs_retraite_comp],
+                      ].map(([label,taux,val])=>(
+                        <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                          <div>
+                            <div style={{fontSize:12,color:'rgba(255,255,255,0.7)'}}>{label}</div>
+                            <div style={{fontSize:10,color:'rgba(255,255,255,0.3)'}}>{taux}</div>
+                          </div>
+                          <span style={{fontSize:13,fontWeight:600,color:'#ff6e84'}}>−{fmt(val)} €</span>
+                        </div>
+                      ))}
+                      <div style={{display:'flex',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:'1px solid rgba(192,129,255,0.2)'}}>
+                        <span style={{fontSize:13,fontWeight:700,color:'#fff'}}>Total salarial</span>
+                        <span style={{fontSize:14,fontWeight:800,color:'#ff6e84'}}>−{fmt(r.total_sal)} €</span>
+                      </div>
+                      <div style={{marginTop:8,padding:'8px 12px',background:'rgba(192,129,255,0.1)',borderRadius:10,display:'flex',justifyContent:'space-between'}}>
+                        <span style={{fontSize:13,color:'rgba(255,255,255,0.6)'}}>Net versé au salarié</span>
+                        <span style={{fontSize:14,fontWeight:800,color:'#c081ff'}}>{fmt(r.net)} €</span>
+                      </div>
+                    </div>
+
+                    {/* Charges patronales */}
+                    <div style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:'1rem'}}>
+                      <div style={{fontSize:12,fontWeight:700,color:'#f382ff',marginBottom:12,letterSpacing:'.04em',textTransform:'uppercase'}}>
+                        Charges patronales — {Math.round((r.total_pat/r.brut)*100)}%
+                      </div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10}}>En plus du brut — supportées par l'employeur</div>
+                      {[
+                        ['Assurance maladie-maternité','7%',r.detail_pat.cp_maladie],
+                        ['Vieillesse plafonnée','8,55%',r.detail_pat.cp_vieillesse_plaf],
+                        ['Vieillesse déplafonnée','1,9%',r.detail_pat.cp_vieillesse_deplaf],
+                        ['Allocations familiales','3,45%',r.detail_pat.cp_fam],
+                        ['Accidents du travail','2,22%',r.detail_pat.cp_at],
+                        ['Assurance chômage','4,05%',r.detail_pat.cp_chomage],
+                        ['AGS (garantie salaires)','0,15%',r.detail_pat.cp_ags],
+                        ['Retraite complémentaire AGIRC-ARRCO','4,72%',r.detail_pat.cp_retraite_comp],
+                        ['CEG (équilibre général)','1,29%',r.detail_pat.cp_ceg],
+                        ['Formation professionnelle','1,55%',r.detail_pat.cp_formation],
+                        ['Taxe apprentissage','0,68%',r.detail_pat.cp_apprentissage],
+                        ['Contribution solidarité autonomie','0,3%',r.detail_pat.cp_csa],
+                      ].map(([label,taux,val])=>(
+                        <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                          <div>
+                            <div style={{fontSize:12,color:'rgba(255,255,255,0.7)'}}>{label}</div>
+                            <div style={{fontSize:10,color:'rgba(255,255,255,0.3)'}}>{taux}</div>
+                          </div>
+                          <span style={{fontSize:13,fontWeight:600,color:'#f382ff'}}>+{fmt(val)} €</span>
+                        </div>
+                      ))}
+                      <div style={{display:'flex',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:'1px solid rgba(243,130,255,0.2)'}}>
+                        <span style={{fontSize:13,fontWeight:700,color:'#fff'}}>Total patronal</span>
+                        <span style={{fontSize:14,fontWeight:800,color:'#f382ff'}}>+{fmt(r.total_pat)} €</span>
+                      </div>
+                      <div style={{marginTop:8,padding:'8px 12px',background:'rgba(243,130,255,0.1)',borderRadius:10,display:'flex',justifyContent:'space-between'}}>
+                        <span style={{fontSize:13,color:'rgba(255,255,255,0.6)'}}>Coût total employeur</span>
+                        <span style={{fontSize:14,fontWeight:800,color:'#f382ff'}}>{fmt(r.cout_apres_fillon)} €</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{marginTop:12,padding:'12px 16px',background:'rgba(255,255,255,0.04)',borderRadius:12,fontSize:11,color:'rgba(255,255,255,0.3)',lineHeight:1.7}}>
+                    Taux 2025 — Sources : URSSAF, DSS. Taux AT moyen (variable selon secteur). Réduction Fillon estimée à 30% des charges patronales pour salaires ≤ 1,6 SMIC. Ces chiffres sont indicatifs — consulte un expert-comptable ou un gestionnaire de paie pour ta situation exacte.
+                  </div>
+                </>
+              )
+            })()}
+          </div>
+
+          {/* ── RÉCAP ÉQUIPE ── */}
+          {salaries.filter(s=>s.statut==='actif').length > 0 && (
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:'1.25rem'}}>
+              {[
+                {label:'Salariés actifs', val:salaries.filter(s=>s.statut==='actif').length, unit:''},
+                {label:'Masse salariale brute', val:salaries.filter(s=>s.statut==='actif').reduce((s,e)=>s+(parseFloat(e.salaire_brut)||0),0).toLocaleString('fr-FR'), unit:'€/mois'},
+                {label:'Coût employeur total', val:Math.round(salaries.filter(s=>s.statut==='actif').reduce((s,e)=>s+(parseFloat(e.salaire_brut)||0),0)*1.42).toLocaleString('fr-FR'), unit:'€/mois'},
+              ].map(({label,val,unit})=>(
+                <div key={label} style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                  <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.35)',marginBottom:8}}>{label}</div>
+                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,color:'#f382ff'}}>{val} <span style={{fontSize:13,color:'rgba(255,255,255,0.35)'}}>{unit}</span></div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── LISTE SALARIÉS ── */}
+          <div className="card">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+              <div className="card-title" style={{marginBottom:0}}>Mes salariés</div>
+              {salaries.length > 0 && (
+                <button className="btn btn-dark btn-sm" onClick={()=>{setSalarieForm({prenom:'',nom:'',poste:'',type_contrat:'cdi',salaire_brut:'',date_embauche:'',statut:'actif',notes:''});setSalarieEditing(null);setShowSalarieForm(true)}}>+ Ajouter</button>
+              )}
+            </div>
+            {salaries.length === 0 ? (
+              <div style={{textAlign:'center',padding:'2.5rem 0'}}>
+                <span className="material-symbols-outlined" style={{fontSize:48,color:'rgba(255,255,255,0.12)',display:'block',marginBottom:12}}>group</span>
+                <div style={{fontSize:15,fontWeight:600,color:'rgba(255,255,255,0.3)',marginBottom:6}}>Aucun salarié</div>
+                <div style={{fontSize:13,color:'rgba(255,255,255,0.22)',marginBottom:'1.25rem'}}>Ajoute ton premier salarié pour suivre les coûts</div>
+                <button className="btn btn-dark" onClick={()=>{setSalarieForm({prenom:'',nom:'',poste:'',type_contrat:'cdi',salaire_brut:'',date_embauche:'',statut:'actif',notes:''});setSalarieEditing(null);setShowSalarieForm(true)}}>+ Ajouter un salarié</button>
+              </div>
+            ) : (
+              <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                {salaries.map(sal=>{
+                  const brut = parseFloat(sal.salaire_brut)||0
+                  const net = Math.round(brut*0.774)
+                  const cout = Math.round(brut*1.42)
+                  const contratLabel = {cdi:'CDI',cdd:'CDD',interim:'Intérim',alternance:'Alternance',stage:'Stage'}
+                  return (
+                    <div key={sal.id} style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:14,padding:'1rem 1.25rem'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:10}}>
+                        <div style={{display:'flex',alignItems:'center',gap:12}}>
+                          <div style={{width:42,height:42,borderRadius:'50%',background:'linear-gradient(135deg,rgba(243,130,255,0.3),rgba(192,129,255,0.3))',border:'1px solid rgba(243,130,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                            <span style={{fontSize:14,fontWeight:800,color:'#f382ff'}}>{sal.prenom?.[0]||'?'}{sal.nom?.[0]||''}</span>
+                          </div>
+                          <div>
+                            <div style={{fontSize:15,fontWeight:700,color:'#fff',marginBottom:3}}>{sal.prenom} {sal.nom}</div>
+                            <div style={{fontSize:12,color:'rgba(255,255,255,0.45)'}}>{sal.poste} · <span style={{color:'rgba(243,130,255,0.7)'}}>{contratLabel[sal.type_contrat]||sal.type_contrat}</span></div>
+                          </div>
+                        </div>
+                        <div style={{display:'flex',alignItems:'center',gap:8}}>
+                          <span style={{fontSize:10,fontWeight:700,padding:'3px 10px',borderRadius:9999,background:sal.statut==='actif'?'rgba(192,129,255,0.15)':'rgba(255,255,255,0.06)',color:sal.statut==='actif'?'#c081ff':'rgba(255,255,255,0.35)',border:`1px solid ${sal.statut==='actif'?'rgba(192,129,255,0.25)':'rgba(255,255,255,0.1)'}`}}>
+                            {sal.statut==='actif'?'Actif':'Inactif'}
+                          </span>
+                          <button onClick={()=>{setSalarieForm({prenom:sal.prenom||'',nom:sal.nom||'',poste:sal.poste||'',type_contrat:sal.type_contrat||'cdi',salaire_brut:sal.salaire_brut||'',date_embauche:sal.date_embauche||'',statut:sal.statut||'actif',notes:sal.notes||''});setSalarieEditing(sal.id);setShowSalarieForm(true)}}
+                            style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'6px 10px',cursor:'pointer',color:'rgba(255,255,255,0.5)',fontSize:12,fontFamily:'Inter,sans-serif'}}>Modifier</button>
+                          <button onClick={async()=>{if(!confirm('Supprimer ce salarié ?'))return;await supabase.from('ae_salaries').delete().eq('id',sal.id);setSalaries(prev=>prev.filter(s=>s.id!==sal.id))}}
+                            style={{background:'rgba(255,110,132,0.08)',border:'1px solid rgba(255,110,132,0.15)',borderRadius:8,padding:'6px 10px',cursor:'pointer',color:'#ff6e84',fontSize:12,fontFamily:'Inter,sans-serif'}}>Retirer</button>
+                        </div>
+                      </div>
+                      {brut > 0 && (
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginTop:12,padding:'10px 0',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+                          {[
+                            ['Brut',`${brut.toLocaleString('fr-FR')} €`,'rgba(255,255,255,0.6)'],
+                            ['Net salarié',`~${net.toLocaleString('fr-FR')} €`,'#c081ff'],
+                            ['Coût réel',`~${cout.toLocaleString('fr-FR')} €`,'#f382ff'],
+                          ].map(([l,v,c])=>(
+                            <div key={l} style={{textAlign:'center'}}>
+                              <div style={{fontSize:10,fontWeight:600,color:'rgba(255,255,255,0.3)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.06em'}}>{l}</div>
+                              <div style={{fontSize:14,fontWeight:700,color:c}}>{v}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Obligations légales */}
+          <div className="card" style={{marginTop:'1.25rem'}}>
+            <div className="card-title">Obligations légales à l'embauche</div>
+            <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              {[
+                ['assignment','DPAE','Déclaration Préalable à l\'Embauche — à faire avant le 1er jour de travail sur net-entreprises.fr'],
+                ['description','Contrat de travail','Obligatoire par écrit pour les CDD, très fortement recommandé pour les CDI'],
+                ['health_and_safety','Visite médicale','Organiser une visite d\'information et de prévention dans les 3 mois suivant l\'embauche'],
+                ['groups','Mutuelle d\'entreprise','Obligatoire — tu dois en proposer une et prendre en charge au moins 50% de la cotisation'],
+                ['receipt_long','DSN mensuelle','Déclaration Sociale Nominative à envoyer chaque mois sur net-entreprises.fr'],
+                ['account_balance','Registre du personnel','Registre obligatoire à tenir à jour dès le 1er salarié'],
+              ].map(([icon,titre,desc])=>(
+                <div key={titre} style={{display:'flex',gap:12,padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                  <span className="material-symbols-outlined" style={{fontSize:20,color:'#f382ff',flexShrink:0,marginTop:2}}>{icon}</span>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:600,color:'#fff',marginBottom:3}}>{titre}</div>
+                    <div style={{fontSize:12,color:'rgba(255,255,255,0.45)',lineHeight:1.6}}>{desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Modal ajout/modif salarié */}
+          {showSalarieForm && (
+            <div className="overlay show" onClick={e=>{if(e.target.className.includes('overlay'))setShowSalarieForm(false)}}>
+              <div className="modal" style={{maxWidth:520}}>
+                <div className="modal-title">{salarieEditing?'Modifier le salarié':'Ajouter un salarié'}</div>
+                <p className="modal-sub">Ces informations servent au suivi et aux calculs de coût.</p>
+                <div className="form-grid">
+                  <div className="field"><label>Prénom *</label><input value={salarieForm.prenom} onChange={e=>setSalarieForm(p=>({...p,prenom:e.target.value}))} placeholder="Marie"/></div>
+                  <div className="field"><label>Nom *</label><input value={salarieForm.nom} onChange={e=>setSalarieForm(p=>({...p,nom:e.target.value}))} placeholder="Dupont"/></div>
+                  <div className="field full"><label>Poste / Fonction</label><input value={salarieForm.poste} onChange={e=>setSalarieForm(p=>({...p,poste:e.target.value}))} placeholder="Commercial, développeur, assistante…"/></div>
+                  <div className="field">
+                    <label>Type de contrat</label>
+                    <select value={salarieForm.type_contrat} onChange={e=>setSalarieForm(p=>({...p,type_contrat:e.target.value}))}>
+                      <option value="cdi">CDI</option>
+                      <option value="cdd">CDD</option>
+                      <option value="interim">Intérim</option>
+                      <option value="alternance">Alternance</option>
+                      <option value="stage">Stage</option>
+                    </select>
+                  </div>
+                  <div className="field"><label>Date d'embauche</label><input type="date" value={salarieForm.date_embauche} onChange={e=>setSalarieForm(p=>({...p,date_embauche:e.target.value}))}/></div>
+                  <div className="field full"><label>Salaire brut mensuel (€)</label><input type="number" value={salarieForm.salaire_brut} onChange={e=>setSalarieForm(p=>({...p,salaire_brut:e.target.value}))} placeholder="2 000"/></div>
+                  <div className="field">
+                    <label>Statut</label>
+                    <select value={salarieForm.statut} onChange={e=>setSalarieForm(p=>({...p,statut:e.target.value}))}>
+                      <option value="actif">Actif</option>
+                      <option value="inactif">Inactif / Parti</option>
+                    </select>
+                  </div>
+                  <div className="field full"><label>Notes</label><input value={salarieForm.notes} onChange={e=>setSalarieForm(p=>({...p,notes:e.target.value}))} placeholder="Informations complémentaires…"/></div>
+                </div>
+                {salarieForm.salaire_brut && (
+                  <div style={{background:'rgba(243,130,255,0.08)',border:'1px solid rgba(243,130,255,0.2)',borderRadius:12,padding:'12px 16px',marginBottom:'1rem',fontSize:13,color:'rgba(255,255,255,0.7)',lineHeight:1.8}}>
+                    Brut : <strong style={{color:'#fff'}}>{parseFloat(salarieForm.salaire_brut).toLocaleString('fr-FR')} €</strong> →
+                    Net salarié : <strong style={{color:'#c081ff'}}>~{Math.round(parseFloat(salarieForm.salaire_brut)*0.774).toLocaleString('fr-FR')} €</strong> ·
+                    Coût employeur : <strong style={{color:'#f382ff'}}>~{Math.round(parseFloat(salarieForm.salaire_brut)*1.42).toLocaleString('fr-FR')} €</strong>
+                  </div>
+                )}
+                <div className="modal-actions">
+                  <button className="btn btn-ghost" onClick={()=>setShowSalarieForm(false)}>Annuler</button>
+                  <button className="btn btn-dark" disabled={savingSalarie} onClick={async()=>{
+                    if(!salarieForm.prenom||!salarieForm.nom){alert('Prénom et nom obligatoires');return}
+                    setSavingSalarie(true)
+                    const payload={...salarieForm,user_id:user.id,salaire_brut:parseFloat(salarieForm.salaire_brut)||0}
+                    if(salarieEditing){
+                      const{data}=await supabase.from('ae_salaries').update(payload).eq('id',salarieEditing).select().single()
+                      if(data)setSalaries(prev=>prev.map(s=>s.id===salarieEditing?data:s))
+                    }else{
+                      const{data}=await supabase.from('ae_salaries').insert(payload).select().single()
+                      if(data)setSalaries(prev=>[...prev,data])
+                    }
+                    setSavingSalarie(false);setShowSalarieForm(false)
+                  }}>{savingSalarie?'Sauvegarde…':salarieEditing?'Modifier →':'Ajouter →'}</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* FOOTER LÉGAL */}
       <div className="app-footer">
         © 2026 Serelyo &nbsp;·&nbsp;
@@ -2813,16 +3200,19 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
   background:rgba(4,0,12,0.85);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
   border-top:1px solid rgba(255,255,255,0.08);
   display:flex;position:fixed;bottom:0;left:0;right:0;z-index:300;
-  height:68px;padding:0 4px;padding-bottom:env(safe-area-inset-bottom);
-  box-shadow:0 -8px 32px rgba(0,0,0,0.4)
+  height:68px;padding:0 2px;padding-bottom:env(safe-area-inset-bottom);
+  box-shadow:0 -8px 32px rgba(0,0,0,0.4);
+  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch
 }
+.nav-tabs::-webkit-scrollbar{display:none}
 .nav-tab{
-  flex:1;padding:8px 4px 6px;cursor:pointer;
-  font-family:'Inter',sans-serif;font-size:9px;font-weight:700;
-  letter-spacing:.05em;text-transform:uppercase;
+  flex:0 0 auto;width:calc(100vw / 8);min-width:58px;
+  padding:8px 2px 6px;cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:8px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;
   color:rgba(255,255,255,0.28);border:none;background:none;
-  transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-  min-height:44px;border-radius:12px;margin:6px 2px
+  transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  min-height:44px;border-radius:10px;margin:5px 1px
 }
 .nav-tab.active{color:#f382ff;background:rgba(243,130,255,0.1)}
 .nav-tab.active span:first-child{transform:scale(1.15)}
