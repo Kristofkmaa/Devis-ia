@@ -626,6 +626,18 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const calendrier    = profil?genererCalendrier(profil):[]
   const prochaineDecl = calendrier.find(e=>!e.past&&!e.special)
 
+  // ── Coûts équipe mensuels ─────────────────────────────────────────────────
+  const coutEquipeMensuel = salaries
+    .filter(s=>s.statut==='actif')
+    .reduce((sum,s)=>sum+calcSalaire(parseFloat(s.salaire_brut)||0).cout_apres_fillon,0)
+  const masseSalarialeBrute = salaries
+    .filter(s=>s.statut==='actif')
+    .reduce((sum,s)=>sum+(parseFloat(s.salaire_brut)||0),0)
+  const nbSalaries = salaries.filter(s=>s.statut==='actif').length
+  // Net après URSSAF + impôts + charges équipe
+  const netMoisApresEquipe = caMois*(1-taux-tauxImpot) - coutEquipeMensuel
+  const netAnnuelApresEquipe = caAnnuel*(1-taux-tauxImpot) - coutEquipeMensuel*12
+
   const F = (v) => v ? `${oForm[v]}` : ''
   const set = (k) => (e) => setOForm(p=>({...p,[k]:e.target.value}))
   const setBool = (k) => (e) => setOForm(p=>({...p,[k]:e.target.value==='oui'}))
@@ -841,17 +853,24 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               {/* Métriques */}
               <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
                 {[
-                  { label:'CA ce mois', val:`${caMois.toLocaleString('fr-FR')} €`, sub:`Net ~${Math.round(caMois*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €`, color:'#f382ff', onClick:()=>setView('revenus') },
+                  { label:'CA ce mois', val:`${caMois.toLocaleString('fr-FR')} €`, sub:`Brut encaissé`, color:'#f382ff', onClick:()=>setView('revenus') },
+                  { label:'URSSAF + impôts', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`${Math.round((taux+tauxImpot)*100)}% du CA`, color:'#ff6e84', onClick:()=>setView('simulateur') },
+                  ...(nbSalaries>0 ? [
+                    { label:`Charges équipe (${nbSalaries} sal.)`, val:`${Math.round(coutEquipeMensuel).toLocaleString('fr-FR')} €`, sub:`Coût employeur réel/mois`, color:'#dbb4ff', onClick:()=>setView('equipe') },
+                    { label:'Net après tout', val:`${Math.round(netMoisApresEquipe).toLocaleString('fr-FR')} €`, sub:netMoisApresEquipe<0?'Attention : déficit ce mois':'Ce qu'il te reste vraiment', color:netMoisApresEquipe<0?'#ff6e84':'#c081ff', onClick:()=>setView('simulateur') },
+                  ] : [
+                    { label:'Taux URSSAF', val:`${profil?(taux*100).toFixed(1):'—'} %`, sub:profil?.acre?'✓ ACRE actif':'Taux standard', color:'#c081ff', onClick:()=>setShowOnboarding(true) },
+                    { label:'Net ce mois', val:`${Math.round(caMois*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €`, sub:'Après URSSAF et impôts', color:'#c081ff', onClick:()=>setView('simulateur') },
+                  ]),
                   { label:`CA ${year}`, val:`${caAnnuel.toLocaleString('fr-FR')} €`, sub:`URSSAF : ${Math.round(cotisAnnuel).toLocaleString('fr-FR')} €`, color:'#dbb4ff', onClick:()=>setView('revenus') },
-                  { label:'Taux URSSAF', val:`${profil?(taux*100).toFixed(1):'—'} %`, sub:profil?.acre?'✓ ACRE actif':'Taux standard', color:'#c081ff', onClick:()=>setShowOnboarding(true) },
-                  { label:'À mettre de côté', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`${Math.round((taux+tauxImpot)*100)}% du CA ce mois`, color:'#f382ff', onClick:()=>setView('simulateur') },
+                  { label:nbSalaries>0?'Net annuel estimé':'À mettre de côté ce mois', val:nbSalaries>0?`${Math.round(netAnnuelApresEquipe).toLocaleString('fr-FR')} €`:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:nbSalaries>0?`Après charges et équipe (${nbSalaries} sal.)`:`${Math.round((taux+tauxImpot)*100)}% du CA`, color:'#f382ff', onClick:()=>setView('simulateur') },
                 ].map(({label,val,sub,color,onClick})=>(
                   <div key={label} onClick={onClick} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'all .18s'}}
                     onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.08)';e.currentTarget.style.borderColor='rgba(243,130,255,0.2)'}}
                     onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.borderColor='rgba(255,255,255,0.09)'}}
                   >
                     <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.32)',marginBottom:10}}>{label}</div>
-                    <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?22:26,fontWeight:800,color,marginBottom:5,letterSpacing:'-.01em'}}>{val}</div>
+                    <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:24,fontWeight:800,color,marginBottom:5,letterSpacing:'-.01em'}}>{val}</div>
                     <div style={{fontSize:12,color:'rgba(255,255,255,0.28)'}}>{sub}</div>
                   </div>
                 ))}
@@ -863,6 +882,36 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               <h2 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,marginBottom:8,color:'#ffffff'}}>Bienvenue sur Serelyo !</h2>
               <p style={{fontSize:14,color:'rgba(255,255,255,0.55)',marginBottom:'1rem'}}>Configure ton profil pour personnaliser ton tableau de bord</p>
               <button className="btn btn-dark">Configurer mon profil →</button>
+            </div>
+          )}
+
+          {/* ── BANNER ÉQUIPE si salariés ── */}
+          {nbSalaries>0 && (
+            <div style={{background:'rgba(219,180,255,0.08)',border:'1px solid rgba(219,180,255,0.18)',borderRadius:16,padding:'1rem 1.25rem',marginBottom:'0.875rem',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
+              <div style={{display:'flex',alignItems:'center',gap:12}}>
+                <span className="material-symbols-outlined" style={{fontSize:20,color:'#dbb4ff'}}>group</span>
+                <div>
+                  <div style={{fontSize:13,fontWeight:700,color:'#fff',marginBottom:2}}>
+                    {nbSalaries} salarié{nbSalaries>1?'s':''} actif{nbSalaries>1?'s':''}
+                  </div>
+                  <div style={{fontSize:11,color:'rgba(255,255,255,0.38)'}}>
+                    Masse brute : {Math.round(masseSalarialeBrute).toLocaleString('fr-FR')} € · Coût réel : {Math.round(coutEquipeMensuel).toLocaleString('fr-FR')} €/mois
+                  </div>
+                </div>
+              </div>
+              <div style={{display:'flex',gap:20,flexWrap:'wrap'}}>
+                {[
+                  ['Coût mensuel équipe', Math.round(coutEquipeMensuel), '#dbb4ff'],
+                  ['Coût annuel équipe', Math.round(coutEquipeMensuel*12), '#c081ff'],
+                  ['Net après équipe', Math.round(netMoisApresEquipe), netMoisApresEquipe<0?'#ff6e84':'#c081ff'],
+                ].map(([l,v,c])=>(
+                  <div key={l} style={{textAlign:'right'}}>
+                    <div style={{fontSize:10,fontWeight:600,color:'rgba(255,255,255,0.35)',letterSpacing:'.06em',textTransform:'uppercase',marginBottom:3}}>{l}</div>
+                    <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:800,color:c}}>{v.toLocaleString('fr-FR')} €</div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={()=>setView('equipe')} style={{fontSize:12,background:'rgba(219,180,255,0.12)',border:'1px solid rgba(219,180,255,0.25)',color:'#dbb4ff',padding:'7px 14px',borderRadius:9999,cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700,whiteSpace:'nowrap'}}>Gérer l'équipe →</button>
             </div>
           )}
 
