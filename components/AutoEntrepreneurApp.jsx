@@ -549,6 +549,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       <div ref={bgRef} style={{
         position:'fixed',inset:0,zIndex:0,pointerEvents:'none',
         backgroundColor:'#04000C',
+        backgroundImage:[
+          'radial-gradient(ellipse 140% 120% at 38% 42%, rgba(70,8,120,0.38) 0%, rgba(35,3,70,0.22) 45%, transparent 72%)',
+          'radial-gradient(ellipse 90% 70% at 98% 90%, rgba(28,0,55,0.18) 0%, transparent 62%)',
+        ].join(','),
       }}/>
 
       {/* APP BAR */}
