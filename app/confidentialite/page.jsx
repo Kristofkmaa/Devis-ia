@@ -128,73 +128,99 @@ Contact : contact@serelyo.fr`
   return (
     <>
       <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Outfit', sans-serif; background: #FFFDF8; color: #1C1710; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { background: #04000C; min-height: 100vh; }
+        body {
+          font-family: 'Inter', sans-serif; color: #fff;
+          background: #04000C;
+          background-image:
+            radial-gradient(ellipse 140% 120% at 38% 42%, rgba(70,8,120,0.38) 0%, rgba(35,3,70,0.22) 45%, transparent 72%),
+            radial-gradient(ellipse 90% 70% at 98% 90%, rgba(28,0,55,0.18) 0%, transparent 62%);
+          background-attachment: fixed;
+        }
         .legal-nav {
-          background: #1C1710; padding: 18px 5%;
+          background: rgba(4,0,12,0.80); backdrop-filter: blur(40px);
+          -webkit-backdrop-filter: blur(40px);
+          padding: 0 5%; height: 64px;
           display: flex; align-items: center; justify-content: space-between;
+          border-bottom: 1px solid rgba(255,255,255,0.08);
+          position: sticky; top: 0; z-index: 100;
         }
-        .legal-nav-logo { font-family: 'Playfair Display', serif; font-size: 20px; color: #fff; text-decoration: none; }
-        .legal-nav-logo span { color: #B5792A; }
-        .legal-nav-back { font-size: 13px; color: rgba(255,255,255,.5); text-decoration: none; transition: color .2s; }
-        .legal-nav-back:hover { color: #fff; }
-        .legal-hero {
-          background: #1C1710; padding: 60px 5% 50px; text-align: center;
-          border-bottom: 1px solid rgba(255,255,255,.06);
+        .legal-nav-logo {
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-size: 15px; font-weight: 800;
+          letter-spacing: .14em; text-transform: uppercase;
+          color: #fff; text-decoration: none;
         }
+        .legal-nav-logo span { color: #f382ff; }
+        .legal-nav-back {
+          font-size: 13px; color: rgba(255,255,255,0.4);
+          text-decoration: none; font-weight: 500; transition: color .2s;
+        }
+        .legal-nav-back:hover { color: #f382ff; }
+        .legal-hero { padding: 80px 5% 60px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
         .legal-tag {
-          display: inline-block; font-size: 11px; font-weight: 700;
-          letter-spacing: 2px; text-transform: uppercase;
-          color: #B5792A; margin-bottom: 14px;
+          display: inline-block; font-size: 10px; font-weight: 700;
+          letter-spacing: .12em; text-transform: uppercase; color: #f382ff;
+          margin-bottom: 16px; background: rgba(243,130,255,0.1);
+          border: 1px solid rgba(243,130,255,0.2); padding: 5px 14px; border-radius: 9999px;
         }
         .legal-title {
-          font-family: 'Playfair Display', serif;
-          font-size: clamp(28px, 4vw, 44px);
-          color: #fff; margin-bottom: 14px;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-size: clamp(28px, 4vw, 44px); font-weight: 800;
+          letter-spacing: -.02em; color: #fff; margin-bottom: 12px;
         }
-        .legal-date { font-size: 13px; color: rgba(255,255,255,.3); }
+        .legal-date { font-size: 13px; color: rgba(255,255,255,0.3); }
         .legal-body { max-width: 760px; margin: 0 auto; padding: 60px 5% 100px; }
         .legal-toc {
-          background: #FAF3E0; border: 1px solid #E2D8C4;
-          border-radius: 16px; padding: 24px 28px; margin-bottom: 48px;
+          background: rgba(20,5,40,0.40); backdrop-filter: blur(28px);
+          border: 1px solid rgba(255,255,255,0.14);
+          border-radius: 18px; padding: 28px 32px; margin-bottom: 40px;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
         }
         .legal-toc h3 {
-          font-family: 'Playfair Display', serif;
-          font-size: 16px; margin-bottom: 14px; color: #1C1710;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-size: 15px; font-weight: 700; margin-bottom: 16px; color: #fff;
         }
-        .legal-toc ol { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
-        .legal-toc li a {
-          font-size: 13px; color: #B5792A; text-decoration: none;
-          transition: color .2s;
-        }
-        .legal-toc li a:hover { color: #1C1710; }
+        .legal-toc ol { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+        .legal-toc li a { font-size: 13px; color: rgba(243,130,255,0.8); text-decoration: none; transition: color .2s; }
+        .legal-toc li a:hover { color: #f382ff; }
         .rgpd-badge {
-          background: #EDFAF3; border: 1px solid #9CDBB8;
-          border-radius: 12px; padding: 14px 18px;
-          font-size: 13px; color: #2D7A4F;
-          margin-bottom: 40px; display: flex; gap: 10px; align-items: flex-start;
+          background: rgba(192,129,255,0.1);
+          border: 1px solid rgba(192,129,255,0.25);
+          border-radius: 14px; padding: 16px 20px;
+          font-size: 13px; color: #dbb4ff;
+          margin-bottom: 40px; display: flex; gap: 12px; align-items: flex-start; line-height: 1.7;
         }
+        .rgpd-badge strong { color: #fff; }
         .legal-section { margin-bottom: 48px; scroll-margin-top: 80px; }
         .legal-section h2 {
-          font-family: 'Playfair Display', serif;
-          font-size: 21px; color: #1C1710;
-          padding-bottom: 12px; border-bottom: 2px solid #E2D8C4;
-          margin-bottom: 20px;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-size: 19px; font-weight: 700; color: #fff;
+          padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.1);
+          margin-bottom: 20px; letter-spacing: -.01em;
         }
         .legal-section p {
-          font-size: 14px; color: #4A3F2E;
+          font-size: 14px; color: rgba(255,255,255,0.58);
           line-height: 1.9; white-space: pre-line;
         }
         .legal-footer {
-          background: #1C1710; padding: 32px 5%;
-          text-align: center; font-size: 12px; color: rgba(255,255,255,.3);
+          background: rgba(4,0,12,0.85); backdrop-filter: blur(40px);
+          border-top: 1px solid rgba(255,255,255,0.06);
+          padding: 36px 5%; text-align: center;
+          font-size: 12px; color: rgba(255,255,255,0.22);
         }
-        .legal-footer a { color: #B5792A; text-decoration: none; margin: 0 12px; }
+        .legal-footer a { color: rgba(243,130,255,0.7); text-decoration: none; margin: 0 12px; transition: color .2s; }
+        .legal-footer a:hover { color: #f382ff; }
+        @media (max-width: 600px) {
+          .legal-hero { padding: 60px 5% 40px; }
+          .legal-body { padding: 40px 5% 80px; }
+        }
       `}</style>
-      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet"/>
 
       <nav className="legal-nav">
-        <a href="/dashboard" className="legal-nav-logo">Serely<span>o</span></a>
+        <a href="/" className="legal-nav-logo">Serely<span>o</span></a>
         <a href="/dashboard" className="legal-nav-back">← Retour à l'application</a>
       </nav>
 
@@ -206,7 +232,9 @@ Contact : contact@serelyo.fr`
 
       <div className="legal-body">
         <div className="rgpd-badge">
-          <span>🔒</span>
+          <span style={{flexShrink:0,marginTop:2}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </span>
           <span><strong>Conforme RGPD</strong> — Serelyo respecte le Règlement Général sur la Protection des Données (UE) 2016/679. Vos données ne sont jamais vendues ni utilisées à des fins publicitaires.</span>
         </div>
 
@@ -214,9 +242,7 @@ Contact : contact@serelyo.fr`
           <h3>Sommaire</h3>
           <ol>
             {sections.map((s, i) => (
-              <li key={i}>
-                <a href={`#section-${i}`}>{s.title}</a>
-              </li>
+              <li key={i}><a href={`#section-${i}`}>{s.title}</a></li>
             ))}
           </ol>
         </div>
