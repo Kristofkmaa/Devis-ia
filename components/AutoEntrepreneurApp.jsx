@@ -2633,7 +2633,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <p className="page-sub">Tous les liens utiles pour gérer ton auto-entreprise — directs, officiels, gratuits</p>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(255,255,255,0.06)',color:'#f382ff'}}><span class="material-symbols-outlined" style={{fontSize:20}}>receipt_long</span>Déclarations & paiements</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)'}}><span className="material-symbols-outlined" style={{fontSize:20,color:'#f382ff'}}>receipt_long</span></span>Déclarations & paiements</div>
             <div className="res-grid">
               <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-urssaf">URSSAF</span><span className="res-arrow">→</span></div>
@@ -2656,7 +2656,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(192,129,255,0.12)',color:'#c081ff'}}><span class="material-symbols-outlined" style={{fontSize:20}}>business_center</span>Gérer mon auto-entreprise</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(192,129,255,0.12)',color:'#c081ff'}}><span className="material-symbols-outlined" style={{fontSize:20}}>business_center</span></span>Gérer mon auto-entreprise</div>
             <div className="res-grid">
               <a href="https://formalites.entreprises.gouv.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
@@ -2679,7 +2679,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(106,13,173,0.2)',color:'#dbb4ff'}}><span class="material-symbols-outlined" style={{fontSize:20}}>savings</span>Aides & financement</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(106,13,173,0.2)',color:'#dbb4ff'}}><span className="material-symbols-outlined" style={{fontSize:20}}>savings</span></span>Aides & financement</div>
             <div className="res-grid">
               <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F36613" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-aide">Aide</span><span className="res-arrow">→</span></div>
@@ -2702,7 +2702,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(243,130,255,0.1)',color:'#dbb4ff'}}><span class="material-symbols-outlined" style={{fontSize:20}}>health_and_safety</span>Protection sociale & retraite</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(243,130,255,0.1)',color:'#dbb4ff'}}><span className="material-symbols-outlined" style={{fontSize:20}}>health_and_safety</span></span>Protection sociale & retraite</div>
             <div className="res-grid">
               <a href="https://www.ameli.fr" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-social">Santé</span><span className="res-arrow">→</span></div>
@@ -2725,7 +2725,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
           <div className="res-section">
-            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(243,130,255,0.08)',color:'#f382ff'}}><span class="material-symbols-outlined" style={{fontSize:20}}>school</span>Se former & s'informer</div>
+            <div className="res-section-title"><span className="res-icon" style={{background:'rgba(243,130,255,0.08)',color:'#f382ff'}}><span className="material-symbols-outlined" style={{fontSize:20}}>school</span></span>Se former & s'informer</div>
             <div className="res-grid">
               <a href="https://www.service-public.fr/professionnels-entreprises/vosdroits/F23282" target="_blank" rel="noopener noreferrer" className="res-card">
                 <div className="res-card-top"><span className="res-tag res-tag-gouv">Officiel</span><span className="res-arrow">→</span></div>
