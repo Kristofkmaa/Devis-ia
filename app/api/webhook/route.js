@@ -4,12 +4,6 @@ import { createClient } from '@supabase/supabase-js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
-// Supabase admin client (bypasse RLS)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
-
 const PLAN_FROM_PRICE = {
   [process.env.STRIPE_PRICE_MENSUEL]: 'mensuel',
   [process.env.STRIPE_PRICE_ANNUEL]:  'annuel',
@@ -17,6 +11,10 @@ const PLAN_FROM_PRICE = {
 }
 
 async function updatePlan(userId, plan, expiresAt = null) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  )
   await supabase.from('ae_profiles')
     .upsert({
       user_id: userId,
