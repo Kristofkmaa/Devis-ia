@@ -857,7 +857,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   { label:'URSSAF + impôts', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`${Math.round((taux+tauxImpot)*100)}% du CA`, color:'#ff6e84', onClick:()=>setView('simulateur') },
                   ...(nbSalaries>0 ? [
                     { label:`Charges équipe (${nbSalaries} sal.)`, val:`${Math.round(coutEquipeMensuel).toLocaleString('fr-FR')} €`, sub:`Coût employeur réel/mois`, color:'#dbb4ff', onClick:()=>setView('equipe') },
-                    { label:'Net après tout', val:`${Math.round(netMoisApresEquipe).toLocaleString('fr-FR')} €`, sub:netMoisApresEquipe<0?'Attention : déficit ce mois':'Ce qu'il te reste vraiment', color:netMoisApresEquipe<0?'#ff6e84':'#c081ff', onClick:()=>setView('simulateur') },
+                    { label:'Net après tout', val:`${Math.round(netMoisApresEquipe).toLocaleString('fr-FR')} €`, sub:netMoisApresEquipe<0?'Attention : déficit ce mois':"Ce qu\'il te reste vraiment", color:netMoisApresEquipe<0?'#ff6e84':'#c081ff', onClick:()=>setView('simulateur') },
                   ] : [
                     { label:'Taux URSSAF', val:`${profil?(taux*100).toFixed(1):'—'} %`, sub:profil?.acre?'✓ ACRE actif':'Taux standard', color:'#c081ff', onClick:()=>setShowOnboarding(true) },
                     { label:'Net ce mois', val:`${Math.round(caMois*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €`, sub:'Après URSSAF et impôts', color:'#c081ff', onClick:()=>setView('simulateur') },
