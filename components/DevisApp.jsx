@@ -236,10 +236,10 @@ export default function DevisApp({ user, onLogout }) {
     const { em, ht, tvaR, tva, ttc }  = calcTotals(doc)
     const logoTag = em.logo ? `<img src="${em.logo}" style="max-height:70px;max-width:200px;object-fit:contain;display:block;margin-bottom:12px">` : ''
     const rows = doc.lignes.map(l => `<tr>
-      <td>${l.ref ? `<span style="font-size:10px;color:#A89878;font-family:monospace;display:block">${l.ref}</span>` : ''}<strong>${l.designation}</strong>${l.detail ? `<br><span style="font-size:11px;color:#6B5E45">${l.detail}</span>` : ''}</td>
+      <td>${l.ref ? `<span class="ref-tag">${l.ref}</span>` : ''}<strong>${l.designation}</strong>${l.detail ? `<span class="detail-txt">${l.detail}</span>` : ''}</td>
       <td style="text-align:right">${l.quantite} ${l.unite}</td>
       <td style="text-align:right">${fmt(l.prix_unitaire)} €</td>
-      <td style="text-align:right">${fmt(l.quantite * l.prix_unitaire)} €</td>
+      <td style="text-align:right"><strong>${fmt(l.quantite * l.prix_unitaire)} €</strong></td>
     </tr>`).join('')
     const legalHtml = isFac ? `<div style="margin-top:20px;padding:12px 14px;background:#F6F0E4;border-radius:8px;font-size:10.5px;color:#6B5E45;line-height:2">
       ${em.forme_juridique ? `<strong style="color:#1C1710">${em.forme_juridique}</strong>${em.capital ? ' au capital de ' + em.capital + ' €' : ''}<br>` : ''}
@@ -250,39 +250,123 @@ export default function DevisApp({ user, onLogout }) {
       <br><strong style="color:#1C1710">Pénalités :</strong> En cas de retard, pénalité de 3× le taux légal + indemnité forfaitaire de 40 €. Pas d'escompte pour règlement anticipé.
       ${em.cgv ? `<br><strong style="color:#1C1710">CGV :</strong> ${em.cgv}` : ''}
     </div>` : ''
+    const html = `<!DOCTYPE html><html lang="fr"><head><meta c    const accentColor = isFac ? '#2a6aad' : '#8b3fc8'
+    const accentLight = isFac ? '#eef5ff' : '#f5eeff'
+    const pillLabel   = isFac ? '\u00c0 r\u00e9gler' : 'En attente de validation'
+    const tvaNote = (profil && !profil.tva_actif)
+      ? '<p style="margin-top:14px;font-size:10px;color:#888">TVA non applicable \u2013 art. 293 B du CGI</p>'
+      : ''
     const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
     <title>${isFac ? 'Facture' : 'Devis'} ${num}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Outfit',sans-serif;color:#1C1710;background:#fff;padding:36px 44px;max-width:800px;margin:0 auto}
-    .stripe{height:5px;background:#B5792A;margin-bottom:32px;border-radius:2px}.head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}
-    h1{font-family:'Playfair Display',serif;font-size:34px;font-weight:600;letter-spacing:-0.5px;line-height:1}
-    .pill{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;background:${isFac ? '#EDFAF3' : '#FAF3E0'};color:${isFac ? '#2D7A4F' : '#B5792A'}}
-    .ref{text-align:right;font-size:12px;color:#A89878;line-height:2.1}.ref-num{font-family:'Playfair Display',serif;font-size:17px;color:#1C1710;display:block;margin-bottom:4px}
-    .sep{height:1px;background:#E2D8C4;margin-bottom:22px}.parties{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:26px}
-    .plbl{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#A89878;margin-bottom:5px}
-    .pname{font-family:'Playfair Display',serif;font-size:16px}.psub{font-size:11px;color:#6B5E45;margin-top:3px;line-height:1.6}
-    table{width:100%;border-collapse:collapse;margin-bottom:16px}thead tr{border-bottom:1.5px solid #1C1710}
-    th{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#6B5E45;padding:0 0 8px;text-align:left}th:not(:first-child){text-align:right}
-    tbody tr{border-bottom:1px solid #FAF3E0}tbody tr:last-child{border-bottom:1.5px solid #1C1710}td{font-size:12px;padding:9px 0;color:#1C1710;vertical-align:top}
-    .tots{display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-bottom:16px}.tr{display:flex;gap:56px;font-size:12px;color:#6B5E45}
-    .grand{background:#FAF3E0;border-radius:10px;padding:11px 18px;display:flex;gap:56px;align-items:center;margin-top:4px}
-    .grand span:first-child{font-size:12px;color:#6B5E45}.grand span:last-child{font-family:'Playfair Display',serif;font-size:20px}
-    @media print{body{padding:0}@page{margin:12mm 10mm}}</style></head><body>
-    <div class="stripe"></div>
-    <div class="head"><div>${logoTag}<h1>${isFac ? 'Facture' : 'Devis'}</h1><div class="pill">${isFac ? 'À régler' : 'En attente de validation'}</div></div>
-    <div class="ref"><span class="ref-num">${num}</span>Émis le ${d1}<br>${isFac ? 'Échéance' : "Valable jusqu'au"} <strong style="color:#1C1710">${d2}</strong></div></div>
-    <div class="sep"></div>
-    <div class="parties">
-      <div><div class="plbl">Émetteur</div><div class="pname">${em.nom || '—'}</div><div class="psub">${[em.metier, em.adresse, em.email, em.tel].filter(Boolean).join('<br>')}</div></div>
-      <div><div class="plbl">Client</div><div class="pname">${doc.client.nom}</div><div class="psub">${doc.client.type === 'entreprise' ? 'Entreprise' : 'Particulier'}${doc.client.adresse ? '<br>' + doc.client.adresse : ''}</div></div>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'Inter',sans-serif;color:#1a1a2e;background:#fff;padding:40px 48px;max-width:820px;margin:0 auto;font-size:13px;line-height:1.5}
+      .top-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #f0f0f5}
+      .brand{font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#bbb;margin-bottom:14px}
+      .doc-type{font-family:'Plus Jakarta Sans',sans-serif;font-size:38px;font-weight:800;letter-spacing:-.03em;color:#1a1a2e;line-height:1}
+      .doc-pill{display:inline-flex;align-items:center;margin-top:10px;font-size:10px;font-weight:700;padding:4px 12px;border-radius:9999px;letter-spacing:.06em;text-transform:uppercase;background:${accentLight};color:${accentColor}}
+      .ref-block{text-align:right}
+      .ref-num{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;color:#1a1a2e;display:block;margin-bottom:6px}
+      .ref-dates{font-size:11px;color:#888;line-height:2.1}
+      .ref-dates strong{color:#1a1a2e;font-weight:600}
+      .accent-line{height:3px;background:linear-gradient(90deg,${accentColor},${accentColor}33);border-radius:2px;margin-bottom:28px}
+      .parties{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:28px}
+      .party-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#aaa;margin-bottom:7px}
+      .party-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:3px}
+      .party-detail{font-size:11px;color:#666;line-height:1.7}
+      table{width:100%;border-collapse:collapse;margin-bottom:20px}
+      thead tr{border-bottom:1.5px solid #1a1a2e}
+      th{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;padding:0 0 10px;text-align:left}
+      th:not(:first-child){text-align:right}
+      tbody tr{border-bottom:1px solid #f5f5f8}
+      td{font-size:12px;padding:10px 0;color:#1a1a2e;vertical-align:top}
+      td:not(:first-child){text-align:right}
+      td strong{font-weight:600;font-size:13px}
+      td .ref-tag{font-size:9px;color:#aaa;font-family:monospace;display:block;margin-bottom:2px}
+      td .detail-txt{font-size:11px;color:#888;display:block;margin-top:2px}
+      .totals{display:flex;flex-direction:column;align-items:flex-end;gap:7px;margin-bottom:24px}
+      .t-row{display:flex;gap:64px;font-size:12px;color:#888}
+      .t-row span:last-child{color:#1a1a2e;font-weight:500;min-width:90px;text-align:right}
+      .t-grand{display:flex;gap:64px;align-items:center;background:${accentLight};border-radius:12px;padding:12px 20px;margin-top:6px}
+      .t-grand span:first-child{font-size:12px;color:${accentColor};font-weight:600}
+      .t-grand span:last-child{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#1a1a2e;min-width:90px;text-align:right}
+      .sign-box{border:1.5px solid #ebebf5;border-radius:10px;padding:14px 18px;margin-bottom:20px}
+      .sign-label{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#aaa;margin-bottom:10px}
+      .sign-area{height:52px;border-bottom:1px solid #ebebf5;margin-bottom:8px}
+      .sign-sub{font-size:9.5px;color:#bbb}
+      .legal-box{background:#fafafa;border-radius:10px;padding:14px 18px;margin-bottom:20px;border:1px solid #f0f0f5}
+      .legal-box p{font-size:10.5px;color:#666;line-height:1.8;margin-bottom:4px}
+      .legal-box p:last-child{margin-bottom:0}
+      .legal-box strong{color:#1a1a2e;font-weight:600}
+      .doc-footer{display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid #f0f0f5;margin-top:12px}
+      .footer-brand{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#ccc}
+      .footer-legal{font-size:9.5px;color:#bbb;text-align:right;line-height:1.7}
+      @media print{body{padding:0}@page{margin:12mm 10mm}}
+    </style></head><body>
+    <div class="top-bar">
+      <div>
+        <div class="brand">Serelyo</div>
+        ${logoTag}
+        <div class="doc-type">${isFac ? 'Facture' : 'Devis'}</div>
+        <div class="doc-pill">${pillLabel}</div>
+      </div>
+      <div class="ref-block">
+        <span class="ref-num">${num}</span>
+        <div class="ref-dates">
+          \u00c9mis le <strong>${d1}</strong><br>
+          ${isFac ? '\u00c9ch\u00e9ance' : "Valable jusqu'au"} <strong>${d2}</strong>
+        </div>
+      </div>
     </div>
-    <table><thead><tr><th style="width:44%">Désignation</th><th style="text-align:right">Qté</th><th style="text-align:right">P.U. HT</th><th style="text-align:right">Total HT</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="tots"><div class="tr"><span>Total HT</span><span>${fmt(ht)} €</span></div><div class="tr"><span>TVA ${tvaR > 0 ? tvaR + ' %' : '(non applicable)'}</span><span>${fmt(tva)} €</span></div>
-    <div class="grand"><span>${tvaR > 0 ? 'Total TTC' : 'Total net'}</span><span>${fmt(ttc)} €</span></div></div>
+    <div class="accent-line"></div>
+    <div class="parties">
+      <div>
+        <div class="party-label">\u00c9metteur</div>
+        <div class="party-name">${em.nom || '\u2014'}</div>
+        <div class="party-detail">${[em.metier, em.adresse, em.email, em.tel].filter(Boolean).join('<br>')}</div>
+        ${em.siret ? `<div class="party-detail" style="margin-top:5px;font-size:10px;color:#aaa">SIRET : ${em.siret}</div>` : ''}
+      </div>
+      <div>
+        <div class="party-label">Client</div>
+        <div class="party-name">${doc.client.nom}</div>
+        <div class="party-detail">
+          ${doc.client.type === 'entreprise' ? 'Entreprise' : 'Particulier'}
+          ${doc.client.adresse ? '<br>' + doc.client.adresse : ''}
+        </div>
+      </div>
+    </div>
+    <table>
+      <thead><tr>
+        <th style="width:46%">D\u00e9signation</th>
+        <th style="text-align:right">Qt\u00e9</th>
+        <th style="text-align:right">P.U. HT</th>
+        <th style="text-align:right">Total HT</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="totals">
+      <div class="t-row"><span>Total HT</span><span>${fmt(ht)} \u20ac</span></div>
+      <div class="t-row"><span>TVA ${tvaR > 0 ? tvaR + ' %' : '(non applicable)'}</span><span>${fmt(tva)} \u20ac</span></div>
+      <div class="t-grand"><span>${tvaR > 0 ? 'Total TTC' : 'Total net HT'}</span><span>${fmt(ttc)} \u20ac</span></div>
+    </div>
+    ${!isFac ? `<div class="sign-box">
+      <div class="sign-label">Bon pour accord \u2014 signature client</div>
+      <div class="sign-area"></div>
+      <div class="sign-sub">Date et signature pr\u00e9c\u00e9d\u00e9es de la mention "Bon pour accord"</div>
+    </div>` : ''}
     ${legalHtml}
+    ${tvaNote}
+    <div class="doc-footer">
+      <div class="footer-brand">Serelyo</div>
+      <div class="footer-legal">
+        ${em.forme_juridique ? em.forme_juridique + ' \u2014 ' : ''}${em.siret ? 'SIRET : ' + em.siret : ''}
+        ${em.iban ? '<br>IBAN : ' + em.iban : ''}
+      </div>
+    </div>
     <script>const n='${isFac ? 'Facture' : 'Devis'} ${doc.client.nom} ${num}';document.title=n;window.onload=function(){setTimeout(window.print,500)}<\/script>
     </body></html>`
-    const slug = doc.client.nom.replace(/[^\w\sÀ-ÿ]/g, '').trim().replace(/\s+/g, '-').substring(0, 30)
+m().replace(/\s+/g, '-').substring(0, 30)
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
