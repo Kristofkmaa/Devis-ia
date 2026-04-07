@@ -1634,7 +1634,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     boxShadow: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
-                  <div style={{fontSize:36,marginBottom:12}}><span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>bolt</span>
+                  <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>bolt</span>
                   <div style={{
                     fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,
                     color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '#F0F4FF' : 'rgba(255,255,255,0.65)'
@@ -1656,7 +1656,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     boxShadow: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
-                  <div style={{fontSize:36,marginBottom:12}}><span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>bar_chart</span>
+                  <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>bar_chart</span>
                   <div style={{
                     fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,
                     color: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? '#F0F4FF' : 'rgba(255,255,255,0.65)'
@@ -1678,7 +1678,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     boxShadow: simMode==='inverse' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
-                  <div style={{fontSize:36,marginBottom:12}}><span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>my_location</span>
+                  <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>my_location</span>
                   <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='inverse'?'#fff':'#1C1710'}}>Calculateur inversé</div>
                   <div style={{fontSize:13,lineHeight:1.6,color:simMode==='inverse'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu veux X€ nets par mois ?<br/>Calcule exactement combien tu dois facturer.</div>
                   {simMode==='inverse' && (
@@ -1694,7 +1694,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     boxShadow: simMode==='reel' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
-                  <div style={{fontSize:36,marginBottom:12}}><span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>balance</span>
+                  <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>balance</span>
                   <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='reel'?'#fff':'#1C1710'}}>Micro vs Réel</div>
                   <div style={{fontSize:13,lineHeight:1.6,color:simMode==='reel'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu approches du plafond ?<br/>Compare concrètement micro-entreprise et régime réel.</div>
                   {simMode==='reel' && (
@@ -2369,7 +2369,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               {icon:'assignment',titre:'TVA',micro:'Franchise si sous les seuils (36 800€ services)',reel:'TVA obligatoire — tu la collectes et la reverses. Tu récupères aussi la TVA sur tes achats.'},
                               {icon:'settings',titre:'Complexité administrative',micro:'Simple — une déclaration mensuelle ou trimestrielle',reel:'Plus complexe — liasse fiscale, déclarations TVA, DSN si salarié'},
                               {icon:'trending_up',titre:'Optimisation fiscale',micro:'Limitée — taux fixe sur le CA',reel:'Beaucoup plus de leviers : amortissements, provisions, optimisation de la rémunération'},
-                            ].map(({emoji,titre,micro,reel})=>(
+                            ].map(({icon,titre,micro,reel})=>(
                               <div key={titre} style={{border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,overflow:'hidden'}}>
                                 <div style={{background:'rgba(255,255,255,0.05)',padding:'10px 14px',display:'flex',alignItems:'center',gap:8}}>
                                   <span className="material-symbols-outlined" style={{fontSize:20,color:"#f382ff"}}>{icon}</span>
