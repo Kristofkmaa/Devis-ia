@@ -142,14 +142,14 @@ function PremiumInner() {
           <a href="/dashboard" style={{fontSize:13,color:'rgba(255,255,255,0.4)',textDecoration:'none',fontWeight:500}}>← Retour</a>
         </nav>
 
-        <div style={{maxWidth:1000,margin:'0 auto',padding:'80px 5% 100px'}}>
+        <div style={{maxWidth:1400,margin:'0 auto',padding:'80px 4% 100px'}}>
 
           {/* Header */}
           <div className="fade-up" style={{textAlign:'center',marginBottom:64}}>
             <div style={{display:'inline-block',fontSize:10,fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'#f382ff',background:'rgba(243,130,255,0.1)',border:'1px solid rgba(243,130,255,0.2)',padding:'5px 14px',borderRadius:9999,marginBottom:20}}>
               Abonnement Serelyo
             </div>
-            <h1 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:'clamp(32px,5vw,52px)',fontWeight:800,letterSpacing:'-.03em',color:'#fff',marginBottom:16,lineHeight:1.1}}>
+            <h1 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:'clamp(36px,5vw,64px)',fontWeight:800,letterSpacing:'-.03em',color:'#fff',marginBottom:16,lineHeight:1.1}}>
               Pilote ton activité<br/>
               <span style={{color:'#f382ff'}}>sereinement.</span>
             </h1>
@@ -170,7 +170,7 @@ function PremiumInner() {
           )}
 
           {/* Plans grid */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:20,alignItems:'start'}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:24,alignItems:'stretch'}}>
             {PLANS.map((plan, i) => (
               <div
                 key={plan.id}
@@ -179,10 +179,11 @@ function PremiumInner() {
                   background: plan.gradient,
                   backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',
                   border:`1px solid ${plan.border}`,
-                  borderRadius:24,padding:'2rem',
+                  borderRadius:28,padding:'2.5rem',
                   position:'relative',overflow:'hidden',
                   animationDelay:`${i*0.08}s`,
-                  boxShadow: plan.featured ? `0 0 60px ${plan.color}22` : 'none',
+                  display:'flex',flexDirection:'column',
+                  boxShadow: plan.featured ? `0 0 80px ${plan.color}28, 0 24px 60px rgba(0,0,0,0.3)` : '0 8px 32px rgba(0,0,0,0.2)',
                 }}
               >
                 {/* Featured glow */}
@@ -200,21 +201,21 @@ function PremiumInner() {
                 )}
 
                 <div style={{marginTop: plan.featured ? '1.25rem' : 0}}>
-                  <div style={{fontSize:11,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',marginBottom:8}}>{plan.name}</div>
+                  <div style={{fontSize:12,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'rgba(255,255,255,0.45)',marginBottom:10}}>{plan.name}</div>
                   <div style={{display:'flex',alignItems:'baseline',gap:6,marginBottom:8}}>
-                    <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:44,fontWeight:800,color:'#fff',letterSpacing:'-.03em'}}>{plan.price}€</span>
+                    <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:56,fontWeight:800,color:'#fff',letterSpacing:'-.03em'}}>{plan.price}€</span>
                     <span style={{fontSize:14,color:'rgba(255,255,255,0.4)',fontWeight:400}}>{plan.period}</span>
                   </div>
                   {plan.priceYear && (
                     <div style={{fontSize:13,color:plan.color,fontWeight:600,marginBottom:4}}>soit {plan.priceYear}€/mois</div>
                   )}
-                  <div style={{fontSize:13,color:'rgba(255,255,255,0.45)',marginBottom:28,lineHeight:1.5}}>{plan.desc}</div>
+                  <div style={{fontSize:14,color:'rgba(255,255,255,0.5)',marginBottom:32,lineHeight:1.6}}>{plan.desc}</div>
 
                   <button
                     onClick={()=>handleSubscribe(plan.id)}
                     disabled={!!loading}
                     style={{
-                      width:'100%',padding:'13px',borderRadius:12,border:'none',
+                      width:'100%',padding:'15px',borderRadius:14,border:'none',
                       background: loading===plan.id ? 'rgba(255,255,255,0.1)' : plan.featured ? `linear-gradient(135deg,${plan.color},#f382ff)` : `rgba(255,255,255,0.1)`,
                       color: plan.featured ? '#07080F' : '#fff',
                       fontFamily:"'Inter',sans-serif",fontSize:14,fontWeight:800,
@@ -228,11 +229,11 @@ function PremiumInner() {
                     {loading===plan.id ? 'Redirection…' : `Choisir ${plan.name} →`}
                   </button>
 
-                  <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                  <div style={{display:'flex',flexDirection:'column',gap:12,flex:1}}>
                     {plan.features.map(f=>(
                       <div key={f} style={{display:'flex',alignItems:'flex-start',gap:10}}>
-                        <span className="material-symbols-outlined" style={{fontSize:16,color:plan.color,flexShrink:0,marginTop:1}}>check_circle</span>
-                        <span style={{fontSize:13,color:'rgba(255,255,255,0.65)',lineHeight:1.5}}>{f}</span>
+                        <span className="material-symbols-outlined" style={{fontSize:18,color:plan.color,flexShrink:0,marginTop:1}}>check_circle</span>
+                        <span style={{fontSize:14,color:'rgba(255,255,255,0.7)',lineHeight:1.5}}>{f}</span>
                       </div>
                     ))}
                   </div>
@@ -242,7 +243,7 @@ function PremiumInner() {
           </div>
 
           {/* Reassurance */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:16,marginTop:48}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginTop:56}}>
             {[
               ['lock','Paiement sécurisé','Stripe — standard bancaire international'],
               ['cancel','Résiliable à tout moment','Sans engagement, sans frais'],
