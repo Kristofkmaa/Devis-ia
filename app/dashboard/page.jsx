@@ -100,7 +100,7 @@ export default function DashboardPage() {
             Abonnement requis
           </h1>
           <p style={{fontSize:15,color:'rgba(255,255,255,0.45)',lineHeight:1.75,marginBottom:'2rem'}}>
-            Serelyo est un service payant.<br/>
+            Serelyo est un service payant.<br/> 
             Choisis ton abonnement pour accéder à ton espace.
           </p>
 
