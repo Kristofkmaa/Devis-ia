@@ -2476,7 +2476,9 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     >
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10}}>
                         <div style={{display:'flex',gap:14,alignItems:'center'}} onClick={()=>imprimerDevis(d,profil)}>
-                          <div style={{width:44,height:44,background:'rgba(255,255,255,0.06)',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}
+                          <div style={{width:44,height:44,background:'rgba(255,255,255,0.06)',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                            <span className="material-symbols-outlined" style={{fontSize:20,color:'rgba(255,255,255,0.5)'}}>description</span>
+                          </div>
                           <div>
                             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3,flexWrap:'wrap'}}>
                               <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:600,color:'#ffffff'}}>{d.numero}</span>
