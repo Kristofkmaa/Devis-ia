@@ -1429,7 +1429,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       })}
                     </tbody>
                     </table></div>
-                  {/* Total récap */
+                  {/* Total récap */}
                   {(() => {
                     const totalCA = revenus.filter(r=>r.mois.startsWith(histoAnnee)).reduce((s,r)=>s+r.montant,0)
                     const totalCotis = totalCA*taux
