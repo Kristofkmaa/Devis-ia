@@ -1298,7 +1298,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               {/* ── VUE DESKTOP : gros mois + mini strip ── */}
 
               {/* Navigation + grand calendrier */}
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1.25rem'}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1.25rem',maxWidth:760,margin:'0 auto 1.25rem'}}>
                 <button onClick={allerMoisPrev} style={{width:40,height:40,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.15)',background:'rgba(255,255,255,0.05)',color:'#f382ff',fontSize:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s'}}
                   onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.12)';e.currentTarget.style.borderColor='rgba(243,130,255,0.4)'}}
                   onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.05)';e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'}}>‹</button>
@@ -1315,75 +1315,71 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
 
               {/* Grand calendrier mois actif */}
-              <div style={{background:'rgba(20,5,40,0.35)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',border:`1.5px solid ${estCourant?'rgba(243,130,255,0.3)':'rgba(255,255,255,0.12)'}`,borderRadius:20,padding:'1.75rem',marginBottom:'1.5rem',boxShadow:estCourant?'0 0 40px rgba(243,130,255,0.08)':'none'}}>
+              <div style={{maxWidth:760,margin:'0 auto 1.5rem',background:'rgba(20,5,40,0.35)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',border:`1.5px solid ${estCourant?'rgba(243,130,255,0.3)':'rgba(255,255,255,0.12)'}`,borderRadius:20,padding:'1.5rem',boxShadow:estCourant?'0 0 40px rgba(243,130,255,0.08)':'none'}}>
                 {/* Headers jours */}
-                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4,marginBottom:8}}>
-                  {JOURS_LONG.map(j=>(<div key={j} style={{textAlign:'center',fontSize:11,color:'rgba(255,255,255,.35)',fontWeight:700,padding:'8px 0',letterSpacing:'.04em',textTransform:'uppercase'}}>{j}</div>))}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3,marginBottom:4}}>
+                  {JOURS_LONG.map(j=>(<div key={j} style={{textAlign:'center',fontSize:10,color:'rgba(255,255,255,.3)',fontWeight:700,padding:'6px 0',letterSpacing:'.06em',textTransform:'uppercase'}}>{j}</div>))}
                 </div>
-                {/* Cellules jours */}
-                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4}}>
+                {/* Cellules jours — affichent événements dans la cellule */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3}}>
                   {jours.map((jour,i)=>{
                     const ev = jour ? joursEvenements[jour] : null
                     const estAujourdhui = estCourant && jour === getNow().day
                     const dateStr = jour ? `${year}-${String(moisIdx+1).padStart(2,'0')}-${String(jour).padStart(2,'0')}` : null
                     const rdvsJour = dateStr ? rdvList.filter(r=>r.date===dateStr) : []
                     const hasRdv = rdvsJour.length > 0
+                    const t = hasRdv ? (RDV_TYPES[rdvsJour[0].type]||RDV_TYPES.rdv) : null
+                    const evLabel = ev ? (ev.special?(ev.type==='cfe'?'CFE':'IR'):'URSSAF') : null
                     return (
                       <div key={i} onClick={()=>jour && openRdvModal(moisIdx, jour, nomMois)}
-                        title={jour?(hasRdv?rdvsJour.map(r=>r.titre).join(', '):'Cliquer pour ajouter'):''}
                         style={{
-                          textAlign:'center',fontSize:14,padding:'12px 4px',borderRadius:10,
-                          fontWeight: ev||estAujourdhui||hasRdv ? 700 : 400,
-                          background: estAujourdhui?'#f382ff':hasRdv?'rgba(0,200,200,.15)':ev?(ev.statut==='faite'?'rgba(0,200,160,.12)':ev.statut==='a_verifier'?'rgba(255,100,100,.12)':'rgba(255,160,60,.12)'):'transparent',
-                          color: estAujourdhui?'#07080F':hasRdv?'#00C8FF':ev?(ev.statut==='faite'?'#00C8A0':ev.statut==='a_verifier'?'#FF8A8A':'#f382ff'):jour?'rgba(255,255,255,.7)':'transparent',
+                          borderRadius:10,padding:'6px 4px',minHeight:64,
+                          display:'flex',flexDirection:'column',alignItems:'center',
+                          background: estAujourdhui?'#f382ff':hasRdv?t.bg:ev?(ev.statut==='faite'?'rgba(0,200,160,.08)':ev.statut==='a_verifier'?'rgba(255,100,100,.08)':'rgba(255,160,60,.08)'):'transparent',
+                          border: estAujourdhui?'none':hasRdv?`1px solid ${t.color}44`:ev?`1px solid ${ev.statut==='faite'?'rgba(0,200,160,.25)':ev.statut==='a_verifier'?'rgba(255,100,100,.25)':'rgba(255,160,60,.25)'}`:'1px solid transparent',
                           cursor: jour?'pointer':'default',
-                          border: ev&&ev.statut!=='faite'?'1px solid rgba(255,160,60,.3)':hasRdv?'1px solid rgba(0,200,200,.2)':'1px solid transparent',
                           transition:'background .15s',
-                          position:'relative',
                         }}
-                        onMouseEnter={e=>{if(jour&&!estAujourdhui)e.currentTarget.style.background='rgba(243,130,255,0.08)'}}
-                        onMouseLeave={e=>{if(jour&&!estAujourdhui)e.currentTarget.style.background=ev?(ev.statut==='faite'?'rgba(0,200,160,.12)':ev.statut==='a_verifier'?'rgba(255,100,100,.12)':'rgba(255,160,60,.12)'):'transparent'}}>
-                        {jour||''}
+                        onMouseEnter={e=>{if(jour&&!estAujourdhui){e.currentTarget.style.background=hasRdv?t.bg:ev?'rgba(243,130,255,0.1)':'rgba(255,255,255,0.05)';e.currentTarget.style.borderColor='rgba(243,130,255,0.3)'}}}
+                        onMouseLeave={e=>{if(jour&&!estAujourdhui){e.currentTarget.style.background=hasRdv?t.bg:ev?(ev.statut==='faite'?'rgba(0,200,160,.08)':ev.statut==='a_verifier'?'rgba(255,100,100,.08)':'rgba(255,160,60,.08)'):'transparent';e.currentTarget.style.borderColor=hasRdv?`${t.color}44`:ev?(ev.statut==='faite'?'rgba(0,200,160,.25)':ev.statut==='a_verifier'?'rgba(255,100,100,.25)':'rgba(255,160,60,.25)'):'transparent'}}}>
+                        {/* Numéro du jour */}
+                        <div style={{fontSize:13,fontWeight:estAujourdhui||hasRdv||ev?700:400,color:estAujourdhui?'#07080F':hasRdv?t.color:ev?(ev.statut==='faite'?'#00C8A0':ev.statut==='a_verifier'?'#FF8A8A':'#f382ff'):jour?'rgba(255,255,255,.7)':'transparent',marginBottom:4}}>
+                          {jour||''}
+                        </div>
+                        {/* Event URSSAF dans la cellule */}
+                        {ev && jour && (
+                          <div style={{fontSize:8,fontWeight:700,padding:'1px 4px',borderRadius:4,background:ev.statut==='faite'?'rgba(0,200,160,.25)':ev.statut==='a_verifier'?'rgba(255,100,100,.25)':'rgba(255,160,60,.3)',color:ev.statut==='faite'?'#00C8A0':ev.statut==='a_verifier'?'#FF8A8A':'#FFB347',letterSpacing:'.03em',maxWidth:'100%',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>
+                            {evLabel}
+                          </div>
+                        )}
+                        {/* RDV dans la cellule */}
+                        {hasRdv && jour && rdvsJour.slice(0,2).map((r,ri)=>{
+                          const rt = RDV_TYPES[r.type]||RDV_TYPES.rdv
+                          return (
+                            <div key={ri} style={{fontSize:8,fontWeight:600,padding:'1px 4px',borderRadius:4,background:`${rt.color}22`,color:rt.color,maxWidth:'100%',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center',marginTop:1}}>
+                              {r.heure&&r.heure!=='09:00'?`${r.heure} `:''}{r.titre}
+                            </div>
+                          )
+                        })}
+                        {rdvsJour.length > 2 && <div style={{fontSize:7,color:'rgba(255,255,255,.4)',marginTop:1}}>+{rdvsJour.length-2}</div>}
                       </div>
                     )
                   })}
                 </div>
-                {/* Events du mois */}
-                {evs.length > 0 && (
-                  <div style={{marginTop:'1rem',paddingTop:'1rem',borderTop:'1px solid rgba(255,255,255,0.07)',display:'flex',flexDirection:'column',gap:8}}>
-                    {evs.map(ev=>(
-                      <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:ev.statut==='faite'?'rgba(0,200,160,.08)':ev.past?'rgba(255,100,100,.08)':'rgba(255,160,60,.08)',border:`1px solid ${ev.statut==='faite'?'rgba(0,200,160,.2)':ev.past?'rgba(255,100,100,.2)':'rgba(255,160,60,.2)'}`}}>
-                        <div>
-                          <div style={{fontSize:13,fontWeight:600,color:'#fff'}}>{ev.special?(ev.type==='cfe'?'CFE':'Impôt sur le revenu'):'Déclaration URSSAF'}</div>
-                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:2}}>Avant le {ev.date_limite}</div>
-                        </div>
-                        {ev.statut==='faite'
-                          ? <span style={{fontSize:12,fontWeight:700,color:'#00C8A0',background:'rgba(0,200,160,.1)',padding:'5px 14px',borderRadius:20}}>✓ Faite</span>
-                          : <button onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')} style={{fontSize:12,background:'#f382ff',border:'none',color:'#07080F',padding:'7px 16px',borderRadius:20,cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700}}>Marquer faite →</button>
-                        }
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {/* RDV du mois */}
-                {(() => {
-                  const rdvsMois = rdvList.filter(r=>r.date&&parseInt(r.date.split('-')[0])===year&&parseInt(r.date.split('-')[1])-1===moisIdx)
-                  if (!rdvsMois.length) return null
-                  return (
-                    <div style={{marginTop:8,display:'flex',flexDirection:'column',gap:4}}>
-                      {rdvsMois.map(r=>(
-                        <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 12px',borderRadius:10,background:'rgba(243,130,255,0.06)',border:'1px solid rgba(243,130,255,0.12)'}}>
-                          <div style={{fontSize:12,color:'#f382ff',fontWeight:500}}>{r.titre}</div>
-                          <button onClick={e=>{e.stopPropagation();deleteRdv(r.id)}} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,100,100,.5)',fontSize:14,padding:0}}>×</button>
-                        </div>
-                      ))}
+                {/* Légende */}
+                <div style={{display:'flex',gap:14,marginTop:14,paddingTop:12,borderTop:'1px solid rgba(255,255,255,0.06)',flexWrap:'wrap'}}>
+                  {[['rgba(0,200,160,.2)','#00C8A0','Déclaration faite'],['rgba(255,160,60,.2)','#FFB347','À faire'],['rgba(255,100,100,.2)','#FF8A8A','En retard'],['#f382ff','#07080F','Aujourd'hui']].map(([bg,color,label])=>(
+                    <div key={label} style={{display:'flex',alignItems:'center',gap:5,fontSize:10,color:'rgba(255,255,255,.35)'}}>
+                      <div style={{width:10,height:10,borderRadius:3,background:bg}}/>
+                      {label}
                     </div>
-                  )
-                })()}
+                  ))}
+                  <div style={{marginLeft:'auto',fontSize:10,color:'rgba(255,255,255,.2)'}}>Cliquer sur un jour pour ajouter un événement</div>
+                </div>
               </div>
 
               {/* Mini calendriers — vue annuelle */}
-              <div style={{marginBottom:'1.25rem'}}>
+              <div style={{maxWidth:760,margin:'0 auto 1.25rem'}}>
                 <div style={{fontSize:11,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.3)',marginBottom:12}}>Vue annuelle</div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:8}}>
                   {MOIS_FULL.map((nomM, mi) => {
