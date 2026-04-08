@@ -845,7 +845,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
           {/* ── HERO ── */}
           {profil ? (
-            <div style={{background:'rgba(20,5,40,0.38)',backdropFilter:'blur(32px)',WebkitBackdropFilter:'blur(32px)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:22,padding:'1.75rem',marginBottom:'1.25rem',overflow:'hidden'}}>
+            <div style={{background:'rgba(20,5,40,0.38)',backdropFilter:'blur(32px)',WebkitBackdropFilter:'blur(32px)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:22,padding:'1.75rem',maxWidth:680,margin:'0 auto 1.25rem',overflow:'hidden'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12,marginBottom:'1.5rem'}}>
                 <div>
                   <p style={{fontSize:11,color:'rgba(255,255,255,0.38)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:8,fontWeight:700}}>Bonjour </p>
@@ -1298,7 +1298,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               {/* ── VUE DESKTOP : gros mois + mini strip ── */}
 
               {/* Navigation + grand calendrier */}
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1.25rem'}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1.25rem',maxWidth:680,margin:'0 auto 1.25rem'}}>
                 <button onClick={allerMoisPrev} style={{width:40,height:40,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.15)',background:'rgba(255,255,255,0.05)',color:'#f382ff',fontSize:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s'}}
                   onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.12)';e.currentTarget.style.borderColor='rgba(243,130,255,0.4)'}}
                   onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.05)';e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'}}>‹</button>
@@ -1315,7 +1315,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
 
               {/* Grand calendrier mois actif */}
-              <div style={{background:'rgba(20,5,40,0.35)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',border:`1.5px solid ${estCourant?'rgba(243,130,255,0.3)':'rgba(255,255,255,0.12)'}`,borderRadius:20,padding:'1.5rem',boxShadow:estCourant?'0 0 40px rgba(243,130,255,0.08)':'none'}}>
+              <div style={{maxWidth:680,margin:'0 auto',background:'rgba(20,5,40,0.35)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',border:`1.5px solid ${estCourant?'rgba(243,130,255,0.3)':'rgba(255,255,255,0.12)'}`,borderRadius:20,padding:'1.5rem',boxShadow:estCourant?'0 0 40px rgba(243,130,255,0.08)':'none'}}>
                 {/* Headers jours */}
                 <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3,marginBottom:4}}>
                   {JOURS_LONG.map(j=>(<div key={j} style={{textAlign:'center',fontSize:10,color:'rgba(255,255,255,.3)',fontWeight:700,padding:'6px 0',letterSpacing:'.06em',textTransform:'uppercase'}}>{j}</div>))}
