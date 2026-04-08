@@ -1405,9 +1405,9 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     ]
                     return (
                       <div key={mi} onClick={()=>setCalMoisActif(mi)}
-                        title={tooltipLines.length?tooltipLines.join('
-'):''}
-                        style={{
+                        title={tooltipLines.join(' | ')}
+
+           style={{
                           background: estActifM?'rgba(243,130,255,0.1)':'rgba(20,5,40,0.25)',
                           border:`1px solid ${estActifM?'rgba(243,130,255,0.35)':estCourantM?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,
                           borderRadius:12,padding:'10px 8px',cursor:'pointer',
