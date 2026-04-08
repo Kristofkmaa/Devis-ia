@@ -1295,92 +1295,139 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </>
           ) : (
             <>
-              {/* ── VUE DESKTOP : grille 12 mois ── */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:24,marginBottom:'1.5rem',maxWidth:900,margin:'0 auto 1.5rem'}}>
-                {MOIS_FULL.map((nomM, mi) => {
-                  const estCourantM = mi === month-1
-                  const estPasseM = mi < month-1
-                  const evsM = eventsParMois[String(mi)] || []
-                  const revM = revParMois[mi]
-                  const premierJourM = new Date(calYear, mi, 1).getDay()
-                  const premierLundiM = premierJourM === 0 ? 6 : premierJourM - 1
-                  const nbJoursM = new Date(calYear, mi+1, 0).getDate()
-                  const joursM = Array(premierLundiM).fill(null).concat(Array.from({length:nbJoursM},(_,i)=>i+1))
-                  while (joursM.length % 7 !== 0) joursM.push(null)
-                  const joursEvenementsM = {}
-                  evsM.forEach(ev => { if (ev.jour) joursEvenementsM[ev.jour] = ev })
+              {/* ── VUE DESKTOP : gros mois + mini strip ── */}
+
+              {/* Navigation + grand calendrier */}
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1.25rem'}}>
+                <button onClick={allerMoisPrev} style={{width:40,height:40,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.15)',background:'rgba(255,255,255,0.05)',color:'#f382ff',fontSize:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s'}}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.12)';e.currentTarget.style.borderColor='rgba(243,130,255,0.4)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.05)';e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'}}>‹</button>
+                <div style={{textAlign:'center'}}>
+                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:28,fontWeight:800,color:'#fff',letterSpacing:'-.02em'}}>
+                    {nomMois} {calYear}
+                    {estCourant && <span style={{fontSize:11,background:'rgba(243,130,255,0.12)',color:'#f382ff',padding:'3px 10px',borderRadius:20,marginLeft:10,fontFamily:'Inter,sans-serif',fontWeight:700,border:'1px solid rgba(243,130,255,0.25)',verticalAlign:'middle'}}>En cours</span>}
+                  </div>
+                  {rev && <div style={{fontSize:13,color:'#f382ff',fontWeight:600,marginTop:4}}>CA : {rev.toLocaleString('fr-FR')} €</div>}
+                </div>
+                <button onClick={allerMoisNext} style={{width:40,height:40,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.15)',background:'rgba(255,255,255,0.05)',color:'#f382ff',fontSize:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s'}}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.12)';e.currentTarget.style.borderColor='rgba(243,130,255,0.4)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.05)';e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'}}>›</button>
+              </div>
+
+              {/* Grand calendrier mois actif */}
+              <div style={{background:'rgba(20,5,40,0.35)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',border:`1.5px solid ${estCourant?'rgba(243,130,255,0.3)':'rgba(255,255,255,0.12)'}`,borderRadius:20,padding:'1.75rem',marginBottom:'1.5rem',boxShadow:estCourant?'0 0 40px rgba(243,130,255,0.08)':'none'}}>
+                {/* Headers jours */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4,marginBottom:8}}>
+                  {JOURS_LONG.map(j=>(<div key={j} style={{textAlign:'center',fontSize:11,color:'rgba(255,255,255,.35)',fontWeight:700,padding:'8px 0',letterSpacing:'.04em',textTransform:'uppercase'}}>{j}</div>))}
+                </div>
+                {/* Cellules jours */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4}}>
+                  {jours.map((jour,i)=>{
+                    const ev = jour ? joursEvenements[jour] : null
+                    const estAujourdhui = estCourant && jour === getNow().day
+                    const dateStr = jour ? `${year}-${String(moisIdx+1).padStart(2,'0')}-${String(jour).padStart(2,'0')}` : null
+                    const rdvsJour = dateStr ? rdvList.filter(r=>r.date===dateStr) : []
+                    const hasRdv = rdvsJour.length > 0
+                    return (
+                      <div key={i} onClick={()=>jour && openRdvModal(moisIdx, jour, nomMois)}
+                        title={jour?(hasRdv?rdvsJour.map(r=>r.titre).join(', '):'Cliquer pour ajouter'):''}
+                        style={{
+                          textAlign:'center',fontSize:14,padding:'12px 4px',borderRadius:10,
+                          fontWeight: ev||estAujourdhui||hasRdv ? 700 : 400,
+                          background: estAujourdhui?'#f382ff':hasRdv?'rgba(0,200,200,.15)':ev?(ev.statut==='faite'?'rgba(0,200,160,.12)':ev.statut==='a_verifier'?'rgba(255,100,100,.12)':'rgba(255,160,60,.12)'):'transparent',
+                          color: estAujourdhui?'#07080F':hasRdv?'#00C8FF':ev?(ev.statut==='faite'?'#00C8A0':ev.statut==='a_verifier'?'#FF8A8A':'#f382ff'):jour?'rgba(255,255,255,.7)':'transparent',
+                          cursor: jour?'pointer':'default',
+                          border: ev&&ev.statut!=='faite'?'1px solid rgba(255,160,60,.3)':hasRdv?'1px solid rgba(0,200,200,.2)':'1px solid transparent',
+                          transition:'background .15s',
+                          position:'relative',
+                        }}
+                        onMouseEnter={e=>{if(jour&&!estAujourdhui)e.currentTarget.style.background='rgba(243,130,255,0.08)'}}
+                        onMouseLeave={e=>{if(jour&&!estAujourdhui)e.currentTarget.style.background=ev?(ev.statut==='faite'?'rgba(0,200,160,.12)':ev.statut==='a_verifier'?'rgba(255,100,100,.12)':'rgba(255,160,60,.12)'):'transparent'}}>
+                        {jour||''}
+                      </div>
+                    )
+                  })}
+                </div>
+                {/* Events du mois */}
+                {evs.length > 0 && (
+                  <div style={{marginTop:'1rem',paddingTop:'1rem',borderTop:'1px solid rgba(255,255,255,0.07)',display:'flex',flexDirection:'column',gap:8}}>
+                    {evs.map(ev=>(
+                      <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:ev.statut==='faite'?'rgba(0,200,160,.08)':ev.past?'rgba(255,100,100,.08)':'rgba(255,160,60,.08)',border:`1px solid ${ev.statut==='faite'?'rgba(0,200,160,.2)':ev.past?'rgba(255,100,100,.2)':'rgba(255,160,60,.2)'}`}}>
+                        <div>
+                          <div style={{fontSize:13,fontWeight:600,color:'#fff'}}>{ev.special?(ev.type==='cfe'?'CFE':'Impôt sur le revenu'):'Déclaration URSSAF'}</div>
+                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:2}}>Avant le {ev.date_limite}</div>
+                        </div>
+                        {ev.statut==='faite'
+                          ? <span style={{fontSize:12,fontWeight:700,color:'#00C8A0',background:'rgba(0,200,160,.1)',padding:'5px 14px',borderRadius:20}}>✓ Faite</span>
+                          : <button onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')} style={{fontSize:12,background:'#f382ff',border:'none',color:'#07080F',padding:'7px 16px',borderRadius:20,cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700}}>Marquer faite →</button>
+                        }
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* RDV du mois */}
+                {(() => {
+                  const rdvsMois = rdvList.filter(r=>r.date&&parseInt(r.date.split('-')[0])===year&&parseInt(r.date.split('-')[1])-1===moisIdx)
+                  if (!rdvsMois.length) return null
                   return (
-                    <div key={mi} style={{
-                      background:'rgba(20,5,40,0.30)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', border:`2px solid ${estCourantM?'rgba(0,200,200,0.5)':'rgba(255,255,255,0.08)'}`,
-                      borderRadius:18, padding:'1.4rem',
-                      opacity: estPasseM && !revM && evsM.length===0 ? 0.5 : 1,
-                      boxShadow: estCourantM ? '0 4px 20px rgba(0,200,200,.1)' : 'none'
-                    }}>
-                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-                        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:700,color:estCourantM?'#f382ff':'#E8F4F8'}}>
-                          {nomM}
-                          {estCourantM && <span style={{fontSize:9,background:'rgba(0,200,200,.2)',color:'#f382ff',padding:'2px 7px',borderRadius:20,marginLeft:6,fontFamily:'Inter,sans-serif',border:'1px solid rgba(243,130,255,0.4)'}}>En cours</span>}
+                    <div style={{marginTop:8,display:'flex',flexDirection:'column',gap:4}}>
+                      {rdvsMois.map(r=>(
+                        <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 12px',borderRadius:10,background:'rgba(243,130,255,0.06)',border:'1px solid rgba(243,130,255,0.12)'}}>
+                          <div style={{fontSize:12,color:'#f382ff',fontWeight:500}}>{r.titre}</div>
+                          <button onClick={e=>{e.stopPropagation();deleteRdv(r.id)}} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,100,100,.5)',fontSize:14,padding:0}}>×</button>
                         </div>
-                        {revM && <span style={{fontSize:10,fontWeight:600,color:'#f382ff',background:'rgba(243,130,255,0.1)',padding:'2px 7px',borderRadius:20}}>{revM.toLocaleString('fr-FR')} €</span>}
-                      </div>
-                      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:8}}>
-                        {JOURS_LONG.map(j=>(<div key={j} style={{textAlign:'center',fontSize:9,color:'rgba(255,255,255,.3)',fontWeight:700,padding:'6px 0'}}>{j}</div>))}
-                        {joursM.map((jour,i)=>{
-                          const ev = jour ? joursEvenementsM[jour] : null
-                          const estAujourdhui = estCourantM && jour === getNow().day
-                          const dateStr = jour ? `${year}-${String(mi+1).padStart(2,'0')}-${String(jour).padStart(2,'0')}` : null
-                          const rdvsJour = dateStr ? rdvList.filter(r=>r.date===dateStr) : []
-                          const hasRdv = rdvsJour.length > 0
-                          return (
-                            <div key={i} onClick={()=>jour && openRdvModal(mi, jour, nomM)}
-                              title={jour?(hasRdv?rdvsJour.map(r=>r.titre).join(', '):'Ajouter'):''}
-                              style={{
-                                textAlign:'center', fontSize:11, padding:'8px 2px', borderRadius:6,
-                                fontWeight: ev||estAujourdhui||hasRdv ? 700 : 400,
-                                background: estAujourdhui?'#f382ff':hasRdv?'rgba(0,200,200,.15)':ev?(ev.statut==='faite'?'rgba(0,200,160,.15)':ev.statut==='a_verifier'?'rgba(255,100,100,.15)':'rgba(255,160,60,.15)'):'transparent',
-                                color: estAujourdhui?'#07080F':hasRdv?'#f382ff':ev?(ev.statut==='faite'?'#00C8A0':ev.statut==='a_verifier'?'#FF8A8A':'#f382ff'):jour?'rgba(255,255,255,.6)':'transparent',
-                                cursor: jour?'pointer':'default',
-                              }}>
-                              {jour||''}
-                            </div>
-                          )
-                        })}
-                      </div>
-                      {evsM.length > 0 && (
-                        <div style={{display:'flex',flexDirection:'column',gap:3}}>
-                          {evsM.map(ev=>(
-                            <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'4px 8px',borderRadius:8,fontSize:11,background:ev.statut==='faite'?'rgba(0,200,160,.1)':ev.past?'rgba(255,100,100,.1)':'rgba(255,160,60,.08)',border:`1px solid ${ev.statut==='faite'?'rgba(0,200,160,.2)':ev.past?'rgba(255,100,100,.2)':'rgba(255,160,60,.2)'}`}}>
-                              <span style={{color:'#ffffff',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:110}}>
-                                {ev.special?(ev.type==='cfe'?'CFE':'IR'):'URSSAF'}
-                              </span>
-                              {ev.statut==='faite'
-                                ? <span style={{color:'#c081ff',fontWeight:700,flexShrink:0}}>✓</span>
-                                : <button onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')} style={{fontSize:9,background:'#f382ff',border:'none',color:'#07080F',padding:'2px 7px',borderRadius:20,cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700,flexShrink:0}}>Faire</button>
-                              }
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {(() => {
-                        const rdvsMois = rdvList.filter(r=>r.date&&parseInt(r.date.split('-')[0])===year&&parseInt(r.date.split('-')[1])-1===mi)
-                        if (!rdvsMois.length) return null
-                        return (
-                          <div style={{marginTop:4,display:'flex',flexDirection:'column',gap:2}}>
-                            {rdvsMois.map(r=>{
-                              const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
-                              return (
-                                <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'3px 6px',borderRadius:6,background:'rgba(243,130,255,0.08)',fontSize:10}}>
-                                  <span style={{color:'#f382ff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:100}}>{r.titre}</span>
-                                  <button onClick={e=>{e.stopPropagation();deleteRdv(r.id)}} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,100,100,.6)',fontSize:11,padding:0}}>×</button>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        )
-                      })()}
+                      ))}
                     </div>
                   )
-                })}
+                })()}
+              </div>
+
+              {/* Mini calendriers — vue annuelle */}
+              <div style={{marginBottom:'1.25rem'}}>
+                <div style={{fontSize:11,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.3)',marginBottom:12}}>Vue annuelle</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:8}}>
+                  {MOIS_FULL.map((nomM, mi) => {
+                    const estCourantM = mi === month-1
+                    const estActifM = mi === moisIdx
+                    const evsM = eventsParMois[String(mi)] || []
+                    const revM = revParMois[mi]
+                    const premierJourM = new Date(calYear, mi, 1).getDay()
+                    const premierLundiM = premierJourM === 0 ? 6 : premierJourM - 1
+                    const nbJoursM = new Date(calYear, mi+1, 0).getDate()
+                    const joursM = Array(premierLundiM).fill(null).concat(Array.from({length:nbJoursM},(_,i)=>i+1))
+                    while (joursM.length % 7 !== 0) joursM.push(null)
+                    const joursEvenementsM = {}
+                    evsM.forEach(ev => { if (ev.jour) joursEvenementsM[ev.jour] = ev })
+                    return (
+                      <div key={mi} onClick={()=>setCalMoisActif(mi)} style={{
+                        background: estActifM?'rgba(243,130,255,0.1)':'rgba(20,5,40,0.25)',
+                        border:`1px solid ${estActifM?'rgba(243,130,255,0.35)':estCourantM?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,
+                        borderRadius:12,padding:'10px 8px',cursor:'pointer',
+                        transition:'all .2s',opacity:mi<month-1&&!revM?0.45:1
+                      }}
+                        onMouseEnter={e=>{if(!estActifM){e.currentTarget.style.background='rgba(243,130,255,0.06)';e.currentTarget.style.borderColor='rgba(243,130,255,0.2)'}}}
+                        onMouseLeave={e=>{if(!estActifM){e.currentTarget.style.background='rgba(20,5,40,0.25)';e.currentTarget.style.borderColor=estCourantM?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}}}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                          <div style={{fontSize:10,fontWeight:700,color:estActifM?'#f382ff':estCourantM?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.5)'}}>{MOIS_COURT[mi]}</div>
+                          {revM && <div style={{fontSize:8,color:'#f382ff',fontWeight:600}}>{Math.round(revM/1000)}k€</div>}
+                          {evsM.length>0 && !revM && <div style={{width:5,height:5,borderRadius:'50%',background:evsM.some(e=>e.statut!=='faite')?'#f382ff':'#00C8A0'}}/>}
+                        </div>
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:1}}>
+                          {joursM.map((jour,i)=>{
+                            const ev = jour ? joursEvenementsM[jour] : null
+                            const estAujourdhui = estCourantM && jour === getNow().day
+                            return (
+                              <div key={i} style={{
+                                width:'100%',aspectRatio:'1',borderRadius:2,
+                                background: estAujourdhui?'#f382ff':ev?(ev.statut==='faite'?'rgba(0,200,160,.5)':'rgba(255,160,60,.5)'):'rgba(255,255,255,0.05)',
+                              }}/>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
 
               {/* Récap desktop */}
