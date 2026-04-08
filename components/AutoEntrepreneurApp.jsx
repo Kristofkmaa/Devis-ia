@@ -1405,8 +1405,1414 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     ]
                     return (
                       <div key={mi} onClick={()=>setCalMoisActif(mi)}
-                        title={tooltipLines.length?tooltipLines.join('
-'):''}
+                        title={tooltipLines.join(' | ')}
+import { useState, useEffect, useRef } from 'react'
+import { createClient } from '../lib/supabase'
+
+// ─── Taux URSSAF officiels 2025/2026 (source : autoentrepreneur.urssaf.fr) ───
+const TAUX = {
+  ventes:          0.123,  // Vente de marchandises (BIC) — 12,3%
+  services_bic:    0.212,  // Services commerciaux/artisanaux (BIC) — 21,2%
+  services_bnc:    0.212,  // Services (BNC) — 21,2%
+  liberal_ssi:     0.256,  // Libéral non réglementé régime général (SSI) — 25,6% depuis 2026
+  liberal_cipav:   0.232,  // Libéral réglementé CIPAV (architecte, consultant…) — 23,2%
+  lmtc:            0.060,  // Location meublée tourisme classée — 6%
+}
+// ACRE : exonération 50% jusqu'au 30/06/2026, puis 25% à partir du 01/07/2026
+const TAUX_ACRE = {
+  ventes:          0.0615,
+  services_bic:    0.106,
+  services_bnc:    0.106,
+  liberal_ssi:     0.128,
+  liberal_cipav:   0.116,
+  lmtc:            0.030,
+}
+// Seuils 2026 (mis à jour)
+const SEUILS = {
+  tva_services:      36800,   // Franchise TVA services
+  tva_ventes:        91900,   // Franchise TVA ventes
+  plafond_services:  83600,   // Plafond micro services 2026
+  plafond_ventes:   203100,   // Plafond micro ventes 2026
+  plafond_lmtc:      15000,   // Location meublée tourisme non classé 2026
+}
+const SECTEURS = [
+  { value:'ventes',        label:'Vente de marchandises — e-commerce, boutique, revendeur…', taux:'12,3%' },
+  { value:'services_bic',  label:'Services commerciaux/artisanaux (BIC) — artisan, réparateur, restaurateur…', taux:'21,2%' },
+  { value:'services_bnc',  label:'Services (BNC) — freelance, formateur, rédacteur, photographe…', taux:'21,2%' },
+  { value:'liberal_ssi',   label:'Profession libérale non réglementée (SSI) — coach, consultant, développeur…', taux:'25,6%' },
+  { value:'liberal_cipav', label:'Profession libérale réglementée (CIPAV) — architecte, expert-comptable, géomètre…', taux:'23,2%' },
+  { value:"lmtc",          label:"Location meublée tourisme classée (LMTC) — chambre d'hôtes, gîte classé…", taux:"6%" },
+]
+const MOIS_NOMS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
+
+// ─── Calcul salaire partagé (même logique partout) ───────────────────────────
+function calcSalaire(brut) {
+  if (!brut) return { net:0, total_sal:0, total_pat:0, cout_total:0, fillon:0, cout_apres_fillon:0 }
+  // Charges salariales
+  const cs_maladie          = brut * 0.0075
+  const cs_vieillesse_plaf  = brut * 0.069
+  const cs_vieillesse_deplaf= brut * 0.004
+  const cs_chomage          = brut * 0.024
+  const cs_csg_ded          = brut * 0.068
+  const cs_csg_crds         = brut * 0.029
+  const cs_retraite_comp    = brut * 0.0315
+  const total_sal = cs_maladie + cs_vieillesse_plaf + cs_vieillesse_deplaf +
+                    cs_chomage + cs_csg_ded + cs_csg_crds + cs_retraite_comp
+  const net = brut - total_sal
+  // Charges patronales
+  const cp_maladie          = brut * 0.07
+  const cp_vieillesse_plaf  = brut * 0.0855
+  const cp_vieillesse_deplaf= brut * 0.019
+  const cp_fam              = brut * 0.0345
+  const cp_at               = brut * 0.0222
+  const cp_chomage          = brut * 0.0405
+  const cp_ags              = brut * 0.0015
+  const cp_retraite_comp    = brut * 0.0472
+  const cp_ceg              = brut * 0.0129
+  const cp_formation        = brut * 0.0155
+  const cp_apprentissage    = brut * 0.0068
+  const cp_csa              = brut * 0.003
+  const total_pat = cp_maladie + cp_vieillesse_plaf + cp_vieillesse_deplaf +
+                    cp_fam + cp_at + cp_chomage + cp_ags + cp_retraite_comp +
+                    cp_ceg + cp_formation + cp_apprentissage + cp_csa
+  const cout_total = brut + total_pat
+  const fillon = brut <= 1801.80*1.6 ? Math.max(0, total_pat*0.3) : 0
+  return {
+    net, total_sal, total_pat, cout_total, fillon,
+    cout_apres_fillon: cout_total - fillon,
+    detail_sal: {cs_maladie,cs_vieillesse_plaf,cs_vieillesse_deplaf,cs_chomage,cs_csg_ded,cs_csg_crds,cs_retraite_comp},
+    detail_pat: {cp_maladie,cp_vieillesse_plaf,cp_vieillesse_deplaf,cp_fam,cp_at,cp_chomage,cp_ags,cp_retraite_comp,cp_ceg,cp_formation,cp_apprentissage,cp_csa}
+  }
+}
+
+const DEFAULT_FORM = {
+  prenom:'', nom:'', activite:'', secteur:'services_bnc',
+  date_creation:'', regime_declaration:'trimestriel',
+  acre:false, acre_fin:'',
+  objectif_ca:'', objectif_ca_mensuel:'',
+  versement_liberatoire:false, taux_impot_perso:14,
+  tva_active:false, regime_tva:'reel_normal',
+  compte_bancaire_dedie:false, iban:'',
+  regularite_revenus:'irreguliers', objectif_ae:'complement_revenu',
+  statut_complementaire:'aucun', niveau:'debutant',
+  prix_moyen_prestation:'', clients_par_mois:''
+}
+
+function getNow() {
+  const d = new Date()
+  return { year:d.getFullYear(), month:d.getMonth()+1, day:d.getDate() }
+}
+function formatMois(str) {
+  const [y,m] = str.split('-')
+  return MOIS_NOMS[+m-1]+' '+y
+}
+function getDateLimite(periode, type) {
+  if (type==='mensuel') {
+    const [y,m] = periode.split('-').map(Number)
+    const nm = m===12?1:m+1, ny = m===12?y+1:y
+    return `31/${String(nm).padStart(2,'0')}/${ny}`
+  } else {
+    const [y,t] = periode.split('-')
+    const dates = { T1:`30/04/${y}`, T2:`31/07/${y}`, T3:`31/10/${y}`, T4:`31/01/${+y+1}` }
+    return dates[t]||'—'
+  }
+}
+function genererCalendrier(profil) {
+  if (!profil) return []
+  const { year, month } = getNow()
+  const events = []
+  const regime = profil.regime_declaration||'trimestriel'
+  if (regime==='mensuel') {
+    for (let i=-2;i<=4;i++) {
+      let m=month+i, y=year
+      if (m<=0){m+=12;y--} if (m>12){m-=12;y++}
+      const periode=`${y}-${String(m).padStart(2,'0')}`
+      events.push({ id:periode, periode, type:'mensuel', label:`Déclaration URSSAF — ${formatMois(periode)}`, date_limite:getDateLimite(periode,'mensuel'), past:y<year||(y===year&&m<month), current:y===year&&m===month })
+    }
+  } else {
+    for (let i=-1;i<=2;i++) {
+      let t=Math.ceil(month/3)+i, y=year
+      while(t<=0){t+=4;y--} while(t>4){t-=4;y++}
+      const periode=`${y}-T${t}`
+      const trimNoms={T1:'1er trimestre (jan-mar)',T2:'2e trimestre (avr-jun)',T3:'3e trimestre (jul-sep)',T4:'4e trimestre (oct-déc)'}
+      events.push({ id:periode, periode, type:'trimestriel', label:`Déclaration URSSAF — ${trimNoms['T'+t]} ${y}`, date_limite:getDateLimite(periode,'trimestriel'), past:y<year||(y===year&&t<Math.ceil(month/3)), current:y===year&&t===Math.ceil(month/3) })
+    }
+  }
+  events.push({ id:`CFE-${year}`, periode:`${year}-12`, type:'cfe', label:`CFE — Cotisation Foncière des Entreprises ${year}`, date_limite:`15/12/${year}`, past:false, current:false, special:true })
+  events.push({ id:`IR-${year}`, periode:`${year}-05`, type:'ir', label:`Déclaration Impôt sur le Revenu ${year}`, date_limite:`31/05/${year+1}`, past:false, current:false, special:true })
+  return events.sort((a,b)=>a.id.localeCompare(b.id))
+}
+
+export default function AutoEntrepreneurApp({ user, onLogout }) {
+  const supabase = createClient()
+  const [view, setView]         = useState('dashboard')
+  const [profil, setProfil]     = useState(null)
+  const [revenus, setRevenus]   = useState([])
+  const [declarations, setDecl] = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [oForm, setOForm]       = useState(DEFAULT_FORM)
+  const [calcCA, setCalcCA]         = useState('')
+  const [calcResult, setCalcResult] = useState(null)
+  const [question, setQuestion]     = useState('')
+  const [reponse, setReponse]       = useState('')
+  const [asking, setAsking]         = useState(false)
+  const [histoQ, setHistoQ]         = useState([])
+  const [revMoisNum, setRevMoisNum] = useState(String(new Date().getMonth()+1).padStart(2,'0'))
+  const [revAnnee, setRevAnnee]     = useState(String(new Date().getFullYear()))
+  const [revMontant, setRevMontant] = useState('')
+  const [savingRev, setSavingRev]   = useState(false)
+  const [histoAnnee, setHistoAnnee] = useState(String(new Date().getFullYear()))
+
+  // Calendrier mobile
+  const [calMoisActif, setCalMoisActif] = useState(new Date().getMonth())
+  const [calTouchStart, setCalTouchStart] = useState(null)
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 700)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 700)
+    window.addEventListener('resize', check)
+    check()
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  // ── Background wave on scroll ──────────────────────────────────────────────
+  const bgRef = useRef(null)
+  useEffect(() => {
+    const onScroll = () => {
+      if (!bgRef.current) return
+      const s = window.scrollY
+      // Intensité augmente légèrement au scroll → le fond "gagne" en profondeur
+      const intensity = Math.min(1 + s * 0.0004, 1.35)
+      const cx = 38 + s * 0.004
+      const cy = 42 - s * 0.006
+      const alpha1 = Math.min(0.38 * intensity, 0.55)
+      const alpha2 = Math.min(0.22 * intensity, 0.35)
+      const alpha3 = Math.min(0.18 * intensity, 0.28)
+      bgRef.current.style.backgroundImage = [
+        // Grande nappe principale — s'intensifie doucement au scroll
+        `radial-gradient(ellipse 140% 120% at ${cx}% ${cy}%, rgba(70,8,120,${alpha1.toFixed(2)}) 0%, rgba(35,3,70,${alpha2.toFixed(2)}) 45%, transparent 72%)`,
+        // Bord sombre qui s'épaissit → effet d'atténuation
+        `radial-gradient(ellipse 90% 70% at ${98 - s*0.003}% ${90 + s*0.002}%, rgba(28,0,55,${alpha3.toFixed(2)}) 0%, transparent 62%)`,
+      ].join(',')
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Simulateur
+  const [simMode, setSimMode]         = useState('mensuel') // mensuel | annuel
+  const [simCA, setSimCA]             = useState('')
+  const [simMoisActifs, setSimMoisActifs] = useState(12)
+  const [simVariation, setSimVariation]   = useState('stable') // stable | croissance | saisonnalite
+  const [simResult, setSimResult]     = useState(null)
+
+  // Calculateur inversé
+  const [invNet, setInvNet]         = useState('')
+  const [invJours, setInvJours]     = useState(20)
+  const [invConges, setInvConges]   = useState(5)
+  const [invResult, setInvResult]   = useState(null)
+
+  // Micro vs Réel
+  const [reelCA, setReelCA]           = useState('')
+  const [reelCharges, setReelCharges] = useState('')
+  const [reelResult, setReelResult]   = useState(null)
+
+
+  // Rendez-vous personnels
+  const [rdvList, setRdvList]         = useState([])
+  const [showRdvModal, setShowRdvModal] = useState(false)
+  const [rdvJour, setRdvJour]         = useState(null)   // { moisIdx, jour, moisNom }
+  const [rdvForm, setRdvForm]         = useState({ titre:'', heure:'09:00', type:'rdv', notes:'' })
+  const [rdvEditing, setRdvEditing]   = useState(null)
+
+  // Devis
+  const [devis, setDevis]           = useState([])
+  const [showDevisForm, setShowDevisForm] = useState(false)
+  const [devisPreview, setDevisPreview]   = useState(null) // devis en aperçu
+  const [devisFiltre, setDevisFiltre]     = useState('tous')
+  const [devisClient, setDevisClient] = useState({ nom:'', adresse:'', email:'', type:'entreprise' })
+  const [devisLignes, setDevisLignes] = useState([
+    { id:1, designation:'', detail:'', quantite:1, unite:'heure', prix:0 },
+    { id:2, designation:'', detail:'', quantite:1, unite:'heure', prix:0 },
+  ])
+  const [devisLigneId, setDevisLigneId] = useState(2)
+  const [devisTva, setDevisTva]     = useState(0)
+  const [devisValidite, setDevisValidite] = useState('30')
+  const [devisConditions, setDevisConditions] = useState('Paiement à 30 jours à réception de facture')
+  const [devisNotes, setDevisNotes] = useState('')
+  const [savingDevis, setSavingDevis] = useState(false)
+  const [devisCounter, setDevisCounter] = useState(1)
+
+  // Équipe
+  const [salaries, setSalaries]           = useState([])
+  const [showSalarieForm, setShowSalarieForm] = useState(false)
+  const [salarieEditing, setSalarieEditing]   = useState(null)
+  const [salarieForm, setSalarieForm] = useState({
+    prenom:'', nom:'', poste:'', type_contrat:'cdi',
+    salaire_brut:'', date_embauche:'', statut:'actif', notes:''
+  })
+  const [savingSalarie, setSavingSalarie] = useState(false)
+  const [simSalaire, setSimSalaire]       = useState('')
+  const [simSalarieResult, setSimSalarieResult] = useState(null)
+
+  useEffect(() => { if (user) loadAll() }, [user])
+
+  const loadAll = async () => {
+    setLoading(true)
+    const { data:p } = await supabase.from('ae_profiles').select('*').eq('user_id',user.id).single()
+    if (p) {
+      setProfil(p)
+      setOForm({
+        prenom: p.prenom||'', nom: p.nom||'', activite: p.activite||'',
+        secteur: p.secteur||'services_bnc', date_creation: p.date_creation||'',
+        regime_declaration: p.regime_declaration||'trimestriel',
+        acre: p.acre||false, acre_fin: p.acre_fin||'',
+        objectif_ca: p.objectif_ca||'', objectif_ca_mensuel: p.objectif_ca_mensuel||'',
+        versement_liberatoire: p.versement_liberatoire||false,
+        taux_impot_perso: p.taux_impot_perso||14,
+        tva_active: p.tva_active||false, regime_tva: p.regime_tva||'reel_normal',
+        compte_bancaire_dedie: p.compte_bancaire_dedie||false, iban: p.iban||'',
+        regularite_revenus: p.regularite_revenus||'irreguliers',
+        objectif_ae: p.objectif_ae||'complement_revenu',
+        statut_complementaire: p.statut_complementaire||'aucun',
+        niveau: p.niveau||'debutant',
+        prix_moyen_prestation: p.prix_moyen_prestation||'',
+        clients_par_mois: p.clients_par_mois||''
+      })
+    } else setShowOnboarding(true)
+    const { data:r } = await supabase.from('ae_revenus').select('*').eq('user_id',user.id).order('mois',{ascending:false})
+    if (r) setRevenus(r)
+    const { data:d } = await supabase.from('ae_declarations').select('*').eq('user_id',user.id).order('created_at',{ascending:false})
+    if (d) setDecl(d)
+    const { data:q } = await supabase.from('ae_questions').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(20)
+    if (q) setHistoQ(q)
+    const { data:dv } = await supabase.from('ae_devis').select('*').eq('user_id',user.id).order('created_at',{ascending:false})
+    if (dv) { setDevis(dv); if(dv.length>0) setDevisCounter(dv.length+1) }
+    const { data:rdv } = await supabase.from('ae_rdv').select('*').eq('user_id',user.id).order('date',{ascending:true})
+    if (rdv) setRdvList(rdv)
+    const { data:sal } = await supabase.from('ae_salaries').select('*').eq('user_id',user.id).order('created_at',{ascending:true})
+    if (sal) setSalaries(sal)
+    setLoading(false)
+  }
+
+  const saveProfil = async () => {
+    if (!oForm.prenom||!oForm.secteur||!oForm.date_creation) { alert('Remplis les champs obligatoires (*)'); return }
+    const data = {
+      ...oForm, user_id:user.id,
+      objectif_ca: parseFloat(oForm.objectif_ca)||0,
+      objectif_ca_mensuel: parseFloat(oForm.objectif_ca_mensuel)||0,
+      taux_impot_perso: parseFloat(oForm.taux_impot_perso)||14,
+      prix_moyen_prestation: parseFloat(oForm.prix_moyen_prestation)||0,
+      clients_par_mois: parseFloat(oForm.clients_par_mois)||0,
+    }
+    await supabase.from('ae_profiles').upsert(data,{onConflict:'user_id'})
+    setProfil(data); setShowOnboarding(false)
+  }
+
+  const saveRevenu = async () => {
+    if (!revMontant) { alert('Remplis le montant'); return }
+    const moisKey = revAnnee + '-' + revMoisNum
+    setSavingRev(true)
+    // Vérifier si ce mois existe déjà
+    const { data: existing } = await supabase.from('ae_revenus').select('id').eq('user_id',user.id).eq('mois',moisKey).single()
+    let error
+    if (existing) {
+      const res = await supabase.from('ae_revenus').update({ montant: parseFloat(revMontant)||0 }).eq('id',existing.id)
+      error = res.error
+    } else {
+      const res = await supabase.from('ae_revenus').insert({ user_id:user.id, mois:moisKey, montant:parseFloat(revMontant)||0 })
+      error = res.error
+    }
+    if (error) { alert('Erreur : '+error.message); setSavingRev(false); return }
+    const newEntry = { user_id:user.id, mois:moisKey, montant:parseFloat(revMontant)||0 }
+    setRevenus(prev=>[newEntry,...prev.filter(r=>r.mois!==moisKey)].sort((a,b)=>b.mois.localeCompare(a.mois)))
+    setRevMontant(''); setSavingRev(false)
+  }
+
+  const marquerDeclaration = async (periode, type, statut) => {
+    const data = { user_id:user.id, periode, type_periode:type, statut, date_limite:getDateLimite(periode,type), date_declaration:statut==='faite'?new Date().toLocaleDateString('fr-FR'):null, ca_declare:0 }
+    const existing = declarations.find(d=>d.periode===periode)
+    if (existing) {
+      await supabase.from('ae_declarations').update({statut,date_declaration:data.date_declaration}).eq('id',existing.id)
+      setDecl(prev=>prev.map(d=>d.periode===periode?{...d,statut}:d))
+    } else {
+      const { data:inserted } = await supabase.from('ae_declarations').insert(data).select().single()
+      if (inserted) setDecl(prev=>[inserted,...prev])
+    }
+  }
+
+  const poserQuestion = async () => {
+    if (!question.trim()) return
+    setAsking(true); setReponse('')
+    try {
+      const res = await fetch('/api/assistant',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question,profil}) })
+      const data = await res.json()
+      if (data.reponse) {
+        setReponse(data.reponse)
+        const row = { user_id:user.id, question, reponse:data.reponse }
+        const { data:saved } = await supabase.from('ae_questions').insert(row).select().single()
+        if (saved) setHistoQ(prev=>[saved,...prev.slice(0,19)])
+      }
+    } catch(e) { setReponse('Erreur : '+e.message) }
+    setAsking(false)
+  }
+
+  // ─── Devis functions ──────────────────────
+  const devisHT = devisLignes.reduce((s,l)=>s+(l.quantite*l.prix),0)
+  const devisTVA_montant = devisHT * (devisTva/100)
+  const devisTTC = devisHT + devisTVA_montant
+
+  const addLigne = () => {
+    const id = devisLigneId + 1
+    setDevisLigneId(id)
+    setDevisLignes(prev=>[...prev, { id, designation:'', detail:'', quantite:1, unite:'heure', prix:0 }])
+  }
+
+  const updateLigne = (id, field, val) => {
+    setDevisLignes(prev=>prev.map(l=>l.id===id?{...l,[field]:field==='quantite'||field==='prix'?parseFloat(val)||0:val}:l))
+  }
+
+  const removeLigne = (id) => {
+    setDevisLignes(prev=>prev.filter(l=>l.id!==id))
+  }
+
+  const genNumeroDevis = () => {
+    const d = new Date()
+    const yr = d.getFullYear()
+    const mn = String(d.getMonth()+1).padStart(2,'0')
+    return `DEV-${yr}${mn}-${String(devisCounter).padStart(3,'0')}`
+  }
+
+  const saveDevis = async (statut='en_attente') => {
+    if (!devisClient.nom) { alert('Le nom du client est obligatoire'); return }
+    if (devisLignes.filter(l=>l.designation).length===0) { alert('Ajoute au moins une prestation'); return }
+    setSavingDevis(true)
+    const numero = genNumeroDevis()
+    const dateEmission = new Date().toLocaleDateString('fr-FR')
+    const dateValidite = new Date(Date.now() + parseInt(devisValidite)*24*60*60*1000).toLocaleDateString('fr-FR')
+    const payload = {
+      user_id: user.id,
+      numero, statut,
+      date_emission: dateEmission,
+      date_validite: dateValidite,
+      client_nom: devisClient.nom,
+      client_adresse: devisClient.adresse,
+      client_email: devisClient.email,
+      client_type: devisClient.type,
+      lignes: JSON.stringify(devisLignes.filter(l=>l.designation)),
+      tva_taux: devisTva,
+      total_ht: devisHT,
+      total_ttc: devisTTC,
+      conditions: devisConditions,
+      notes: devisNotes,
+      validite_jours: devisValidite,
+    }
+    const { data:saved, error } = await supabase.from('ae_devis').insert(payload).select().single()
+    if (error) { alert('Erreur : '+error.message); setSavingDevis(false); return }
+    setDevis(prev=>[saved,...prev])
+    setDevisCounter(c=>c+1)
+    setSavingDevis(false)
+    setShowDevisForm(false)
+    // Reset form
+    setDevisClient({ nom:'', adresse:'', email:'', type:'entreprise' })
+    setDevisLignes([{id:1,designation:'',detail:'',quantite:1,unite:'heure',prix:0},{id:2,designation:'',detail:'',quantite:1,unite:'heure',prix:0}])
+    setDevisLigneId(2)
+    setDevisNotes('')
+    // Ouvrir aperçu
+    if (saved) { setDevisPreview(saved); imprimerDevis(saved, profil) }
+  }
+
+  const updateStatutDevis = async (id, statut) => {
+    await supabase.from('ae_devis').update({statut}).eq('id',id)
+    setDevis(prev=>prev.map(d=>d.id===id?{...d,statut}:d))
+  }
+
+  const supprimerDevis = async (id) => {
+    if (!confirm('Supprimer ce devis ?')) return
+    await supabase.from('ae_devis').delete().eq('id',id)
+    setDevis(prev=>prev.filter(d=>d.id!==id))
+  }
+
+  // ─── RDV functions ─────────────────────────
+  const saveRdv = async () => {
+    if (!rdvForm.titre.trim() || !rdvJour) return
+    const date = `${year}-${String(rdvJour.moisIdx+1).padStart(2,'0')}-${String(rdvJour.jour).padStart(2,'0')}`
+    const payload = { user_id:user.id, date, titre:rdvForm.titre, heure:rdvForm.heure, type:rdvForm.type, notes:rdvForm.notes }
+    if (rdvEditing) {
+      const { data } = await supabase.from('ae_rdv').update(payload).eq('id',rdvEditing).select().single()
+      if (data) setRdvList(prev=>prev.map(r=>r.id===rdvEditing?data:r))
+    } else {
+      const { data } = await supabase.from('ae_rdv').insert(payload).select().single()
+      if (data) setRdvList(prev=>[...prev,data].sort((a,b)=>a.date.localeCompare(b.date)))
+    }
+    setShowRdvModal(false)
+    setRdvForm({ titre:'', heure:'09:00', type:'rdv', notes:'' })
+    setRdvEditing(null)
+  }
+
+  const deleteRdv = async (id) => {
+    await supabase.from('ae_rdv').delete().eq('id',id)
+    setRdvList(prev=>prev.filter(r=>r.id!==id))
+  }
+
+  const openRdvModal = (moisIdx, jour, moisNom) => {
+    setRdvJour({ moisIdx, jour, moisNom })
+    setRdvForm({ titre:'', heure:'09:00', type:'rdv', notes:'' })
+    setRdvEditing(null)
+    setShowRdvModal(true)
+  }
+
+  const RDV_TYPES = {
+    rdv:      { label:'Rendez-vous',   color:'#dbb4ff', bg:'rgba(0,120,220,0.18)', icon:'calendar_month' },
+    client:   { label:'Client',         color:'#c081ff', bg:'rgba(0,200,160,0.12)', icon:'handshake' },
+    admin:    { label:'Administratif',  color:'#f382ff', bg:'rgba(255,160,60,0.12)', icon:'assignment' },
+    perso:    { label:'Personnel',      color:'#f382ff', bg:'rgba(157,78,221,0.18)', icon:'person' },
+    rappel:   { label:'Rappel',         color:'#ff6e84', bg:'rgba(255,100,100,0.12)', icon:'alarm' },
+  }
+
+  const imprimerDevis = (d, em) => {
+    const lignes = typeof d.lignes === 'string' ? JSON.parse(d.lignes||'[]') : (d.lignes||[])
+    const ht = lignes.reduce((s,l)=>s+(l.quantite*l.prix),0)
+    const tva = ht*(d.tva_taux/100)
+    const ttc = ht+tva
+    const fmt = v => (+v).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})
+    const rows = lignes.map(l=>`
+      <tr>
+        <td style="padding:11px 0;border-bottom:1px solid #f5f5f8;vertical-align:top">
+          <strong style="font-size:13px;color:#1a1a2e;font-family:'Plus Jakarta Sans',sans-serif">${l.designation}</strong>
+          ${l.detail?`<span style="display:block;font-size:11px;color:#888;margin-top:2px">${l.detail}</span>`:''}
+        </td>
+        <td style="padding:11px 0;border-bottom:1px solid #f5f5f8;text-align:right;color:#555">${l.quantite} ${l.unite}</td>
+        <td style="padding:11px 0;border-bottom:1px solid #f5f5f8;text-align:right;color:#555">${fmt(l.prix)} €</td>
+        <td style="padding:11px 0;border-bottom:1px solid #f5f5f8;text-align:right;font-weight:700;color:#1a1a2e">${fmt(l.quantite*l.prix)} €</td>
+      </tr>`).join('')
+    const tvaNote = d.tva_taux===0 ? '<p style="margin-top:12px;font-size:10px;color:#aaa">TVA non applicable — art. 293 B du CGI</p>' : ''
+    const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+    <title>Devis ${d.numero}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'Inter',sans-serif;color:#1a1a2e;background:#fff;padding:40px 48px;max-width:820px;margin:0 auto}
+      /* top bar */
+      .no-print{background:#1a1a2e;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;margin:-40px -48px 36px;position:sticky;top:0;z-index:10}
+      .no-print span{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.5)}
+      .no-print button{background:linear-gradient(135deg,#8b3fc8,#6a2fa0);color:#fff;border:none;padding:9px 20px;border-radius:9px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:700}
+      /* header */
+      .top-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #f0f0f5}
+      .brand{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#ccc;margin-bottom:12px}
+      .doc-type{font-family:'Plus Jakarta Sans',sans-serif;font-size:38px;font-weight:800;letter-spacing:-.03em;color:#1a1a2e;line-height:1}
+      .doc-pill{display:inline-flex;align-items:center;margin-top:10px;font-size:10px;font-weight:700;padding:4px 12px;border-radius:9999px;letter-spacing:.06em;text-transform:uppercase;background:#f5eeff;color:#8b3fc8}
+      .ref-block{text-align:right}
+      .ref-num{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;color:#1a1a2e;display:block;margin-bottom:6px}
+      .ref-dates{font-size:11px;color:#888;line-height:2.1}
+      .ref-dates strong{color:#1a1a2e;font-weight:600}
+      /* accent */
+      .accent-line{height:3px;background:linear-gradient(90deg,#8b3fc8,#8b3fc833);border-radius:2px;margin-bottom:28px}
+      /* parties */
+      .parties{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:28px}
+      .plbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#bbb;margin-bottom:7px}
+      .pname{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:3px}
+      .psub{font-size:11px;color:#666;line-height:1.7}
+      /* table */
+      table{width:100%;border-collapse:collapse;margin-bottom:20px}
+      thead tr{border-bottom:1.5px solid #1a1a2e}
+      th{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;padding:0 0 10px;text-align:left}
+      th:not(:first-child){text-align:right}
+      /* totals */
+      .totals{display:flex;flex-direction:column;align-items:flex-end;gap:7px;margin-bottom:24px}
+      .trow{display:flex;gap:64px;font-size:12px;color:#888}
+      .trow span:last-child{color:#1a1a2e;font-weight:500;min-width:90px;text-align:right}
+      .tgrand{display:flex;gap:64px;align-items:center;background:#f5eeff;border-radius:12px;padding:12px 20px;margin-top:6px}
+      .tgrand span:first-child{font-size:12px;color:#8b3fc8;font-weight:600}
+      .tgrand span:last-child{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#1a1a2e;min-width:90px;text-align:right}
+      /* boxes */
+      .footer-box{background:#fafafa;border-radius:10px;padding:14px 18px;margin-bottom:20px;border:1px solid #f0f0f5}
+      .footer-box p{font-size:11px;color:#555;line-height:1.8;margin-bottom:4px}
+      .footer-box strong{color:#1a1a2e;font-weight:600}
+      .sign-box{border:1.5px solid #ebebf5;border-radius:10px;padding:14px 18px;margin-bottom:20px}
+      .sign-label{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#bbb;margin-bottom:10px}
+      .sign-area{height:52px;border-bottom:1px solid #ebebf5;margin-bottom:8px}
+      .sign-sub{font-size:9.5px;color:#ccc}
+      /* footer */
+      .legal{margin-top:16px;font-size:9.5px;color:#bbb;text-align:center;line-height:1.7;border-top:1px solid #f0f0f5;padding-top:14px}
+      @media print{.no-print{display:none!important}body{padding:0}@page{margin:12mm 10mm}}
+    </style></head><body>
+    <div class="no-print">
+      <span>Serelyo — Aperçu devis</span>
+      <button onclick="window.print()">Imprimer / PDF</button>
+    </div>
+    <div class="top-bar">
+      <div>
+        <div class="brand">Serelyo</div>
+        <div class="doc-type">Devis</div>
+        <div class="doc-pill">En attente de validation</div>
+      </div>
+      <div class="ref-block">
+        <span class="ref-num">${d.numero}</span>
+        <div class="ref-dates">
+          Émis le <strong>${d.date_emission}</strong><br>
+          Valable jusqu'au <strong>${d.date_validite}</strong>
+        </div>
+      </div>
+    </div>
+    <div class="accent-line"></div>
+    <div class="parties">
+      <div>
+        <div class="plbl">Émetteur</div>
+        <div class="pname">${em?.nom||'—'}</div>
+        <div class="psub">${[em?.activite,em?.adresse,em?.email,em?.tel].filter(Boolean).join('<br>')}</div>
+        ${em?.siret?`<div class="psub" style="margin-top:5px;font-size:10px;color:#bbb">SIRET : ${em.siret}</div>`:''}
+      </div>
+      <div>
+        <div class="plbl">Client</div>
+        <div class="pname">${d.client_nom}</div>
+        <div class="psub">
+          ${d.client_type==='entreprise'?'Entreprise':'Particulier'}
+          ${d.client_adresse?'<br>'+d.client_adresse:''}
+          ${d.client_email?'<br>'+d.client_email:''}
+        </div>
+      </div>
+    </div>
+    <table>
+      <thead><tr>
+        <th style="width:46%">Désignation</th>
+        <th style="text-align:right">Qté</th>
+        <th style="text-align:right">Prix unitaire HT</th>
+        <th style="text-align:right">Total HT</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="totals">
+      <div class="trow"><span>Total HT</span><span>${fmt(ht)} €</span></div>
+      <div class="trow"><span>TVA ${d.tva_taux > 0 ? d.tva_taux+'%' : '(non applicable)'}</span><span>${fmt(tva)} €</span></div>
+      <div class="tgrand"><span>${d.tva_taux>0?'Total TTC':'Total net HT'}</span><span>${fmt(ttc)} €</span></div>
+    </div>
+    <div class="footer-box">
+      ${d.conditions?`<p><strong>Conditions :</strong> ${d.conditions}</p>`:''}
+      <p><strong>Validité :</strong> Ce devis est valable ${d.validite_jours} jours à compter de sa date d'émission.</p>
+      ${d.notes?`<p><strong>Notes :</strong> ${d.notes}</p>`:''}
+    </div>
+    <div class="sign-box">
+      <div class="sign-label">Bon pour accord — signature du client</div>
+      <div class="sign-area"></div>
+      <div class="sign-sub">Date et signature précédées de "Bon pour accord"</div>
+    </div>
+    ${tvaNote}
+    <div class="legal">
+      ${em?.nom||''} ${em?.forme_juridique?'— '+em.forme_juridique:''} ${em?.siret?'— SIRET : '+em.siret:''}<br>
+      Document généré par Serelyo — serelyo.fr
+    </div>
+    </body></html>`
+    const w = window.open('','_blank','width=900,height=700,scrollbars=yes')
+    if (w) { w.document.write(html); w.document.close() }
+  }
+  const tauxImpot = profil ? (parseFloat(profil.taux_impot_perso)||14) / 100 : 0.14
+
+  const calculer = () => {
+    const ca = parseFloat(calcCA)||0
+    if (!ca||!profil) return
+    const taux = profil.acre ? TAUX_ACRE[profil.secteur] : TAUX[profil.secteur]
+    const cotisations = ca*taux
+    const impots_estimes = ca*tauxImpot
+    const seuil_tva = profil.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services
+    const plafond = profil.secteur==='ventes'?SEUILS.plafond_ventes:profil.secteur==='lmtc'?SEUILS.plafond_lmtc:SEUILS.plafond_services
+    const caAnnuel = revenus.slice(0,12).reduce((s,r)=>s+r.montant,0)+ca
+    setCalcResult({ ca, cotisations, impots_estimes, taux, tauxImpot, a_mettre_de_cote:cotisations+impots_estimes, net_estime:ca-cotisations-impots_estimes, seuil_tva, plafond, caAnnuel, alerte_tva:caAnnuel>seuil_tva*0.85, alerte_plafond:caAnnuel>plafond*0.85 })
+  }
+
+  const { year, month } = getNow()
+  const caAnnuel      = revenus.filter(r=>r.mois.startsWith(String(year))).reduce((s,r)=>s+r.montant,0)
+  const caMois        = revenus.find(r=>r.mois===`${year}-${String(month).padStart(2,'0')}`)?.montant||0
+  const taux          = profil?(profil.acre?TAUX_ACRE[profil.secteur]:TAUX[profil.secteur]):0
+  const cotisAnnuel   = caAnnuel*taux
+  const seuil_tva     = profil?.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services
+  const plafond       = profil?.secteur==='ventes'?SEUILS.plafond_ventes:profil?.secteur==='lmtc'?SEUILS.plafond_lmtc:SEUILS.plafond_services
+  const pctTVA        = Math.min((caAnnuel/seuil_tva)*100,100)
+  const pctPlafond    = Math.min((caAnnuel/plafond)*100,100)
+  const calendrier    = profil?genererCalendrier(profil):[]
+  const prochaineDecl = calendrier.find(e=>!e.past&&!e.special)
+
+  // ── Coûts équipe mensuels ─────────────────────────────────────────────────
+  const coutEquipeMensuel = salaries
+    .filter(s=>s.statut==='actif')
+    .reduce((sum,s)=>sum+calcSalaire(parseFloat(s.salaire_brut)||0).cout_apres_fillon,0)
+  const masseSalarialeBrute = salaries
+    .filter(s=>s.statut==='actif')
+    .reduce((sum,s)=>sum+(parseFloat(s.salaire_brut)||0),0)
+  const nbSalaries = salaries.filter(s=>s.statut==='actif').length
+  // Net après URSSAF + impôts + charges équipe
+  const netMoisApresEquipe = caMois*(1-taux-tauxImpot) - coutEquipeMensuel
+  const netAnnuelApresEquipe = caAnnuel*(1-taux-tauxImpot) - coutEquipeMensuel*12
+
+  const F = (v) => v ? `${oForm[v]}` : ''
+  const set = (k) => (e) => setOForm(p=>({...p,[k]:e.target.value}))
+  const setBool = (k) => (e) => setOForm(p=>({...p,[k]:e.target.value==='oui'}))
+
+  if (loading) return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',gap:16}}>
+      <div style={{width:36,height:36,border:'3px solid rgba(243,130,255,0.15)',borderTopColor:'#f382ff',borderRadius:'50%',animation:'spin .7s linear infinite'}}/>
+      <div style={{fontSize:13,color:'rgba(255,255,255,0.3)',fontFamily:"'Inter',sans-serif"}}>Chargement…</div>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  )
+
+  return (
+    <>
+      <style>{CSS}</style>
+
+      {/* FIXED NEBULA BACKGROUND — positions animated via scroll */}
+      <div ref={bgRef} style={{
+        position:'fixed',inset:0,zIndex:0,pointerEvents:'none',
+        backgroundColor:'#04000C',
+        backgroundImage:[
+          'radial-gradient(ellipse 140% 120% at 38% 42%, rgba(70,8,120,0.38) 0%, rgba(35,3,70,0.22) 45%, transparent 72%)',
+          'radial-gradient(ellipse 90% 70% at 98% 90%, rgba(28,0,55,0.18) 0%, transparent 62%)',
+        ].join(','),
+      }}/>
+
+      {/* APP BAR */}
+      <div className="app-bar">
+        <div className="logo">Serely<span>o</span></div>
+        <div className="bar-right">
+          <span className="user-tag">{profil?`${profil.prenom} ${profil.nom}`:user.email}</span>
+          <button className="btn-profile" onClick={()=>setShowOnboarding(true)}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            Mon profil
+          </button>
+          <button className="btn-logout" onClick={onLogout}>Déconnexion</button>
+        </div>
+      </div>
+
+      {/* NAV */}
+      <div className="nav-tabs">
+        {[
+          ['dashboard',   'dashboard',        'Accueil'],
+          ['calendrier',  'calendar_month',   'Calendrier'],
+          ['revenus',     'payments',         'Revenus'],
+          ['simulateur',  'calculate',        'Calculs'],
+          ['devis',       'description',      'Devis'],
+          ['assistant',   'auto_awesome',     'Assistant'],
+          ['equipe',      'group',            'Équipe'],
+          ['ressources',  'menu_book',        'Ressources'],
+        ].map(([v, icon, label])=>(
+          <button key={v} className={`nav-tab ${view===v?'active':''}`} onClick={()=>setView(v)}>
+            <span className="material-symbols-outlined" style={{
+              fontSize:22,lineHeight:1,marginBottom:3,display:'block',
+              fontVariationSettings: view===v ? "'FILL' 1,'wght' 500" : "'FILL' 0,'wght' 300"
+            }}>{icon}</span>
+            <span style={{fontSize:9,display:'block',fontWeight:700,letterSpacing:'.05em',textTransform:'uppercase'}}>{label}</span>
+          </button>
+        ))}
+        {/* Profil mini — desktop sidebar only */}
+        {profil && (
+          <div className="sidebar-profile">
+            <div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,rgba(243,130,255,0.3),rgba(192,129,255,0.3))',border:'1px solid rgba(243,130,255,0.25)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <span style={{fontSize:12,fontWeight:800,color:'#f382ff'}}>{profil.prenom?.[0]||'?'}</span>
+            </div>
+            <div style={{minWidth:0}}>
+              <div style={{fontSize:12,fontWeight:700,color:'rgba(255,255,255,0.8)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{profil.prenom} {profil.nom}</div>
+              <div style={{fontSize:10,color:'rgba(255,255,255,0.35)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{profil.activite||'Auto-entrepreneur'}</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── MODAL PROFIL ── */}
+      {showOnboarding && (
+        <div className="overlay show" onClick={e=>{if(profil&&e.target.className.includes('overlay'))setShowOnboarding(false)}}>
+          <div className="modal" style={{maxWidth:620}}>
+            <div className="modal-title">{profil?'Mon profil':'Bienvenue, configurons ton profil'}</div>
+            <p className="modal-sub">Plus ton profil est complet, plus les calculs, alertes et réponses IA seront utiles.</p>
+
+            <div className="prof-section-title">Informations de base</div>
+            <div className="form-grid">
+              <div className="field"><label>Prénom *</label><input value={oForm.prenom} onChange={set('prenom')} placeholder="Jean"/></div>
+              <div className="field"><label>Nom *</label><input value={oForm.nom} onChange={set('nom')} placeholder="Dupont"/></div>
+              <div className="field full"><label>Activité *</label><input value={oForm.activite} onChange={set('activite')} placeholder="Plombier, graphiste freelance, coach…"/></div>
+              <div className="field full">
+                <label>Secteur d'activité * <span style={{fontWeight:400,color:'rgba(255,255,255,0.38)'}}>(détermine ton taux URSSAF)</span></label>
+                <select value={oForm.secteur} onChange={set('secteur')}>
+                  {SECTEURS.map(s=><option key={s.value} value={s.value}>{s.label} → {s.taux}</option>)}
+                </select>
+                <div style={{marginTop:6,fontSize:12,color:'#f382ff',background:'rgba(255,255,255,0.06)',borderRadius:8,padding:'6px 10px'}}>
+                  Ton taux URSSAF : <strong>{TAUX[oForm.secteur]*100}%</strong>
+                  {oForm.acre && <span> → avec ACRE : <strong>{TAUX_ACRE[oForm.secteur]*100}%</strong></span>}
+                </div>
+              </div>
+              <div className="field"><label>Date de création *</label><input type="date" value={oForm.date_creation} onChange={set('date_creation')}/></div>
+              <div className="field">
+                <label>Régime déclaration URSSAF</label>
+                <select value={oForm.regime_declaration} onChange={set('regime_declaration')}>
+                  <option value="mensuel">Mensuel</option>
+                  <option value="trimestriel">Trimestriel (défaut)</option>
+                </select>
+              </div>
+              <div className="field"><label>Objectif CA annuel (€)</label><input type="number" value={oForm.objectif_ca} onChange={set('objectif_ca')} placeholder="24000"/></div>
+              <div className="field"><label>Objectif CA mensuel (€)</label><input type="number" value={oForm.objectif_ca_mensuel} onChange={set('objectif_ca_mensuel')} placeholder="2000"/></div>
+              <div className="field">
+                <label>ACRE ? <span style={{fontWeight:400,color:'rgba(255,255,255,0.38)'}}>(exonération 1ère année)</span></label>
+                <select value={oForm.acre?'oui':'non'} onChange={setBool('acre')}>
+                  <option value="non">Non</option>
+                  <option value="oui">Oui — 50% du taux (jusqu'au 30/06/2026)</option>
+                </select>
+              </div>
+              {oForm.acre&&<div className="field"><label>Date de fin ACRE</label><input type="date" value={oForm.acre_fin} onChange={set('acre_fin')}/></div>}
+            </div>
+
+            <div className="prof-section-title">Fiscalité & TVA</div>
+            <div className="form-grid">
+              <div className="field">
+                <label>Versement libératoire</label>
+                <select value={oForm.versement_liberatoire?'oui':'non'} onChange={setBool('versement_liberatoire')}>
+                  <option value="non">Non</option>
+                  <option value="oui">Oui</option>
+                </select>
+              </div>
+              <div className="field"><label>Taux d'impôt perso (%)</label><input type="number" value={oForm.taux_impot_perso} onChange={set('taux_impot_perso')} placeholder="14"/></div>
+              <div className="field">
+                <label>TVA active ?</label>
+                <select value={oForm.tva_active?'oui':'non'} onChange={setBool('tva_active')}>
+                  <option value="non">Non</option>
+                  <option value="oui">Oui</option>
+                </select>
+              </div>
+              <div className="field">
+                <label>Régime TVA</label>
+                <select value={oForm.regime_tva} onChange={set('regime_tva')}>
+                  <option value="reel_normal">Réel normal</option>
+                  <option value="reel_simplifie">Réel simplifié</option>
+                  <option value="franchise">Franchise en base</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="prof-section-title">Banque & Organisation</div>
+            <div className="form-grid">
+              <div className="field">
+                <label>Compte bancaire dédié ?</label>
+                <select value={oForm.compte_bancaire_dedie?'oui':'non'} onChange={setBool('compte_bancaire_dedie')}>
+                  <option value="non">Non</option>
+                  <option value="oui">Oui</option>
+                </select>
+              </div>
+              <div className="field"><label>IBAN</label><input value={oForm.iban} onChange={set('iban')} placeholder="FR76 1234…"/></div>
+            </div>
+
+            <div className="prof-section-title">Objectifs & Activité</div>
+            <div className="form-grid">
+              <div className="field">
+                <label>Revenus</label>
+                <select value={oForm.regularite_revenus} onChange={set('regularite_revenus')}>
+                  <option value="reguliers">Réguliers</option>
+                  <option value="irreguliers">Irréguliers</option>
+                </select>
+              </div>
+              <div className="field">
+                <label>Objectif</label>
+                <select value={oForm.objectif_ae} onChange={set('objectif_ae')}>
+                  <option value="complement_revenu">Complément de revenu</option>
+                  <option value="revenu_principal">Revenu principal</option>
+                  <option value="tester_activite">Tester une activité</option>
+                </select>
+              </div>
+              <div className="field">
+                <label>Statut complémentaire</label>
+                <select value={oForm.statut_complementaire} onChange={set('statut_complementaire')}>
+                  <option value="aucun">Aucun</option>
+                  <option value="salarie">Salarié</option>
+                  <option value="etudiant">Étudiant</option>
+                  <option value="retraite">Retraité</option>
+                  <option value="chomeur">Demandeur d'emploi</option>
+                </select>
+              </div>
+              <div className="field">
+                <label>Niveau</label>
+                <select value={oForm.niveau} onChange={set('niveau')}>
+                  <option value="debutant">Débutant</option>
+                  <option value="intermediaire">Intermédiaire</option>
+                  <option value="avance">Avancé</option>
+                </select>
+              </div>
+              <div className="field"><label>Prix moyen prestation (€)</label><input type="number" value={oForm.prix_moyen_prestation} onChange={set('prix_moyen_prestation')} placeholder="2000"/></div>
+              <div className="field"><label>Clients / mois</label><input type="number" value={oForm.clients_par_mois} onChange={set('clients_par_mois')} placeholder="5"/></div>
+            </div>
+
+            <div className="modal-actions">
+              {profil&&<button className="btn btn-ghost" onClick={()=>setShowOnboarding(false)}>Annuler</button>}
+              <button className="btn btn-dark" onClick={saveProfil}>Enregistrer →</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── DASHBOARD ── */}
+      {view==='dashboard' && (
+        <div className="main">
+
+          {/* ── HERO ── */}
+          {profil ? (
+            <div style={{background:'rgba(20,5,40,0.38)',backdropFilter:'blur(32px)',WebkitBackdropFilter:'blur(32px)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:22,padding:'1.75rem',maxWidth:680,margin:'0 auto 1.25rem',overflow:'hidden'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12,marginBottom:'1.5rem'}}>
+                <div>
+                  <p style={{fontSize:11,color:'rgba(255,255,255,0.38)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:8,fontWeight:700}}>Bonjour </p>
+                  <h1 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?26:32,fontWeight:800,color:'#fff',marginBottom:4,letterSpacing:'-.02em'}}>{profil.prenom} {profil.nom}</h1>
+                  <p style={{fontSize:14,color:'rgba(255,255,255,0.42)'}}>{profil.activite}</p>
+                </div>
+                {prochaineDecl && (
+                  <div style={{background:'rgba(243,130,255,0.08)',border:'1px solid rgba(243,130,255,0.22)',borderRadius:16,padding:'14px 18px',minWidth:isMobile?'100%':'auto'}}>
+                    <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Prochaine déclaration</div>
+                    <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,color:'#f382ff',fontWeight:700,marginBottom:4}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
+                    <div style={{fontSize:12,color:'rgba(255,255,255,0.35)',marginBottom:10}}>avant le {prochaineDecl.date_limite}</div>
+                    <button onClick={()=>setView('calendrier')} style={{fontSize:12,background:'rgba(243,130,255,0.15)',border:'1px solid rgba(243,130,255,0.3)',color:'#f382ff',padding:'7px 14px',borderRadius:9999,cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700}}>Voir le calendrier →</button>
+                  </div>
+                )}
+              </div>
+
+              {/* Métriques */}
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(3,1fr)',gap:10}}>
+                {[
+                  { label:'CA ce mois', val:`${caMois.toLocaleString('fr-FR')} €`, sub:`Brut encaissé`, color:'#f382ff', onClick:()=>setView('revenus') },
+                  { label:'URSSAF + impôts', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`${Math.round((taux+tauxImpot)*100)}% du CA`, color:'#ff6e84', onClick:()=>setView('simulateur') },
+                  ...(nbSalaries>0 ? [
+                    { label:`Charges équipe (${nbSalaries} sal.)`, val:`${Math.round(coutEquipeMensuel).toLocaleString('fr-FR')} €`, sub:`Coût employeur réel/mois`, color:'#dbb4ff', onClick:()=>setView('equipe') },
+                    { label:'Net après tout', val:`${Math.round(netMoisApresEquipe).toLocaleString('fr-FR')} €`, sub:netMoisApresEquipe<0?'Attention : déficit ce mois':"Ce qu\'il te reste vraiment", color:netMoisApresEquipe<0?'#ff6e84':'#c081ff', onClick:()=>setView('simulateur') },
+                  ] : [
+                    { label:'Taux URSSAF', val:`${profil?(taux*100).toFixed(1):'—'} %`, sub:profil?.acre?'✓ ACRE actif':'Taux standard', color:'#c081ff', onClick:()=>setShowOnboarding(true) },
+                    { label:'Net ce mois', val:`${Math.round(caMois*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €`, sub:'Après URSSAF et impôts', color:'#c081ff', onClick:()=>setView('simulateur') },
+                  ]),
+                  { label:`CA ${year}`, val:`${caAnnuel.toLocaleString('fr-FR')} €`, sub:`URSSAF : ${Math.round(cotisAnnuel).toLocaleString('fr-FR')} €`, color:'#dbb4ff', onClick:()=>setView('revenus') },
+                  { label:nbSalaries>0?'Net annuel estimé':'À mettre de côté ce mois', val:nbSalaries>0?`${Math.round(netAnnuelApresEquipe).toLocaleString('fr-FR')} €`:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:nbSalaries>0?`Après charges et équipe (${nbSalaries} sal.)`:`${Math.round((taux+tauxImpot)*100)}% du CA`, color:'#f382ff', onClick:()=>setView('simulateur') },
+                ].map(({label,val,sub,color,onClick})=>(
+                  <div key={label} onClick={onClick} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'transform .2s cubic-bezier(.16,1,.3,1),border-color .2s,box-shadow .2s,background .2s'}}
+                    onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.08)';e.currentTarget.style.borderColor='rgba(255,255,255,0.5)';e.currentTarget.style.transform='scale(1.03)';e.currentTarget.style.boxShadow='0 0 0 1px rgba(255,255,255,0.08)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.borderColor='rgba(255,255,255,0.09)';e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='none'}}
+                  >
+                    <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.32)',marginBottom:10}}>{label}</div>
+                    <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:24,fontWeight:800,color,marginBottom:5,letterSpacing:'-.01em'}}>{val}</div>
+                    <div style={{fontSize:12,color:'rgba(255,255,255,0.28)'}}>{sub}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{background:'rgba(255,255,255,0.04)',border:'2px dashed rgba(255,255,255,0.15)',backdropFilter:'blur(16px)',borderRadius:20,padding:'2rem',textAlign:'center',marginBottom:'1.5rem',cursor:'pointer'}} onClick={()=>setShowOnboarding(true)}>
+              
+              <h2 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,marginBottom:8,color:'#ffffff'}}>Bienvenue sur Serelyo !</h2>
+              <p style={{fontSize:14,color:'rgba(255,255,255,0.55)',marginBottom:'1rem'}}>Configure ton profil pour personnaliser ton tableau de bord</p>
+              <button className="btn btn-dark">Configurer mon profil →</button>
+            </div>
+          )}
+
+          {/* ── BANNER ÉQUIPE si salariés ── */}
+          {nbSalaries>0 && (
+            <div style={{background:'rgba(219,180,255,0.08)',border:'1px solid rgba(219,180,255,0.18)',borderRadius:16,padding:'1rem 1.25rem',marginBottom:'0.875rem',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
+              <div style={{display:'flex',alignItems:'center',gap:12}}>
+                <span className="material-symbols-outlined" style={{fontSize:20,color:'#dbb4ff'}}>group</span>
+                <div>
+                  <div style={{fontSize:13,fontWeight:700,color:'#fff',marginBottom:2}}>
+                    {nbSalaries} salarié{nbSalaries>1?'s':''} actif{nbSalaries>1?'s':''}
+                  </div>
+                  <div style={{fontSize:11,color:'rgba(255,255,255,0.38)'}}>
+                    Masse brute : {Math.round(masseSalarialeBrute).toLocaleString('fr-FR')} € · Coût réel : {Math.round(coutEquipeMensuel).toLocaleString('fr-FR')} €/mois
+                  </div>
+                </div>
+              </div>
+              <div style={{display:'flex',gap:20,flexWrap:'wrap'}}>
+                {[
+                  ['Coût mensuel équipe', Math.round(coutEquipeMensuel), '#dbb4ff'],
+                  ['Coût annuel équipe', Math.round(coutEquipeMensuel*12), '#c081ff'],
+                  ['Net après équipe', Math.round(netMoisApresEquipe), netMoisApresEquipe<0?'#ff6e84':'#c081ff'],
+                ].map(([l,v,c])=>(
+                  <div key={l} style={{textAlign:'right'}}>
+                    <div style={{fontSize:10,fontWeight:600,color:'rgba(255,255,255,0.35)',letterSpacing:'.06em',textTransform:'uppercase',marginBottom:3}}>{l}</div>
+                    <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:800,color:c}}>{v.toLocaleString('fr-FR')} €</div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={()=>setView('equipe')} style={{fontSize:12,background:'rgba(219,180,255,0.12)',border:'1px solid rgba(219,180,255,0.25)',color:'#dbb4ff',padding:'7px 14px',borderRadius:9999,cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700,whiteSpace:'nowrap'}}>Gérer l'équipe →</button>
+            </div>
+          )}
+
+          {/* ── LIGNE 2 : Seuils + Devis récents ── */}
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:'1rem',marginBottom:'1rem'}}>
+
+            {/* Seuils */}
+            <div className="card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+                <div className="card-title" style={{marginBottom:0}}>Seuils {year}</div>
+                <button className="link-btn" onClick={()=>setView('simulateur')}>Simuler →</button>
+              </div>
+              {[
+                { label:'TVA', val:seuil_tva, pct:pctTVA },
+                { label:'Plafond micro', val:plafond, pct:pctPlafond }
+              ].map(({label,val,pct})=>(
+                <div key={label} style={{marginBottom:'1rem'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                    <span style={{fontSize:12,fontWeight:500,color:'#ffffff'}}>{label}</span>
+                    <span style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>{Math.round(pct)}% atteint</span>
+                  </div>
+                  <div style={{height:8,background:'rgba(255,255,255,0.05)',borderRadius:20,overflow:'hidden'}}>
+                    <div style={{height:'100%',width:pct+'%',background:pct>85?'#ff6e84':pct>60?'#f382ff':'#c081ff',borderRadius:20,transition:'width .5s'}}/>
+                  </div>
+                  <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>
+                    {caAnnuel.toLocaleString('fr-FR')} € / {val.toLocaleString('fr-FR')} €
+                    {pct>85 && <span style={{color:'#ff6e84',marginLeft:6}}>Consulte un comptable</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Devis récents */}
+            <div className="card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+                <div className="card-title" style={{marginBottom:0}}>Devis récents</div>
+                <button className="link-btn" onClick={()=>setView('devis')}>Tous voir →</button>
+              </div>
+              {devis.length===0 ? (
+                <div style={{textAlign:'center',padding:'1.5rem 0',color:'rgba(255,255,255,0.38)'}}>
+                  
+                  <div style={{fontSize:13}}>Aucun devis</div>
+                  <button className="link-btn" style={{marginTop:8}} onClick={()=>setView('devis')}>Créer un devis →</button>
+                </div>
+              ) : (
+                <>
+                  {devis.slice(0,3).map(d=>{
+                    const sc = {en_attente:{bg:'rgba(255,160,60,0.12)',c:'#B5792A'},accepte:{bg:'rgba(0,200,160,0.12)',c:'#2D7A4F'},refuse:{bg:'rgba(255,100,100,0.12)',c:'#8B1A1A'},expire:{bg:'rgba(255,255,255,0.06)',c:'rgba(255,255,255,0.5)'}}
+                    const s = sc[d.statut]||sc.en_attente
+                    return (
+                      <div key={d.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}} onClick={()=>setView('devis')}>
+                        <div>
+                          <div style={{fontSize:13,fontWeight:500,color:'#ffffff'}}>{d.client_nom}</div>
+                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>{d.numero} · {d.date_emission}</div>
+                        </div>
+                        <div style={{display:'flex',alignItems:'center',gap:8}}>
+                          <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,color:'#ffffff'}}>{(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</span>
+                          <span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:20,background:s.bg,color:s.c}}>
+                            {d.statut==='accepte'?'✓':d.statut==='refuse'?'✗':d.statut==='expire'?'exp.':'att.'}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* ── LIGNE 3 : Revenus récents + Assistant ── */}
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:'1rem',marginBottom:'1rem'}}>
+
+            {/* Revenus des derniers mois */}
+            <div className="card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+                <div className="card-title" style={{marginBottom:0}}>Revenus récents</div>
+                <button className="link-btn" onClick={()=>setView('revenus')}>Saisir →</button>
+              </div>
+              {revenus.slice(0,4).length===0 ? (
+                <div style={{textAlign:'center',padding:'1.5rem 0',color:'rgba(255,255,255,0.38)'}}>
+                  
+                  <div style={{fontSize:13}}>Aucun revenu saisi</div>
+                  <button className="link-btn" style={{marginTop:8}} onClick={()=>setView('revenus')}>Saisir mes revenus →</button>
+                </div>
+              ) : (
+                revenus.slice(0,4).map(r=>{
+                  const net = r.montant*(1-taux-tauxImpot)
+                  return (
+                    <div key={r.mois} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:500,color:'#ffffff'}}>{r.mois&&r.mois.match(/^\d{4}-\d{2}$/)?formatMois(r.mois):r.mois||'—'}</div>
+                        <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Net ~{Math.round(net).toLocaleString('fr-FR')} €</div>
+                      </div>
+                      <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,color:'#ffffff'}}>{r.montant.toLocaleString('fr-FR')} €</span>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+
+            {/* Assistant rapide */}
+            <div className="card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+                <div className="card-title" style={{marginBottom:0}}>Assistant IA</div>
+                <button className="link-btn" onClick={()=>setView('assistant')}>Ouvrir →</button>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {["Quand dois-je déclarer mon CA ?","Combien mettre de côté ce mois ?","Comment fonctionne l'ACRE ?","Qu'est-ce que la CFE ?"].map(q=>(
+                  <div key={q} onClick={()=>{setQuestion(q);setView('assistant')}}
+                    style={{padding:'12px 16px',borderRadius:12,border:'1px solid rgba(255,255,255,0.12)',fontSize:14,color:'rgba(255,255,255,0.65)',cursor:'pointer',transition:'all .18s',background:'rgba(20,5,40,0.38)'}}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(243,130,255,0.3)';e.currentTarget.style.color='#f382ff';e.currentTarget.style.background='rgba(243,130,255,0.07)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='rgba(255,255,255,0.65)';e.currentTarget.style.background='rgba(20,5,40,0.38)'}}
+                  >
+                    {q}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── LIGNE 4 : Prochaines échéances ── */}
+          {profil && (
+            <div className="card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+                <div className="card-title" style={{marginBottom:0}}>Prochaines échéances</div>
+                <button className="link-btn" onClick={()=>setView('calendrier')}>Calendrier complet →</button>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {calendrier.filter(e=>!e.past).slice(0,3).map(ev=>{
+                  const decl = declarations.find(d=>d.periode===ev.id)
+                  const fait = decl?.statut==='faite'
+                  return (
+                    <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:ev.current?'rgba(243,130,255,0.07)':'rgba(255,255,255,0.03)',border:`1px solid ${ev.current?'rgba(243,130,255,0.22)':'rgba(255,255,255,0.07)'}`}}>
+                      <div style={{display:'flex',alignItems:'center',gap:10}}>
+                        <div style={{width:8,height:8,borderRadius:'50%',background:fait?'#00C8A0':ev.current?'#f382ff':'rgba(255,255,255,.15)',flexShrink:0}}/>
+                        <div>
+                          <div style={{fontSize:13,fontWeight:500,color:'#ffffff'}}>{ev.label}</div>
+                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Avant le {ev.date_limite}</div>
+                        </div>
+                      </div>
+                      {fait
+                        ? <span style={{fontSize:11,fontWeight:600,color:'#c081ff',background:'rgba(192,129,255,0.1)',padding:'3px 10px',borderRadius:20,border:'1px solid rgba(192,129,255,0.25)'}}>✓ Faite</span>
+                        : <button className="btn btn-sm btn-amber" onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')}>Marquer faite</button>
+                      }
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── CALENDRIER ── */}
+      {view==='calendrier' && (() => {
+        const calYear = year
+        const MOIS_FULL = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+        const MOIS_COURT = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
+        const JOURS_LONG = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
+        const JOURS = ['L','M','M','J','V','S','D']
+
+        const moisIdx = calMoisActif
+        const nomMois = MOIS_FULL[moisIdx]
+
+        const allerMoisPrev = () => setCalMoisActif(m => m === 0 ? 11 : m - 1)
+        const allerMoisNext = () => setCalMoisActif(m => m === 11 ? 0 : m + 1)
+
+        // Construire les événements par date limite
+        const eventsParMois = {}
+        calendrier.forEach(ev => {
+          if (!ev.date_limite) return
+          const parts = ev.date_limite.split('/')
+          if (parts.length !== 3) return
+          const mi = parseInt(parts[1]) - 1
+          const evYear = parseInt(parts[2])
+          if (evYear !== calYear && evYear !== calYear+1) return
+          const key = evYear === calYear ? String(mi) : 'next'
+          if (!eventsParMois[key]) eventsParMois[key] = []
+          const decl = declarations.find(d=>d.periode===ev.id)
+          const statut = decl?.statut || (ev.past ? 'a_verifier' : 'a_faire')
+          eventsParMois[key].push({ ...ev, statut, jour: parseInt(parts[0]) })
+        })
+
+        const revParMois = {}
+        revenus.filter(r=>r.mois&&r.mois.startsWith(String(calYear))).forEach(r => {
+          const m = parseInt(r.mois.split('-')[1]) - 1
+          revParMois[m] = r.montant
+        })
+
+        // Données du mois actif
+        const estCourant = moisIdx === month-1
+        const evs = eventsParMois[String(moisIdx)] || []
+        const rev = revParMois[moisIdx]
+        const premierJour = new Date(calYear, moisIdx, 1).getDay()
+        const premierLundi = premierJour === 0 ? 6 : premierJour - 1
+        const nbJours = new Date(calYear, moisIdx+1, 0).getDate()
+        const jours = Array(premierLundi).fill(null).concat(Array.from({length:nbJours},(_,i)=>i+1))
+        while (jours.length % 7 !== 0) jours.push(null)
+        const joursEvenements = {}
+        evs.forEach(ev => { if (ev.jour) joursEvenements[ev.jour] = ev })
+
+        return (
+        <div className="main">
+          <div className="page-header">
+            <h2 className="page-title">Calendrier {calYear}</h2>
+            <p className="page-sub">Échéances et événements</p>
+          </div>
+
+          {!profil ? (
+            <div className="empty-state"><h3>Configure ton profil d'abord</h3><button className="btn btn-dark" onClick={()=>setShowOnboarding(true)}>Configurer →</button></div>
+          ) : isMobile ? (
+            <>
+              {/* ── VUE MOBILE : 1 mois + swipe ── */}
+              {/* Navigation mois */}
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1rem'}}>
+                <button onClick={allerMoisPrev} style={{width:44,height:44,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.18)',background:'rgba(255,255,255,0.05)',color:'#f382ff',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
+                <div style={{textAlign:'center'}}>
+                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:'#ffffff',fontWeight:600}}>{nomMois}</div>
+                  <div style={{fontSize:12,color:'rgba(255,255,255,.35)',marginTop:2}}>{calYear}{estCourant?' · Mois en cours':''}</div>
+                </div>
+                <button onClick={allerMoisNext} style={{width:44,height:44,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.18)',background:'rgba(255,255,255,0.05)',color:'#f382ff',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>›</button>
+              </div>
+
+              {/* Sélecteur rapide mois */}
+              <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:8,marginBottom:'1rem',scrollbarWidth:'none'}}>
+                {MOIS_COURT.map((m,i)=>(
+                  <button key={i} onClick={()=>setCalMoisActif(i)} style={{
+                    flexShrink:0,padding:'6px 12px',borderRadius:20,fontSize:12,fontWeight:500,
+                    cursor:'pointer',fontFamily:'Inter,sans-serif',border:'1.5px solid',transition:'all .15s',
+                    background:calMoisActif===i?'rgba(243,130,255,0.85)':'transparent',
+                    color:calMoisActif===i?'#07080F':'rgba(255,255,255,0.4)',
+                    borderColor:calMoisActif===i?'#f382ff':'rgba(255,255,255,0.12)',
+                    position:'relative'
+                  }}>
+                    {m}
+                    {(eventsParMois[String(i)]||[]).length > 0 && calMoisActif!==i && (
+                      <span style={{position:'absolute',top:2,right:2,width:6,height:6,borderRadius:'50%',background:'#f382ff'}}/>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Calendrier du mois — avec swipe */}
+              <div className="card" style={{marginBottom:'1rem',userSelect:'none'}}
+                onTouchStart={e=>setCalTouchStart(e.touches[0].clientX)}
+                onTouchEnd={e=>{
+                  if (calTouchStart===null) return
+                  const diff = calTouchStart - e.changedTouches[0].clientX
+                  if (Math.abs(diff) > 50) diff > 0 ? allerMoisNext() : allerMoisPrev()
+                  setCalTouchStart(null)
+                }}
+              >
+                {/* En-tête jours */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:8}}>
+                  {JOURS.map((j,i)=>(
+                    <div key={i} style={{textAlign:'center',fontSize:11,color:i>=5?'rgba(0,200,200,.5)':'rgba(255,255,255,.3)',fontWeight:600,padding:'4px 0'}}>{j}</div>
+                  ))}
+                </div>
+
+                {/* Jours */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4}}>
+                  {jours.map((jour,i)=>{
+                    const ev = jour ? joursEvenements[jour] : null
+                    const estAujourdhui = estCourant && jour === getNow().day
+                    const dateStr = jour ? `${year}-${String(moisIdx+1).padStart(2,'0')}-${String(jour).padStart(2,'0')}` : null
+                    const rdvsJour = dateStr ? rdvList.filter(r=>r.date===dateStr) : []
+                    const hasRdv = rdvsJour.length > 0
+                    const estWeekend = jour ? ((premierLundi + i) % 7) >= 5 : false
+
+                    return (
+                      <div key={i}
+                        onClick={()=>jour && openRdvModal(moisIdx, jour, nomMois)}
+                        style={{
+                          textAlign:'center',
+                          fontSize:13,
+                          padding:'8px 2px',
+                          borderRadius:8,
+                          fontWeight: ev || estAujourdhui || hasRdv ? 700 : 400,
+                          background: estAujourdhui ? '#f382ff' : hasRdv ? RDV_TYPES[rdvsJour[0].type]?.bg||'rgba(0,100,200,.2)' : ev ? (ev.statut==='faite'?'rgba(0,200,160,.15)':ev.statut==='a_verifier'?'rgba(255,100,100,.15)':'rgba(255,160,60,.15)') : 'transparent',
+                          color: estAujourdhui ? '#0B1929' : hasRdv ? RDV_TYPES[rdvsJour[0].type]?.color||'#7DC8FF' : ev ? (ev.statut==='faite'?'#00C8A0':ev.statut==='a_verifier'?'#FF8A8A':'#f382ff') : estWeekend&&jour ? 'rgba(0,200,200,.5)' : jour ? 'rgba(255,255,255,.7)' : 'transparent',
+                          cursor: jour ? 'pointer' : 'default',
+                          border: ev ? `1px solid ${ev.statut==='faite'?'rgba(0,200,160,.3)':ev.statut==='a_verifier'?'rgba(255,100,100,.3)':'rgba(255,160,60,.3)'}` : 'none',
+                          position:'relative',
+                          minHeight:36,
+                          display:'flex',
+                          alignItems:'center',
+                          justifyContent:'center',
+                        }}>
+                        {jour||''}
+                        {hasRdv && <span style={{position:'absolute',top:1,right:2,width:5,height:5,borderRadius:'50%',background:'#f382ff'}}/>}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Légende */}
+                <div style={{display:'flex',gap:12,marginTop:12,flexWrap:'wrap'}}>
+                  {[['rgba(0,200,160,.3)','#00C8A0','✓ Faite'],['rgba(255,160,60,.3)','#f382ff','À faire'],['rgba(255,100,100,.3)','#FF8A8A','En retard'],['rgba(0,200,200,.5)','#f382ff',"Aujourd'hui"]].map(([bg,color,label])=>(
+                    <div key={label} style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'rgba(255,255,255,.4)'}}>
+                      <div style={{width:10,height:10,borderRadius:3,background:bg,border:`1px solid ${color}`}}/>
+                      {label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Événements du mois */}
+              {(evs.length > 0 || rdvList.filter(r=>r.date&&r.date.startsWith(`${calYear}-${String(moisIdx+1).padStart(2,'0')}`)).length > 0) && (
+                <div className="card" style={{marginBottom:'1rem'}}>
+                  <div className="card-title" style={{marginBottom:'0.875rem'}}>Événements de {nomMois}</div>
+                  <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                    {evs.map(ev=>{
+                      const decl = declarations.find(d=>d.periode===ev.id)
+                      const statut = decl?.statut||(ev.past?'a_verifier':'a_faire')
+                      return (
+                        <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',borderRadius:12,background:statut==='faite'?'rgba(0,200,160,.08)':ev.past?'rgba(255,100,100,.08)':'rgba(255,160,60,.08)',border:`1px solid ${statut==='faite'?'rgba(0,200,160,.2)':ev.past?'rgba(255,100,100,.2)':'rgba(255,160,60,.2)'}`}}>
+                          <div>
+                            <div style={{fontSize:13,fontWeight:500,color:'#ffffff'}}>{ev.special?(ev.type==='cfe'?'CFE':'Impôt sur le revenu'):'URSSAF'}</div>
+                            <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:2}}>Avant le {ev.date_limite}</div>
+                          </div>
+                          {statut==='faite'
+                            ? <span style={{fontSize:11,fontWeight:600,color:'#c081ff',background:'rgba(192,129,255,0.1)',padding:'4px 10px',borderRadius:20}}>✓ Faite</span>
+                            : <button onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')} style={{fontSize:11,background:'rgba(243,130,255,0.9)',border:'none',color:'#07080F',padding:'6px 12px',borderRadius:20,cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:600}}>Marquer faite</button>
+                          }
+                        </div>
+                      )
+                    })}
+                    {rdvList.filter(r=>r.date&&r.date.startsWith(`${calYear}-${String(moisIdx+1).padStart(2,'0')}`)).map(r=>{
+                      const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
+                      return (
+                        <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',borderRadius:12,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.15)'}}>
+                          <div style={{display:'flex',alignItems:'center',gap:8}}>
+                            <span className="material-symbols-outlined" style={{fontSize:18,color:"rgba(255,255,255,0.6)"}}>{t.icon||"event"}</span>
+                            <div>
+                              <div style={{fontSize:13,fontWeight:500,color:'#ffffff'}}>{r.titre}</div>
+                              <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:2}}>
+                                {parseInt(r.date.split('-')[2])}/{moisIdx+1} à {r.heure}
+                              </div>
+                            </div>
+                          </div>
+                          <button onClick={()=>deleteRdv(r.id)} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,100,100,.6)',fontSize:18,padding:'4px'}}>×</button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* CA du mois */}
+              {rev && (
+                <div className="card" style={{marginBottom:'1rem',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.15)'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <div>
+                      <div style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:4}}>CA {nomMois}</div>
+                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,color:'#f382ff'}}>{rev.toLocaleString('fr-FR')} €</div>
+                    </div>
+                    <button onClick={()=>setView('revenus')} style={{fontSize:12,background:'rgba(243,130,255,0.1)',border:'1px solid rgba(255,255,255,0.18)',color:'#f382ff',padding:'8px 14px',borderRadius:20,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Voir revenus →</button>
+                  </div>
+                </div>
+              )}
+
+              <div className="info-box" style={{marginTop:'1rem'}}>
+                <div className="info-title">Comment déclarer</div>
+                <div className="info-text">
+                  Va sur <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener noreferrer">autoentrepreneur.urssaf.fr</a> · SIRET · "Déclarer et payer" · Saisis ton CA · Valide
+                </div>
+              </div>
+
+            </>
+          ) : (
+            <>
+              {/* ── VUE DESKTOP : gros mois + mini strip ── */}
+
+              {/* Navigation + grand calendrier */}
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1.25rem',maxWidth:680,margin:'0 auto 1.25rem'}}>
+                <button onClick={allerMoisPrev} style={{width:40,height:40,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.15)',background:'rgba(255,255,255,0.05)',color:'#f382ff',fontSize:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s'}}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.12)';e.currentTarget.style.borderColor='rgba(243,130,255,0.4)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.05)';e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'}}>‹</button>
+                <div style={{textAlign:'center'}}>
+                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:28,fontWeight:800,color:'#fff',letterSpacing:'-.02em'}}>
+                    {nomMois} {calYear}
+                    {estCourant && <span style={{fontSize:11,background:'rgba(243,130,255,0.12)',color:'#f382ff',padding:'3px 10px',borderRadius:20,marginLeft:10,fontFamily:'Inter,sans-serif',fontWeight:700,border:'1px solid rgba(243,130,255,0.25)',verticalAlign:'middle'}}>En cours</span>}
+                  </div>
+                  {rev && <div style={{fontSize:13,color:'#f382ff',fontWeight:600,marginTop:4}}>CA : {rev.toLocaleString('fr-FR')} €</div>}
+                </div>
+                <button onClick={allerMoisNext} style={{width:40,height:40,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.15)',background:'rgba(255,255,255,0.05)',color:'#f382ff',fontSize:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s'}}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.12)';e.currentTarget.style.borderColor='rgba(243,130,255,0.4)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.05)';e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'}}>›</button>
+              </div>
+
+              {/* Grand calendrier mois actif */}
+              <div style={{maxWidth:680,margin:'0 auto',background:'rgba(20,5,40,0.35)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',border:`1.5px solid ${estCourant?'rgba(243,130,255,0.3)':'rgba(255,255,255,0.12)'}`,borderRadius:20,padding:'1.5rem',boxShadow:estCourant?'0 0 40px rgba(243,130,255,0.08)':'none'}}>
+                {/* Headers jours */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3,marginBottom:4}}>
+                  {JOURS_LONG.map(j=>(<div key={j} style={{textAlign:'center',fontSize:10,color:'rgba(255,255,255,.3)',fontWeight:700,padding:'6px 0',letterSpacing:'.06em',textTransform:'uppercase'}}>{j}</div>))}
+                </div>
+                {/* Cellules jours — affichent événements dans la cellule */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4}}>
+                  {jours.map((jour,i)=>{
+                    const ev = jour ? joursEvenements[jour] : null
+                    const estAujourdhui = estCourant && jour === getNow().day
+                    const dateStr = jour ? `${year}-${String(moisIdx+1).padStart(2,'0')}-${String(jour).padStart(2,'0')}` : null
+                    const rdvsJour = dateStr ? rdvList.filter(r=>r.date===dateStr) : []
+                    const hasRdv = rdvsJour.length > 0
+                    const t = hasRdv ? (RDV_TYPES[rdvsJour[0].type]||RDV_TYPES.rdv) : null
+                    const evLabel = ev ? (ev.special?(ev.type==='cfe'?'CFE':'IR'):'URSSAF') : null
+                    return (
+                      <div key={i} onClick={()=>jour && openRdvModal(moisIdx, jour, nomMois)}
+                        style={{
+                          borderRadius:10,padding:'4px',aspectRatio:'1',
+                          display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',
+                          background: estAujourdhui?'#f382ff':hasRdv?t.bg:ev?(ev.statut==='faite'?'rgba(0,200,160,.08)':ev.statut==='a_verifier'?'rgba(255,100,100,.08)':'rgba(255,160,60,.08)'):'transparent',
+                          border: estAujourdhui?'none':hasRdv?`1px solid ${t.color}44`:ev?`1px solid ${ev.statut==='faite'?'rgba(0,200,160,.25)':ev.statut==='a_verifier'?'rgba(255,100,100,.25)':'rgba(255,160,60,.25)'}`:'1px solid transparent',
+                          cursor: jour?'pointer':'default',
+                          transition:'background .15s',
+                        }}
+                        onMouseEnter={e=>{if(jour&&!estAujourdhui){e.currentTarget.style.background=hasRdv?t.bg:ev?'rgba(243,130,255,0.1)':'rgba(255,255,255,0.05)';e.currentTarget.style.borderColor='rgba(243,130,255,0.3)'}}}
+                        onMouseLeave={e=>{if(jour&&!estAujourdhui){e.currentTarget.style.background=hasRdv?t.bg:ev?(ev.statut==='faite'?'rgba(0,200,160,.08)':ev.statut==='a_verifier'?'rgba(255,100,100,.08)':'rgba(255,160,60,.08)'):'transparent';e.currentTarget.style.borderColor=hasRdv?`${t.color}44`:ev?(ev.statut==='faite'?'rgba(0,200,160,.25)':ev.statut==='a_verifier'?'rgba(255,100,100,.25)':'rgba(255,160,60,.25)'):'transparent'}}}>
+                        {/* Numéro du jour */}
+                        <div style={{fontSize:13,fontWeight:estAujourdhui||hasRdv||ev?700:400,color:estAujourdhui?'#07080F':hasRdv?t.color:ev?(ev.statut==='faite'?'#00C8A0':ev.statut==='a_verifier'?'#FF8A8A':'#f382ff'):jour?'rgba(255,255,255,.7)':'transparent',marginBottom:4}}>
+                          {jour||''}
+                        </div>
+                        {/* Event URSSAF dans la cellule */}
+                        {ev && jour && (
+                          <div style={{fontSize:8,fontWeight:700,padding:'1px 4px',borderRadius:4,background:ev.statut==='faite'?'rgba(0,200,160,.25)':ev.statut==='a_verifier'?'rgba(255,100,100,.25)':'rgba(255,160,60,.3)',color:ev.statut==='faite'?'#00C8A0':ev.statut==='a_verifier'?'#FF8A8A':'#FFB347',letterSpacing:'.03em',maxWidth:'100%',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center'}}>
+                            {evLabel}
+                          </div>
+                        )}
+                        {/* RDV dans la cellule */}
+                        {hasRdv && jour && rdvsJour.slice(0,2).map((r,ri)=>{
+                          const rt = RDV_TYPES[r.type]||RDV_TYPES.rdv
+                          return (
+                            <div key={ri} style={{fontSize:8,fontWeight:600,padding:'1px 4px',borderRadius:4,background:`${rt.color}22`,color:rt.color,maxWidth:'100%',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'center',marginTop:1}}>
+                              {r.heure&&r.heure!=='09:00'?`${r.heure} `:''}{r.titre}
+                            </div>
+                          )
+                        })}
+                        {rdvsJour.length > 2 && <div style={{fontSize:7,color:'rgba(255,255,255,.4)',marginTop:1}}>+{rdvsJour.length-2}</div>}
+                      </div>
+                    )
+                  })}
+                </div>
+                {/* Légende */}
+                <div style={{display:'flex',gap:14,marginTop:14,paddingTop:12,borderTop:'1px solid rgba(255,255,255,0.06)',flexWrap:'wrap'}}>
+                  {[['rgba(0,200,160,.2)','#00C8A0','Déclaration faite'],['rgba(255,160,60,.2)','#FFB347','À faire'],['rgba(255,100,100,.2)','#FF8A8A','En retard'],['#f382ff','#07080F','Aujourd’hui']].map(([bg,color,label])=>(
+                    <div key={label} style={{display:'flex',alignItems:'center',gap:5,fontSize:10,color:'rgba(255,255,255,.35)'}}>
+                      <div style={{width:10,height:10,borderRadius:3,background:bg}}/>
+                      {label}
+                    </div>
+                  ))}
+                  <div style={{marginLeft:'auto',fontSize:10,color:'rgba(255,255,255,.2)'}}>Cliquer sur un jour pour ajouter un événement</div>
+                </div>
+              </div>
+
+              {/* Mini calendriers — vue annuelle */}
+              <div style={{marginBottom:'1.25rem'}}>
+                <div style={{fontSize:11,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.3)',marginBottom:12}}>Vue annuelle</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:8}}>
+                  {MOIS_FULL.map((nomM, mi) => {
+                    const estCourantM = mi === month-1
+                    const estActifM = mi === moisIdx
+                    const evsM = eventsParMois[String(mi)] || []
+                    const revM = revParMois[mi]
+                    const premierJourM = new Date(calYear, mi, 1).getDay()
+                    const premierLundiM = premierJourM === 0 ? 6 : premierJourM - 1
+                    const nbJoursM = new Date(calYear, mi+1, 0).getDate()
+                    const joursM = Array(premierLundiM).fill(null).concat(Array.from({length:nbJoursM},(_,i)=>i+1))
+                    while (joursM.length % 7 !== 0) joursM.push(null)
+                    const joursEvenementsM = {}
+                    evsM.forEach(ev => { if (ev.jour) joursEvenementsM[ev.jour] = ev })
+                    // RDV ce mois
+                    const rdvsMoisM = rdvList.filter(r=>r.date&&r.date.startsWith(`${calYear}-${String(mi+1).padStart(2,'0')}`))
+                    const rdvsParJourM = {}
+                    rdvsMoisM.forEach(r=>{ const j=parseInt(r.date.split('-')[2]); if(!rdvsParJourM[j])rdvsParJourM[j]=[]; rdvsParJourM[j].push(r) })
+                    // Tooltip : liste des événements du mois
+                    const tooltipLines = [
+                      ...evsM.map(ev=>`📋 ${ev.special?(ev.type==='cfe'?'CFE':'IR'):'URSSAF'} — avant le ${ev.date_limite}`),
+                      ...rdvsMoisM.map(r=>`${r.heure} ${r.titre}`)
+                    ]
+                    return (
+                      <div key={mi} onClick={()=>setCalMoisActif(mi)}
+                        title={tooltipLines.join(' | ')}
                         style={{
                           background: estActifM?'rgba(243,130,255,0.1)':'rgba(20,5,40,0.25)',
                           border:`1px solid ${estActifM?'rgba(243,130,255,0.35)':estCourantM?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,
