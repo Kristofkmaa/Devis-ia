@@ -697,6 +697,18 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <span style={{fontSize:9,display:'block',fontWeight:700,letterSpacing:'.05em',textTransform:'uppercase'}}>{label}</span>
           </button>
         ))}
+        {/* Profil mini — desktop sidebar only */}
+        {profil && (
+          <div className="sidebar-profile">
+            <div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,rgba(243,130,255,0.3),rgba(192,129,255,0.3))',border:'1px solid rgba(243,130,255,0.25)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <span style={{fontSize:12,fontWeight:800,color:'#f382ff'}}>{profil.prenom?.[0]||'?'}</span>
+            </div>
+            <div style={{minWidth:0}}>
+              <div style={{fontSize:12,fontWeight:700,color:'rgba(255,255,255,0.8)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{profil.prenom} {profil.nom}</div>
+              <div style={{fontSize:10,color:'rgba(255,255,255,0.35)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{profil.activite||'Auto-entrepreneur'}</div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── MODAL PROFIL ── */}
@@ -833,7 +845,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
           {/* ── HERO ── */}
           {profil ? (
-            <div style={{background:'rgba(20,5,40,0.38)',backdropFilter:'blur(32px)',WebkitBackdropFilter:'blur(32px)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:22,padding:'1.5rem',marginBottom:'1.25rem',overflow:'hidden'}}>
+            <div style={{background:'rgba(20,5,40,0.38)',backdropFilter:'blur(32px)',WebkitBackdropFilter:'blur(32px)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:22,padding:'1.75rem',marginBottom:'1.25rem',overflow:'hidden'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12,marginBottom:'1.5rem'}}>
                 <div>
                   <p style={{fontSize:11,color:'rgba(255,255,255,0.38)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:8,fontWeight:700}}>Bonjour </p>
@@ -851,7 +863,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
 
               {/* Métriques */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(3,1fr)',gap:10}}>
                 {[
                   { label:'CA ce mois', val:`${caMois.toLocaleString('fr-FR')} €`, sub:`Brut encaissé`, color:'#f382ff', onClick:()=>setView('revenus') },
                   { label:'URSSAF + impôts', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`${Math.round((taux+tauxImpot)*100)}% du CA`, color:'#ff6e84', onClick:()=>setView('simulateur') },
@@ -916,7 +928,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           )}
 
           {/* ── LIGNE 2 : Seuils + Devis récents ── */}
-          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0.875rem',marginBottom:'0.875rem'}}>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:'1rem',marginBottom:'1rem'}}>
 
             {/* Seuils */}
             <div className="card">
@@ -982,7 +994,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           </div>
 
           {/* ── LIGNE 3 : Revenus récents + Assistant ── */}
-          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0.875rem',marginBottom:'0.875rem'}}>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:'1rem',marginBottom:'1rem'}}>
 
             {/* Revenus des derniers mois */}
             <div className="card">
@@ -2955,7 +2967,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   )}
 
                   {/* Détail des charges en 2 colonnes */}
-                  <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:12}}>
+                  <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:16}}>
                     {/* Charges salariales */}
                     <div style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:'1rem'}}>
                       <div style={{fontSize:12,fontWeight:700,color:'#c081ff',marginBottom:12,letterSpacing:'.04em',textTransform:'uppercase'}}>
@@ -3244,6 +3256,9 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
   position:sticky;top:0;z-index:200;
   border-bottom:1px solid rgba(255,255,255,0.08)
 }
+@media(min-width:900px){
+  .app-bar{padding-left:calc(240px + 1.5rem)}
+}
 .logo{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;color:#fff;letter-spacing:.12em;text-transform:uppercase}
 .logo span{color:#f382ff}
 .bar-right{display:flex;align-items:center;gap:10px}
@@ -3256,7 +3271,7 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
 }
 .btn-logout{font-size:12px;color:rgba(255,255,255,0.3);background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;padding:8px;min-height:44px;display:flex;align-items:center}
 
-/* ── BOTTOM NAV ── */
+/* ── BOTTOM NAV (mobile) ── */
 .nav-tabs{
   background:rgba(4,0,12,0.85);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
   border-top:1px solid rgba(255,255,255,0.08);
@@ -3278,10 +3293,44 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
 .nav-tab.active{color:#f382ff;background:rgba(243,130,255,0.1)}
 .nav-tab.active span:first-child{transform:scale(1.15)}
 
+/* ── DESKTOP SIDEBAR NAV ── */
+@media(min-width:900px){
+  .nav-tabs{
+    position:fixed;top:60px;left:0;bottom:0;right:auto;
+    width:240px;height:auto;
+    flex-direction:column;justify-content:flex-start;align-items:stretch;
+    border-top:none;border-right:1px solid rgba(255,255,255,0.07);
+    padding:1.5rem 1rem;overflow-x:visible;overflow-y:auto;
+    box-shadow:none;background:rgba(4,0,12,0.65);backdrop-filter:blur(40px);
+    gap:4px
+  }
+  .nav-tab{
+    width:100%;min-width:unset;
+    flex-direction:row;justify-content:flex-start;
+    padding:12px 16px;gap:12px;
+    border-radius:12px;margin:0;
+    font-size:13px;letter-spacing:.02em;text-align:left;
+    font-weight:600
+  }
+  .nav-tab span:first-child{font-size:20px !important;margin-bottom:0 !important;display:inline !important}
+  .nav-tab.active{background:rgba(243,130,255,0.12);color:#f382ff;border:1px solid rgba(243,130,255,0.2)}
+  .nav-tab:not(.active):hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7)}
+  .sidebar-profile{
+    display:flex;align-items:center;gap:10px;
+    margin-top:auto;padding:12px 16px;
+    border-top:1px solid rgba(255,255,255,0.07);
+    cursor:pointer;border-radius:12px;
+    transition:background .2s
+  }
+  .sidebar-profile:hover{background:rgba(255,255,255,0.05)}
+}
+.sidebar-profile{display:none}
+
 /* ── MAIN ── */
-.main{max-width:820px;margin:0 auto;padding:1.25rem 1rem 2rem;position:relative;z-index:1}
+.main{max-width:100%;margin:0;padding:1.25rem 1rem 2rem;position:relative;z-index:1}
 @media(min-width:640px){.main{padding:2rem 1.5rem 2rem}}
-@media(min-width:820px){.main{padding:2rem 2rem 2rem}}
+@media(min-width:900px){.main{padding:1.5rem 2rem 2rem 2rem;margin-left:240px;max-width:calc(100vw - 240px)}}
+@media(min-width:1400px){.main{padding:1.5rem 3rem 2rem 2.5rem}}
 
 /* ── CARDS ── */
 .card{
@@ -3298,6 +3347,7 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
   box-shadow:0 0 0 1px rgba(255,255,255,0.08),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.12)
 }
 @media(min-width:640px){.card{border-radius:22px;padding:1.75rem}}
+@media(min-width:1200px){.card{padding:2rem}}
 .card-title{
   font-family:'Plus Jakarta Sans',sans-serif;
   font-size:15px;font-weight:700;letter-spacing:-.01em;
@@ -3515,6 +3565,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 
 /* ── FOOTER ── */
 .app-footer{text-align:center;padding:24px 20px calc(88px + env(safe-area-inset-bottom));font-size:12px;color:rgba(255,255,255,0.18);border-top:1px solid rgba(255,255,255,0.06);margin-top:2rem;position:relative;z-index:1}
+@media(min-width:900px){.app-footer{padding-bottom:40px}}
 .app-footer a{color:rgba(255,255,255,0.18);text-decoration:none;margin:0 10px;transition:color .2s}
 .app-footer a:hover{color:rgba(255,255,255,0.5)}
 
