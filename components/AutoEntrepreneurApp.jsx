@@ -1296,7 +1296,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           ) : (
             <>
               {/* ── VUE DESKTOP : grille 12 mois ── */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14,marginBottom:'1.5rem'}}>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:12,marginBottom:'1.5rem',maxWidth:1100,margin:'0 auto 1.5rem'}}>
                 {MOIS_FULL.map((nomM, mi) => {
                   const estCourantM = mi === month-1
                   const estPasseM = mi < month-1
@@ -1312,19 +1312,19 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   return (
                     <div key={mi} style={{
                       background:'rgba(20,5,40,0.30)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', border:`2px solid ${estCourantM?'rgba(0,200,200,0.5)':'rgba(255,255,255,0.08)'}`,
-                      borderRadius:16, padding:'1rem',
+                      borderRadius:14, padding:'0.85rem',
                       opacity: estPasseM && !revM && evsM.length===0 ? 0.5 : 1,
                       boxShadow: estCourantM ? '0 4px 20px rgba(0,200,200,.1)' : 'none'
                     }}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-                        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:600,color:estCourantM?'#f382ff':'#E8F4F8'}}>
+                        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:13,fontWeight:700,color:estCourantM?'#f382ff':'#E8F4F8'}}>
                           {nomM}
                           {estCourantM && <span style={{fontSize:9,background:'rgba(0,200,200,.2)',color:'#f382ff',padding:'2px 7px',borderRadius:20,marginLeft:6,fontFamily:'Inter,sans-serif',border:'1px solid rgba(243,130,255,0.4)'}}>En cours</span>}
                         </div>
                         {revM && <span style={{fontSize:10,fontWeight:600,color:'#f382ff',background:'rgba(243,130,255,0.1)',padding:'2px 7px',borderRadius:20}}>{revM.toLocaleString('fr-FR')} €</span>}
                       </div>
                       <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:1,marginBottom:6}}>
-                        {JOURS_LONG.map(j=>(<div key={j} style={{textAlign:'center',fontSize:8,color:'rgba(255,255,255,.25)',fontWeight:600,padding:'2px 0'}}>{j}</div>))}
+                        {JOURS_LONG.map(j=>(<div key={j} style={{textAlign:'center',fontSize:7,color:'rgba(255,255,255,.25)',fontWeight:600,padding:'1px 0'}}>{j}</div>))}
                         {joursM.map((jour,i)=>{
                           const ev = jour ? joursEvenementsM[jour] : null
                           const estAujourdhui = estCourantM && jour === getNow().day
@@ -1335,7 +1335,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             <div key={i} onClick={()=>jour && openRdvModal(mi, jour, nomM)}
                               title={jour?(hasRdv?rdvsJour.map(r=>r.titre).join(', '):'Ajouter'):''}
                               style={{
-                                textAlign:'center', fontSize:10, padding:'3px 1px', borderRadius:4,
+                                textAlign:'center', fontSize:9, padding:'2px 1px', borderRadius:4,
                                 fontWeight: ev||estAujourdhui||hasRdv ? 700 : 400,
                                 background: estAujourdhui?'#f382ff':hasRdv?'rgba(0,200,200,.15)':ev?(ev.statut==='faite'?'rgba(0,200,160,.15)':ev.statut==='a_verifier'?'rgba(255,100,100,.15)':'rgba(255,160,60,.15)'):'transparent',
                                 color: estAujourdhui?'#07080F':hasRdv?'#f382ff':ev?(ev.statut==='faite'?'#00C8A0':ev.statut==='a_verifier'?'#FF8A8A':'#f382ff'):jour?'rgba(255,255,255,.6)':'transparent',
