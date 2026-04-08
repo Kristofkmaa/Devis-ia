@@ -1466,60 +1466,95 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               {showRdvModal && rdvJour && (
                 <div className="overlay show" onClick={e=>{if(e.target.className.includes('overlay'))setShowRdvModal(false)}}>
                   <div className="modal" style={{maxWidth:440}}>
-                    <div className="modal-title">
-                      {rdvEditing ? 'Modifier' : 'Nouvel événement'}
+                    {/* Header */}
+                    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:'1.5rem'}}>
+                      <div>
+                        <div style={{fontSize:10,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#f382ff',marginBottom:6}}>
+                          {rdvEditing ? 'Modifier un événement' : 'Nouvel événement'}
+                        </div>
+                        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.01em'}}>
+                          {rdvJour.jour} {rdvJour.moisNom} {year}
+                        </div>
+                      </div>
+                      <button onClick={()=>setShowRdvModal(false)} style={{width:32,height:32,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.12)',background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.5)',cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>×</button>
                     </div>
-                    <p className="modal-sub">
-                      {rdvJour.moisNom} {rdvJour.jour}, {year}
-                    </p>
-                    <div className="form-grid">
-                      <div className="field full">
-                        <label>Titre *</label>
-                        <input value={rdvForm.titre} onChange={e=>setRdvForm(p=>({...p,titre:e.target.value}))} placeholder="Ex: Appel client, Réunion, Déclaration…" autoFocus/>
+
+                    {/* Formulaire */}
+                    <div style={{display:'flex',flexDirection:'column',gap:14,marginBottom:'1.5rem'}}>
+                      <div>
+                        <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:8}}>Titre *</label>
+                        <input value={rdvForm.titre} onChange={e=>setRdvForm(p=>({...p,titre:e.target.value}))}
+                          placeholder="Ex: Appel client, Réunion comptable…" autoFocus
+                          style={{width:'100%',padding:'11px 14px',borderRadius:12,border:'1px solid rgba(255,255,255,0.15)',background:'rgba(20,5,40,0.5)',color:'#fff',fontFamily:'Inter,sans-serif',fontSize:14,outline:'none'}}
+                          onFocus={e=>e.target.style.borderColor='rgba(243,130,255,0.5)'}
+                          onBlur={e=>e.target.style.borderColor='rgba(255,255,255,0.15)'}/>
                       </div>
-                      <div className="field">
-                        <label>Heure</label>
-                        <input type="time" value={rdvForm.heure} onChange={e=>setRdvForm(p=>({...p,heure:e.target.value}))}/>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+                        <div>
+                          <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:8}}>Heure</label>
+                          <input type="time" value={rdvForm.heure} onChange={e=>setRdvForm(p=>({...p,heure:e.target.value}))}
+                            style={{width:'100%',padding:'11px 14px',borderRadius:12,border:'1px solid rgba(255,255,255,0.15)',background:'rgba(20,5,40,0.5)',color:'#fff',fontFamily:'Inter,sans-serif',fontSize:14,outline:'none'}}
+                            onFocus={e=>e.target.style.borderColor='rgba(243,130,255,0.5)'}
+                            onBlur={e=>e.target.style.borderColor='rgba(255,255,255,0.15)'}/>
+                        </div>
+                        <div>
+                          <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:8}}>Type</label>
+                          <select value={rdvForm.type} onChange={e=>setRdvForm(p=>({...p,type:e.target.value}))}
+                            style={{width:'100%',padding:'11px 14px',borderRadius:12,border:'1px solid rgba(255,255,255,0.15)',background:'rgba(20,5,40,0.5)',color:'#fff',fontFamily:'Inter,sans-serif',fontSize:14,outline:'none',cursor:'pointer'}}>
+                            {Object.entries(RDV_TYPES).map(([val,{label,icon}])=>(
+                              <option key={val} value={val}>{label}</option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
-                      <div className="field">
-                        <label>Type</label>
-                        <select value={rdvForm.type} onChange={e=>setRdvForm(p=>({...p,type:e.target.value}))}>
-                          {Object.entries(RDV_TYPES).map(([val,{label,emoji}])=>(
-                            <option key={val} value={val}>{emoji} {label}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="field full">
-                        <label>Notes</label>
-                        <input value={rdvForm.notes} onChange={e=>setRdvForm(p=>({...p,notes:e.target.value}))} placeholder="Informations complémentaires…"/>
+                      <div>
+                        <label style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)',display:'block',marginBottom:8}}>Notes</label>
+                        <textarea value={rdvForm.notes} onChange={e=>setRdvForm(p=>({...p,notes:e.target.value}))}
+                          placeholder="Informations complémentaires, lien visio, numéro de téléphone…"
+                          rows={2}
+                          style={{width:'100%',padding:'11px 14px',borderRadius:12,border:'1px solid rgba(255,255,255,0.15)',background:'rgba(20,5,40,0.5)',color:'#fff',fontFamily:'Inter,sans-serif',fontSize:14,outline:'none',resize:'vertical',lineHeight:1.6}}
+                          onFocus={e=>e.target.style.borderColor='rgba(243,130,255,0.5)'}
+                          onBlur={e=>e.target.style.borderColor='rgba(255,255,255,0.15)'}/>
                       </div>
                     </div>
 
-                    {/* RDV existants ce jour */}
+                    {/* Événements existants ce jour */}
                     {(() => {
                       const dateStr = `${year}-${String(rdvJour.moisIdx+1).padStart(2,'0')}-${String(rdvJour.jour).padStart(2,'0')}`
                       const rdvsJour = rdvList.filter(r=>r.date===dateStr)
                       if (rdvsJour.length===0) return null
                       return (
-                        <div style={{marginBottom:'1rem'}}>
-                          <div style={{fontSize:11,fontWeight:600,color:'rgba(255,255,255,0.38)',letterSpacing:'.5px',textTransform:'uppercase',marginBottom:8}}>Événements ce jour</div>
-                          {rdvsJour.map(r=>{
-                            const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
-                            return (
-                              <div key={r.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 12px',borderRadius:10,background:t.bg,marginBottom:6}}>
-                                <span style={{fontSize:13,color:t.color,fontWeight:500}}>{r.heure} — {r.titre}</span>
-                                <button onClick={()=>deleteRdv(r.id)} style={{background:'none',border:'none',cursor:'pointer',color:'#ff6e84',fontSize:18,lineHeight:1}}>×</button>
-                              </div>
-                            )
-                          })}
+                        <div style={{marginBottom:'1.25rem',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:14,padding:'14px 16px'}}>
+                          <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.35)',marginBottom:10}}>
+                            Déjà prévu ce jour — {rdvsJour.length} événement{rdvsJour.length>1?'s':''}
+                          </div>
+                          <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                            {rdvsJour.map(r=>{
+                              const t = RDV_TYPES[r.type]||RDV_TYPES.rdv
+                              return (
+                                <div key={r.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',borderRadius:10,background:`${t.color}12`,border:`1px solid ${t.color}25`}}>
+                                  <span className="material-symbols-outlined" style={{fontSize:16,color:t.color,flexShrink:0}}>{t.icon}</span>
+                                  <div style={{flex:1,minWidth:0}}>
+                                    <div style={{fontSize:13,fontWeight:600,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.titre}</div>
+                                    <div style={{fontSize:10,color:'rgba(255,255,255,0.4)',marginTop:1}}>
+                                      {r.heure} · {t.label}{r.notes?` · ${r.notes}`:''}
+                                    </div>
+                                  </div>
+                                  <button onClick={()=>deleteRdv(r.id)} title="Supprimer"
+                                    style={{width:28,height:28,borderRadius:8,border:'1px solid rgba(255,100,100,0.2)',background:'rgba(255,100,100,0.08)',color:'#ff6e84',cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>×</button>
+                                </div>
+                              )
+                            })}
+                          </div>
                         </div>
                       )
                     })()}
 
-                    <div className="modal-actions">
-                      <button className="btn btn-ghost" onClick={()=>setShowRdvModal(false)}>Annuler</button>
-                      <button className="btn btn-dark" onClick={saveRdv} disabled={!rdvForm.titre.trim()}>
-                        {rdvEditing ? 'Modifier' : 'Ajouter →'}
+                    <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
+                      <button onClick={()=>setShowRdvModal(false)} style={{padding:'10px 20px',borderRadius:10,border:'1px solid rgba(255,255,255,0.12)',background:'transparent',color:'rgba(255,255,255,0.5)',fontFamily:'Inter,sans-serif',fontSize:13,fontWeight:600,cursor:'pointer'}}>Annuler</button>
+                      <button onClick={saveRdv} disabled={!rdvForm.titre.trim()}
+                        style={{padding:'10px 24px',borderRadius:10,border:'none',background:rdvForm.titre.trim()?'linear-gradient(135deg,#f382ff,#c081ff)':'rgba(255,255,255,0.08)',color:rdvForm.titre.trim()?'#07080F':'rgba(255,255,255,0.2)',fontFamily:'Inter,sans-serif',fontSize:13,fontWeight:800,cursor:rdvForm.titre.trim()?'pointer':'not-allowed',transition:'all .2s'}}>
+                        {rdvEditing ? 'Modifier →' : 'Ajouter →'}
                       </button>
                     </div>
                   </div>
