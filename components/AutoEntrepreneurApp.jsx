@@ -1394,29 +1394,52 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     while (joursM.length % 7 !== 0) joursM.push(null)
                     const joursEvenementsM = {}
                     evsM.forEach(ev => { if (ev.jour) joursEvenementsM[ev.jour] = ev })
+                    // RDV ce mois
+                    const rdvsMoisM = rdvList.filter(r=>r.date&&r.date.startsWith(`${calYear}-${String(mi+1).padStart(2,'0')}`))
+                    const rdvsParJourM = {}
+                    rdvsMoisM.forEach(r=>{ const j=parseInt(r.date.split('-')[2]); if(!rdvsParJourM[j])rdvsParJourM[j]=[]; rdvsParJourM[j].push(r) })
+                    // Tooltip : liste des événements du mois
+                    const tooltipLines = [
+                      ...evsM.map(ev=>`📋 ${ev.special?(ev.type==='cfe'?'CFE':'IR'):'URSSAF'} — avant le ${ev.date_limite}`),
+                      ...rdvsMoisM.map(r=>`${r.heure} ${r.titre}`)
+                    ]
                     return (
-                      <div key={mi} onClick={()=>setCalMoisActif(mi)} style={{
-                        background: estActifM?'rgba(243,130,255,0.1)':'rgba(20,5,40,0.25)',
-                        border:`1px solid ${estActifM?'rgba(243,130,255,0.35)':estCourantM?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,
-                        borderRadius:12,padding:'10px 8px',cursor:'pointer',
-                        transition:'all .2s',opacity:mi<month-1&&!revM?0.45:1
-                      }}
+                      <div key={mi} onClick={()=>setCalMoisActif(mi)}
+                        title={tooltipLines.length?tooltipLines.join('
+'):''}
+                        style={{
+                          background: estActifM?'rgba(243,130,255,0.1)':'rgba(20,5,40,0.25)',
+                          border:`1px solid ${estActifM?'rgba(243,130,255,0.35)':estCourantM?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}`,
+                          borderRadius:12,padding:'10px 8px',cursor:'pointer',
+                          transition:'all .2s',opacity:mi<month-1&&!revM&&!rdvsMoisM.length?0.45:1,
+                          position:'relative'
+                        }}
                         onMouseEnter={e=>{if(!estActifM){e.currentTarget.style.background='rgba(243,130,255,0.06)';e.currentTarget.style.borderColor='rgba(243,130,255,0.2)'}}}
                         onMouseLeave={e=>{if(!estActifM){e.currentTarget.style.background='rgba(20,5,40,0.25)';e.currentTarget.style.borderColor=estCourantM?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.07)'}}}>
-                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                        {/* Header mini mois */}
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}}>
                           <div style={{fontSize:10,fontWeight:700,color:estActifM?'#f382ff':estCourantM?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.5)'}}>{MOIS_COURT[mi]}</div>
-                          {revM && <div style={{fontSize:8,color:'#f382ff',fontWeight:600}}>{Math.round(revM/1000)}k€</div>}
-                          {evsM.length>0 && !revM && <div style={{width:5,height:5,borderRadius:'50%',background:evsM.some(e=>e.statut!=='faite')?'#f382ff':'#00C8A0'}}/>}
+                          <div style={{display:'flex',gap:3,alignItems:'center'}}>
+                            {revM && <div style={{fontSize:7,color:'#f382ff',fontWeight:700}}>{Math.round(revM/1000)}k€</div>}
+                            {evsM.some(e=>e.statut!=='faite') && <div style={{width:5,height:5,borderRadius:'50%',background:'#FFB347',flexShrink:0}} title="Déclaration à faire"/>}
+                            {evsM.length>0 && evsM.every(e=>e.statut==='faite') && <div style={{width:5,height:5,borderRadius:'50%',background:'#00C8A0',flexShrink:0}} title="Déclarations faites"/>}
+                            {rdvsMoisM.length>0 && <div style={{width:5,height:5,borderRadius:'50%',background:'#c081ff',flexShrink:0}} title={`${rdvsMoisM.length} note(s)`}/>}
+                          </div>
                         </div>
+                        {/* Pixels jours */}
                         <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:1}}>
                           {joursM.map((jour,i)=>{
                             const ev = jour ? joursEvenementsM[jour] : null
+                            const rdvsJ = jour ? (rdvsParJourM[jour]||[]) : []
                             const estAujourdhui = estCourantM && jour === getNow().day
+                            // Couleur : today > URSSAF > RDV/note > vide
+                            const bg = !jour ? 'transparent'
+                              : estAujourdhui ? '#f382ff'
+                              : ev ? (ev.statut==='faite' ? 'rgba(0,200,160,.6)' : 'rgba(255,179,71,.7)')
+                              : rdvsJ.length > 0 ? `${(RDV_TYPES[rdvsJ[0].type]||RDV_TYPES.rdv).color}88`
+                              : 'rgba(255,255,255,0.06)'
                             return (
-                              <div key={i} style={{
-                                width:'100%',aspectRatio:'1',borderRadius:2,
-                                background: estAujourdhui?'#f382ff':ev?(ev.statut==='faite'?'rgba(0,200,160,.5)':'rgba(255,160,60,.5)'):'rgba(255,255,255,0.05)',
-                              }}/>
+                              <div key={i} style={{width:'100%',aspectRatio:'1',borderRadius:2,background:bg,transition:'background .15s'}}/>
                             )
                           })}
                         </div>
