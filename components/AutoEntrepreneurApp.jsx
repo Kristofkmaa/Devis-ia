@@ -1296,7 +1296,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           ) : (
             <>
               {/* ── VUE DESKTOP : grille 12 mois ── */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:16,marginBottom:'1.5rem'}}>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:24,marginBottom:'1.5rem',maxWidth:900,margin:'0 auto 1.5rem'}}>
                 {MOIS_FULL.map((nomM, mi) => {
                   const estCourantM = mi === month-1
                   const estPasseM = mi < month-1
@@ -1323,8 +1323,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         </div>
                         {revM && <span style={{fontSize:10,fontWeight:600,color:'#f382ff',background:'rgba(243,130,255,0.1)',padding:'2px 7px',borderRadius:20}}>{revM.toLocaleString('fr-FR')} €</span>}
                       </div>
-                      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:1,marginBottom:6}}>
-                        {JOURS_LONG.map(j=>(<div key={j} style={{textAlign:'center',fontSize:9,color:'rgba(255,255,255,.3)',fontWeight:700,padding:'4px 0'}}>{j}</div>))}
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:8}}>
+                        {JOURS_LONG.map(j=>(<div key={j} style={{textAlign:'center',fontSize:9,color:'rgba(255,255,255,.3)',fontWeight:700,padding:'6px 0'}}>{j}</div>))}
                         {joursM.map((jour,i)=>{
                           const ev = jour ? joursEvenementsM[jour] : null
                           const estAujourdhui = estCourantM && jour === getNow().day
@@ -1335,7 +1335,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             <div key={i} onClick={()=>jour && openRdvModal(mi, jour, nomM)}
                               title={jour?(hasRdv?rdvsJour.map(r=>r.titre).join(', '):'Ajouter'):''}
                               style={{
-                                textAlign:'center', fontSize:11, padding:'5px 2px', borderRadius:6,
+                                textAlign:'center', fontSize:11, padding:'8px 2px', borderRadius:6,
                                 fontWeight: ev||estAujourdhui||hasRdv ? 700 : 400,
                                 background: estAujourdhui?'#f382ff':hasRdv?'rgba(0,200,200,.15)':ev?(ev.statut==='faite'?'rgba(0,200,160,.15)':ev.statut==='a_verifier'?'rgba(255,100,100,.15)':'rgba(255,160,60,.15)'):'transparent',
                                 color: estAujourdhui?'#07080F':hasRdv?'#f382ff':ev?(ev.statut==='faite'?'#00C8A0':ev.statut==='a_verifier'?'#FF8A8A':'#f382ff'):jour?'rgba(255,255,255,.6)':'transparent',
