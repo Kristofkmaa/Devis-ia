@@ -1184,7 +1184,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 </div>
 
                 {/* Jours */}
-                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3}}>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4}}>
                   {jours.map((jour,i)=>{
                     const ev = jour ? joursEvenements[jour] : null
                     const estAujourdhui = estCourant && jour === getNow().day
@@ -1298,7 +1298,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               {/* ── VUE DESKTOP : gros mois + mini strip ── */}
 
               {/* Navigation + grand calendrier */}
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1.25rem',maxWidth:760,margin:'0 auto 1.25rem'}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1.25rem'}}>
                 <button onClick={allerMoisPrev} style={{width:40,height:40,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.15)',background:'rgba(255,255,255,0.05)',color:'#f382ff',fontSize:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s'}}
                   onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.12)';e.currentTarget.style.borderColor='rgba(243,130,255,0.4)'}}
                   onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.05)';e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'}}>‹</button>
@@ -1315,13 +1315,13 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
 
               {/* Grand calendrier mois actif */}
-              <div style={{maxWidth:760,margin:'0 auto 1.5rem',background:'rgba(20,5,40,0.35)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',border:`1.5px solid ${estCourant?'rgba(243,130,255,0.3)':'rgba(255,255,255,0.12)'}`,borderRadius:20,padding:'1.5rem',boxShadow:estCourant?'0 0 40px rgba(243,130,255,0.08)':'none'}}>
+              <div style={{background:'rgba(20,5,40,0.35)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',border:`1.5px solid ${estCourant?'rgba(243,130,255,0.3)':'rgba(255,255,255,0.12)'}`,borderRadius:20,padding:'1.5rem',boxShadow:estCourant?'0 0 40px rgba(243,130,255,0.08)':'none'}}>
                 {/* Headers jours */}
                 <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3,marginBottom:4}}>
                   {JOURS_LONG.map(j=>(<div key={j} style={{textAlign:'center',fontSize:10,color:'rgba(255,255,255,.3)',fontWeight:700,padding:'6px 0',letterSpacing:'.06em',textTransform:'uppercase'}}>{j}</div>))}
                 </div>
                 {/* Cellules jours — affichent événements dans la cellule */}
-                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3}}>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4}}>
                   {jours.map((jour,i)=>{
                     const ev = jour ? joursEvenements[jour] : null
                     const estAujourdhui = estCourant && jour === getNow().day
@@ -1333,8 +1333,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     return (
                       <div key={i} onClick={()=>jour && openRdvModal(moisIdx, jour, nomMois)}
                         style={{
-                          borderRadius:10,padding:'6px 4px',minHeight:64,
-                          display:'flex',flexDirection:'column',alignItems:'center',
+                          borderRadius:10,padding:'4px',aspectRatio:'1',
+                          display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',
                           background: estAujourdhui?'#f382ff':hasRdv?t.bg:ev?(ev.statut==='faite'?'rgba(0,200,160,.08)':ev.statut==='a_verifier'?'rgba(255,100,100,.08)':'rgba(255,160,60,.08)'):'transparent',
                           border: estAujourdhui?'none':hasRdv?`1px solid ${t.color}44`:ev?`1px solid ${ev.statut==='faite'?'rgba(0,200,160,.25)':ev.statut==='a_verifier'?'rgba(255,100,100,.25)':'rgba(255,160,60,.25)'}`:'1px solid transparent',
                           cursor: jour?'pointer':'default',
@@ -1379,7 +1379,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
 
               {/* Mini calendriers — vue annuelle */}
-              <div style={{maxWidth:760,margin:'0 auto 1.25rem'}}>
+              <div style={{marginBottom:'1.25rem'}}>
                 <div style={{fontSize:11,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.3)',marginBottom:12}}>Vue annuelle</div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:8}}>
                   {MOIS_FULL.map((nomM, mi) => {
