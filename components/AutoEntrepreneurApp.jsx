@@ -3735,7 +3735,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 .devis-card{
   background:rgba(20,5,40,0.35);border:1px solid rgba(255,255,255,0.12);
   backdrop-filter:blur(28px);border-radius:16px;padding:1rem 1.25rem;
-  transition:border-color .2s,transform .15s
+  transition:border-color .2s,transform .15s 
 }
 .devis-card:hover{border-color:rgba(243,130,255,0.2);transform:translateY(-1px)}
 `
