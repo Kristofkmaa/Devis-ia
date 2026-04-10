@@ -873,28 +873,63 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           )}
 
-                    {/* ── ROW 1 : 2 grandes cartes CA + Net ── */}
+                    {/* ── ROW 1 : 2 grandes cartes ── */}
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:10,marginBottom:10}}>
-            {/* CA mois — grande carte principale */}
+            {/* CA mois */}
             <div className="card" onClick={()=>setView('revenus')} style={{cursor:'pointer',background:'rgba(12,3,24,0.85)'}}>
               <div className="card-title">Revenu ce mois</div>
-              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?36:48,fontWeight:700,color:'#ffffff',letterSpacing:'-.03em',lineHeight:1,marginBottom:12}}>{caMois.toLocaleString('fr-FR')} €</div>
-              <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?40:52,fontWeight:700,color:'#ffffff',letterSpacing:'-.03em',lineHeight:1,marginBottom:14}}>{caMois.toLocaleString('fr-FR')} €</div>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
                 <div style={{height:3,flex:1,background:'rgba(255,255,255,0.06)',borderRadius:2,overflow:'hidden'}}>
                   <div style={{height:'100%',width:Math.min(pctPlafond,100)+'%',background:'linear-gradient(90deg,#c081ff,#f382ff)',borderRadius:2}}/>
                 </div>
-                <span style={{fontSize:11,color:'rgba(255,255,255,0.3)',whiteSpace:'nowrap',fontWeight:500}}>{Math.round(pctPlafond)}% du plafond</span>
+                <span style={{fontSize:11,color:'rgba(255,255,255,0.4)',whiteSpace:'nowrap',fontWeight:600,letterSpacing:'.04em'}}>{Math.round(pctPlafond)}% du plafond</span>
               </div>
             </div>
-
             {/* À mettre de côté */}
             <div className="card" onClick={()=>setView('simulateur')} style={{cursor:'pointer',background:'rgba(12,3,24,0.85)'}}>
               <div className="card-title">À mettre de côté</div>
-              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?36:48,fontWeight:700,color:'#ffffff',letterSpacing:'-.03em',lineHeight:1,marginBottom:12}}>{Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €</div>
-              <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',fontWeight:500}}>
-                Projection URSSAF + Impôts · {Math.round((taux+tauxImpot)*100)}% du CA
-              </div>
+              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?40:52,fontWeight:700,color:'#ffffff',letterSpacing:'-.03em',lineHeight:1,marginBottom:14}}>{Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €</div>
+              <div style={{fontSize:12,color:'rgba(255,255,255,0.45)',fontWeight:500}}>URSSAF + Impôts estimés ce mois</div>
             </div>
+          </div>
+
+          {/* ── ROW 1b : métriques secondaires ── */}
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr 1fr':`repeat(${nbSalaries>0?4:3},1fr)`,gap:10,marginBottom:10}}>
+            {/* URSSAF + impôts */}
+            <div className="card" onClick={()=>setView('simulateur')} style={{cursor:'pointer'}}>
+              <div className="card-title">URSSAF + impôts</div>
+              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:26,fontWeight:700,color:caMois>0?'#ff6e84':'#ffffff',letterSpacing:'-.02em',marginBottom:6}}>{Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €</div>
+              <div style={{fontSize:11,color:'rgba(255,255,255,0.45)'}}>Taux {Math.round((taux+tauxImpot)*100)}% du CA</div>
+            </div>
+            {/* Net ce mois */}
+            <div className="card" onClick={()=>setView('simulateur')} style={{cursor:'pointer'}}>
+              <div className="card-title">Net ce mois</div>
+              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:26,fontWeight:700,color:caMois*(1-taux-tauxImpot)<0?'#ff6e84':'#ffffff',letterSpacing:'-.02em',marginBottom:6}}>{Math.round(caMois*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €</div>
+              <div style={{fontSize:11,color:'rgba(255,255,255,0.45)'}}>Après URSSAF & impôts</div>
+            </div>
+            {/* Charges équipe si salariés */}
+            {nbSalaries>0 && (
+              <div className="card" onClick={()=>setView('equipe')} style={{cursor:'pointer'}}>
+                <div className="card-title">Charges équipe ({nbSalaries} sal.)</div>
+                <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:26,fontWeight:700,color:'#ffffff',letterSpacing:'-.02em',marginBottom:6}}>{Math.round(coutEquipeMensuel).toLocaleString('fr-FR')} €</div>
+                <div style={{fontSize:11,color:'rgba(255,255,255,0.45)'}}>Coût employeur réel/mois</div>
+              </div>
+            )}
+            {/* Net après tout si salariés / Taux URSSAF sinon */}
+            {nbSalaries>0 ? (
+              <div className="card" onClick={()=>setView('simulateur')} style={{cursor:'pointer'}}>
+                <div className="card-title">Net après tout</div>
+                <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:26,fontWeight:700,color:netMoisApresEquipe<0?'#ff6e84':'#ffffff',letterSpacing:'-.02em',marginBottom:6}}>{Math.round(netMoisApresEquipe).toLocaleString('fr-FR')} €</div>
+                <div style={{fontSize:11,color:'rgba(255,255,255,0.45)'}}>{netMoisApresEquipe<0?'Attention : déficit ce mois':'Après équipe & charges'}</div>
+              </div>
+            ) : (
+              <div className="card" onClick={()=>setShowOnboarding(true)} style={{cursor:'pointer'}}>
+                <div className="card-title">Taux URSSAF</div>
+                <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:26,fontWeight:700,color:'#ffffff',letterSpacing:'-.02em',marginBottom:6}}>{profil?(taux*100).toFixed(1):'—'} %</div>
+                <div style={{fontSize:11,color:'rgba(255,255,255,0.45)'}}>{profil?.acre?'ACRE actif':'Taux standard'}</div>
+              </div>
+            )}
           </div>
 
           {/* ── ROW 2 : 3 cartes moyennes ── */}
@@ -902,7 +937,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             {/* CA annuel */}
             <div className="card" onClick={()=>setView('revenus')} style={{cursor:'pointer'}}>
               <div className="card-title">Revenu {year}</div>
-              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:32,fontWeight:700,color:'#fff',letterSpacing:'-.03em',marginBottom:8}}>{caAnnuel.toLocaleString('fr-FR')} €</div>
+              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:32,fontWeight:700,color:caAnnuel<0?'#ff6e84':'#fff',letterSpacing:'-.03em',marginBottom:8}}>{caAnnuel.toLocaleString('fr-FR')} €</div>
               {profil?.objectif_ca > 0 && (
                 <div>
                   <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
