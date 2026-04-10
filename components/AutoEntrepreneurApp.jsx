@@ -155,6 +155,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [revAnnee, setRevAnnee]     = useState(String(new Date().getFullYear()))
   const [revMontant, setRevMontant] = useState('')
   const [savingRev, setSavingRev]   = useState(false)
+  const [editingRev, setEditingRev]   = useState(null)
+  const [editRevMontant, setEditRevMontant] = useState('')
   const [histoAnnee, setHistoAnnee] = useState(String(new Date().getFullYear()))
 
   // Calendrier mobile
@@ -845,7 +847,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
           {/* ── HERO ── */}
           {profil ? (
-            <div style={{background:'rgba(20,5,40,0.38)',backdropFilter:'blur(32px)',WebkitBackdropFilter:'blur(32px)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:22,padding:'1.75rem',width:'100%',marginBottom:'1.25rem',overflow:'hidden'}}>
+            <div style={{background:'rgba(20,5,40,0.38)',backdropFilter:'blur(32px)',WebkitBackdropFilter:'blur(32px)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:22,padding:'1.75rem',maxWidth:680,margin:'0 auto 1.25rem',overflow:'hidden'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12,marginBottom:'1.5rem'}}>
                 <div>
                   <p style={{fontSize:11,color:'rgba(255,255,255,0.38)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:8,fontWeight:700}}>Bonjour </p>
@@ -1659,20 +1661,64 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     <tbody>
                       {revenus.filter(r=>r.mois.startsWith(histoAnnee)).map(r=>{
                         const cotis=r.montant*taux, impots=r.montant*tauxImpot, net=r.montant-cotis-impots
+                        const isEditing = editingRev === r.mois
                         return (
-                          <tr key={r.mois}>
-                            <td>{formatMois(r.mois)}</td>
-                            <td><strong>{r.montant.toLocaleString('fr-FR')} €</strong></td>
+                          <tr key={r.mois} style={{background:isEditing?'rgba(243,130,255,0.05)':'transparent'}}>
+                            <td style={{fontWeight:600}}>{formatMois(r.mois)}</td>
+                            <td>
+                              {isEditing ? (
+                                <input
+                                  type="number"
+                                  value={editRevMontant}
+                                  onChange={e=>setEditRevMontant(e.target.value)}
+                                  autoFocus
+                                  onKeyDown={async e=>{
+                                    if(e.key==='Enter'){
+                                      const val=parseFloat(editRevMontant)||0
+                                      await supabase.from('ae_revenus').upsert({user_id:user.id,mois:r.mois,montant:val},{onConflict:'user_id,mois'})
+                                      setRevenus(prev=>prev.map(x=>x.mois===r.mois?{...x,montant:val}:x))
+                                      setEditingRev(null)
+                                    }
+                                    if(e.key==='Escape') setEditingRev(null)
+                                  }}
+                                  style={{width:90,padding:'4px 8px',borderRadius:8,border:'1px solid rgba(243,130,255,0.5)',background:'rgba(20,5,40,0.6)',color:'#fff',fontFamily:'Inter,sans-serif',fontSize:13,outline:'none'}}
+                                />
+                              ) : (
+                                <strong>{r.montant.toLocaleString('fr-FR')} €</strong>
+                              )}
+                            </td>
                             <td style={{color:'#ff6e84'}}>{cotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
                             <td style={{color:'#dbb4ff'}}>{impots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
                             <td style={{color:'#c081ff',fontWeight:600}}>{net.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
                             <td>
-                              <button style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.38)',fontSize:16}} onClick={async()=>{
-                                if(!confirm('Supprimer ce mois ?')) return
-                                const {data:ex} = await supabase.from('ae_revenus').select('id').eq('user_id',user.id).eq('mois',r.mois).single()
-                                if(ex) await supabase.from('ae_revenus').delete().eq('id',ex.id)
-                                setRevenus(prev=>prev.filter(x=>x.mois!==r.mois))
-                              }}></button>
+                              <div style={{display:'flex',gap:6,alignItems:'center',justifyContent:'flex-end'}}>
+                                {isEditing ? (
+                                  <>
+                                    <button title="Enregistrer" onClick={async()=>{
+                                      const val=parseFloat(editRevMontant)||0
+                                      await supabase.from('ae_revenus').upsert({user_id:user.id,mois:r.mois,montant:val},{onConflict:'user_id,mois'})
+                                      setRevenus(prev=>prev.map(x=>x.mois===r.mois?{...x,montant:val}:x))
+                                      setEditingRev(null)
+                                    }} style={{background:'rgba(0,200,160,0.15)',border:'1px solid rgba(0,200,160,0.3)',borderRadius:8,padding:'4px 10px',color:'#00C8A0',cursor:'pointer',fontSize:12,fontFamily:'Inter,sans-serif',fontWeight:700}}>✓</button>
+                                    <button title="Annuler" onClick={()=>setEditingRev(null)} style={{background:'none',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'4px 10px',color:'rgba(255,255,255,0.4)',cursor:'pointer',fontSize:12,fontFamily:'Inter,sans-serif'}}>✕</button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button title="Modifier" onClick={()=>{setEditingRev(r.mois);setEditRevMontant(String(r.montant))}}
+                                      style={{background:'rgba(243,130,255,0.08)',border:'1px solid rgba(243,130,255,0.2)',borderRadius:8,padding:'4px 10px',color:'#f382ff',cursor:'pointer',fontSize:11,fontFamily:'Inter,sans-serif',fontWeight:600}}>
+                                      Modifier
+                                    </button>
+                                    <button title="Supprimer" onClick={async()=>{
+                                      if(!confirm('Supprimer le revenu de '+formatMois(r.mois)+' ?')) return
+                                      const {data:ex} = await supabase.from('ae_revenus').select('id').eq('user_id',user.id).eq('mois',r.mois).single()
+                                      if(ex) await supabase.from('ae_revenus').delete().eq('id',ex.id)
+                                      setRevenus(prev=>prev.filter(x=>x.mois!==r.mois))
+                                    }} style={{background:'rgba(255,110,132,0.08)',border:'1px solid rgba(255,110,132,0.2)',borderRadius:8,padding:'4px 10px',color:'#ff6e84',cursor:'pointer',fontSize:11,fontFamily:'Inter,sans-serif',fontWeight:600}}>
+                                      Supprimer
+                                    </button>
+                                  </>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         )
