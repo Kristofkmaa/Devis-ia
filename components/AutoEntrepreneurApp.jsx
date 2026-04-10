@@ -1077,37 +1077,47 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     ))}
                   </div>
 
-                  {/* Courbe SVG */}
+                  {/* Courbe SVG — coordonnées fixes */}
                   <div style={{position:'relative',marginBottom:8}}>
-                    <svg viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" style={{width:'100%',height:isMobile?100:H,display:'block',overflow:'visible'}}>
-                      <defs>
-                        <linearGradient id="caGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#f382ff" stopOpacity="0.25"/>
-                          <stop offset="100%" stopColor="#f382ff" stopOpacity="0.01"/>
-                        </linearGradient>
-                        <linearGradient id="netGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#c081ff" stopOpacity="0.15"/>
-                          <stop offset="100%" stopColor="#c081ff" stopOpacity="0.01"/>
-                        </linearGradient>
-                      </defs>
-                      {/* Grille horizontale */}
-                      {[0.25,0.5,0.75,1].map(p=>(
-                        <line key={p} x1="0" y1={H-(p*H)} x2="100" y2={H-(p*H)} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" vectorEffect="non-scaling-stroke"/>
-                      ))}
-                      {/* Aire CA */}
-                      <path d={areaD} fill="url(#caGrad)" vectorEffect="non-scaling-stroke"/>
-                      {/* Courbe CA */}
-                      <path d={pathD} fill="none" stroke="#f382ff" strokeWidth="1.5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round"/>
-                      {/* Points */}
-                      {pts.map((p,i)=>(
-                        p.ca > 0 && (
-                          <g key={i}>
-                            <circle cx={p.x} cy={p.y} r={p.isActif?3:1.5} fill={p.isActif?'#f382ff':'rgba(243,130,255,0.7)'} vectorEffect="non-scaling-stroke"/>
-                            {p.isActif && <circle cx={p.x} cy={p.y} r="5" fill="none" stroke="#f382ff" strokeWidth="1" opacity="0.4" vectorEffect="non-scaling-stroke"/>}
-                          </g>
-                        )
-                      ))}
-                    </svg>
+                    {(()=>{
+                      const W=600, PH=H, PAD=20
+                      const step = (W-PAD*2)/11
+                      const fixedPts = pts.map((p,i)=>({
+                        ...p,
+                        fx: PAD + i*step,
+                        fy: p.ca>0 ? PH - (p.ca/maxCA)*(PH-16) : PH-2
+                      }))
+                      const fPathD = fixedPts.reduce((d,p,i)=>{
+                        if(i===0) return `M ${p.fx} ${p.fy}`
+                        const prev = fixedPts[i-1]
+                        const cx = (prev.fx+p.fx)/2
+                        return d + ` C ${cx} ${prev.fy} ${cx} ${p.fy} ${p.fx} ${p.fy}`
+                      },'')
+                      const fAreaD = fPathD + ` L ${W-PAD} ${PH} L ${PAD} ${PH} Z`
+                      return (
+                        <svg viewBox={`0 0 ${W} ${PH}`} preserveAspectRatio="none" style={{width:'100%',height:isMobile?100:PH,display:'block'}}>
+                          <defs>
+                            <linearGradient id="caGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#f382ff" stopOpacity="0.3"/>
+                              <stop offset="85%" stopColor="#f382ff" stopOpacity="0.02"/>
+                            </linearGradient>
+                          </defs>
+                          {[0.25,0.5,0.75].map(p=>(
+                            <line key={p} x1={PAD} y1={PH-(p*PH)} x2={W-PAD} y2={PH-(p*PH)} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
+                          ))}
+                          <path d={fAreaD} fill="url(#caGrad)"/>
+                          <path d={fPathD} fill="none" stroke="#f382ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          {fixedPts.map((p,i)=>(
+                            p.ca > 0 && (
+                              <g key={i}>
+                                {p.isActif && <circle cx={p.fx} cy={p.fy} r="10" fill="rgba(243,130,255,0.12)" stroke="#f382ff" strokeWidth="1" opacity="0.6"/>}
+                                <circle cx={p.fx} cy={p.fy} r={p.isActif?4:2.5} fill={p.isActif?'#f382ff':'rgba(243,130,255,0.6)'}/>
+                              </g>
+                            )
+                          ))}
+                        </svg>
+                      )
+                    })()}
                   </div>
 
                   {/* Labels mois cliquables */}
