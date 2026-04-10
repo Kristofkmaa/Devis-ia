@@ -2301,22 +2301,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 )
               })()}
 
-       <div
-                  onClick={()=>setSimMode('reel')}
-                  style={{
-                    background: simMode==='reel' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
-                    border: simMode==='reel' ? '1.5px solid rgba(255,255,255,0.2)' : '1.5px solid rgba(255,255,255,0.08)',
-                    borderRadius:20, padding:'1.75rem', cursor:'pointer', transition:'all .2s',
-                    boxShadow: simMode==='reel' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>balance</span>
-                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='reel'?'#fff':'rgba(255,255,255,0.7)'}}>Micro vs Réel</div>
-                  <div style={{fontSize:13,lineHeight:1.6,color:simMode==='reel'?'rgba(255,255,255,0.65)':'rgba(255,255,255,0.5)'}}>Tu approches du plafond ?<br/>Compare concrètement micro-entreprise et régime réel.</div>
-                  {simMode==='reel' && (
-                    <div style={{marginTop:14,display:'inline-block',background:'rgba(243,130,255,0.15)',color:'#f382ff',border:'1px solid rgba(243,130,255,0.4)',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
-                  )}
-                </div>
+
               </div>
 
               {/* ── MODE CALCUL RAPIDE ── */}
@@ -2816,204 +2801,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 </div>
               )}
               {/* ── MODE MICRO VS RÉEL ── */}
-              {simMode==='reel' && (() => {
-                const plafond = profil.secteur==='ventes' ? SEUILS.plafond_ventes : SEUILS.plafond_services
-                const seuil_tva = profil.secteur==='ventes' ? SEUILS.tva_ventes : SEUILS.tva_services
-                const tauxU = profil.acre ? TAUX_ACRE[profil.secteur] : TAUX[profil.secteur]
-                const tauxI = (parseFloat(profil.taux_impot_perso)||14)/100
 
-                const calcReel = () => {
-                  const ca = parseFloat(reelCA)||0
-                  const charges = parseFloat(reelCharges)||0
-                  if (!ca) return
-
-                  // ── MICRO ──
-                  const micro_cotis = ca * tauxU
-                  const micro_impots = ca * tauxI
-                  const micro_net = ca - micro_cotis - micro_impots
-
-                  // ── RÉEL ──
-                  // Au réel : cotisations sur le bénéfice (~45% du bénéfice)
-                  // Bénéfice = CA - charges
-                  const benefice = Math.max(ca - charges, 0)
-                  // Cotisations TNS au réel ≈ 45% du bénéfice (simplifié)
-                  const reel_cotis = benefice * 0.45
-                  // Bénéfice imposable = bénéfice - cotisations
-                  const benefice_imposable = Math.max(benefice - reel_cotis, 0)
-                  const reel_impots = benefice_imposable * tauxI
-                  const reel_net = benefice - reel_cotis - reel_impots
-
-                  setReelResult({ ca, charges, benefice, micro_cotis, micro_impots, micro_net, reel_cotis, reel_impots, reel_net, tauxU, tauxI })
-                }
-
-                return (
-                  <>
-                    {/* Alerte seuil */}
-                    <div style={{background:caAnnuel > plafond*0.85 ? 'rgba(255,100,100,0.1)' : 'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)',borderRadius:14,padding:'14px 18px',marginBottom:'1.5rem',display:'flex',gap:14,alignItems:'flex-start'}}>
-                      <span style={{fontSize:24,flexShrink:0}}>{caAnnuel > plafond*0.85 ? '!' : 'i'}</span>
-                      <div>
-                        <div style={{fontSize:14,fontWeight:600,color:'#ffffff',marginBottom:4}}>
-                          {caAnnuel > plafond*0.85 ? 'Tu approches du plafond micro-entreprise !' : 'Simule le passage au régime réel'}
-                        </div>
-                        <div style={{fontSize:13,color:'rgba(255,255,255,0.55)',lineHeight:1.7}}>
-                          Ton CA actuel : <strong>{caAnnuel.toLocaleString('fr-FR')} €</strong> / Plafond : <strong>{plafond.toLocaleString('fr-FR')} €</strong> ({Math.round((caAnnuel/plafond)*100)}% atteint)
-                          <br/>Si tu dépasses ce plafond 2 années consécutives, tu bascules automatiquement au régime réel.
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Formulaire */}
-                    <div className="card" style={{marginBottom:'1.5rem'}}>
-                      <div className="card-title">Paramètres de comparaison</div>
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:'1rem'}}>
-                        <div>
-                          <span className="mini-label">CA annuel (€)</span>
-                          <input className="mini-input" type="number" value={reelCA}
-                            onChange={e=>setReelCA(e.target.value)}
-                            placeholder={caAnnuel > 0 ? String(Math.round(caAnnuel)) : '80 000'}
-                            style={{fontSize:16,padding:'11px 14px'}}/>
-                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>Ton CA actuel cette année : {caAnnuel.toLocaleString('fr-FR')} €</div>
-                        </div>
-                        <div>
-                          <span className="mini-label">Charges professionnelles (€/an)</span>
-                          <input className="mini-input" type="number" value={reelCharges}
-                            onChange={e=>setReelCharges(e.target.value)}
-                            placeholder="15 000"
-                            style={{fontSize:16,padding:'11px 14px'}}/>
-                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>Loyer, matériel, logiciels, déplacements…</div>
-                        </div>
-                      </div>
-                      <button className="btn btn-dark" style={{padding:'12px 28px'}} onClick={calcReel}>
-                        Comparer →
-                      </button>
-                    </div>
-
-                    {reelResult && (
-                      <>
-                        {/* Comparaison principale */}
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:'1.5rem'}}>
-                          {/* MICRO */}
-                          <div style={{background:'rgba(255,255,255,0.06)',border:'2px solid #E8D5A8',borderRadius:20,padding:'1.5rem'}}>
-                            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:'1rem'}}>
-                              <div style={{background:'rgba(243,130,255,0.15)',color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>Régime actuel</div>
-                              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:18,color:'#ffffff'}}>Micro-entreprise</div>
-                            </div>
-                            <div style={{fontSize:12,color:'rgba(255,255,255,0.55)',marginBottom:'1rem',lineHeight:1.6}}>
-                              Cotisations calculées sur le <strong>CA brut</strong> ({(reelResult.tauxU*100).toFixed(1)}%), pas sur le bénéfice.
-                            </div>
-                            {[
-                              {label:'CA encaissé',val:reelResult.ca,color:'#ffffff'},
-                              {label:`Cotisations URSSAF (${(reelResult.tauxU*100).toFixed(1)}% du CA)`,val:reelResult.micro_cotis,color:'#ff6e84',neg:true},
-                              {label:`Impôts (~${Math.round(reelResult.tauxI*100)}% du CA)`,val:reelResult.micro_impots,color:'#dbb4ff',neg:true},
-                            ].map(({label,val,color,neg})=>(
-                              <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #F0E8D5',fontSize:13}}>
-                                <span style={{color:'rgba(255,255,255,0.55)'}}>{label}</span>
-                                <span style={{color,fontWeight:600}}>{neg?'−':''}{Math.round(val).toLocaleString('fr-FR')} €</span>
-                              </div>
-                            ))}
-                            <div style={{display:'flex',justifyContent:'space-between',padding:'12px 0',marginTop:4}}>
-                              <span style={{fontSize:14,fontWeight:600,color:'#ffffff'}}>Net estimé</span>
-                              <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:reelResult.micro_net>0?'#2D7A4F':'#8B1A1A'}}>{Math.round(reelResult.micro_net).toLocaleString('fr-FR')} €</span>
-                            </div>
-                            <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>
-                              Taux global réel : {Math.round(((reelResult.micro_cotis+reelResult.micro_impots)/reelResult.ca)*100)}% du CA
-                            </div>
-                          </div>
-
-                          {/* RÉEL */}
-                          <div style={{background:'rgba(106,13,173,0.2)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:'1px solid rgba(192,129,255,0.25)',borderRadius:20,padding:'1.5rem'}}>
-                            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:'1rem'}}>
-                              <div style={{background:'rgba(106,13,173,0.2)',color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>Régime réel</div>
-                              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:18,color:'#ffffff'}}>EI au réel simplifié</div>
-                            </div>
-                            <div style={{fontSize:12,color:'#dbb4ff',marginBottom:'1rem',lineHeight:1.6}}>
-                              Cotisations calculées sur le <strong>bénéfice net</strong> (CA − charges). Tu déduis tes dépenses pro.
-                            </div>
-                            {[
-                              {label:'CA encaissé',val:reelResult.ca,color:'#ffffff'},
-                              {label:'Charges déductibles',val:reelResult.charges,color:'#c081ff',neg:true},
-                              {label:'Bénéfice net',val:reelResult.benefice,color:'#dbb4ff',bold:true},
-                              {label:'Cotisations TNS (~45% bénéfice)',val:reelResult.reel_cotis,color:'#ff6e84',neg:true},
-                              {label:`Impôts (~${Math.round(reelResult.tauxI*100)}% bénéfice imposable)`,val:reelResult.reel_impots,color:'#dbb4ff',neg:true},
-                            ].map(({label,val,color,neg,bold})=>(
-                              <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #D4E8FF',fontSize:13}}>
-                                <span style={{color:'rgba(255,255,255,0.55)',fontWeight:bold?600:400}}>{label}</span>
-                                <span style={{color,fontWeight:bold?700:600}}>{neg?'−':''}{Math.round(val).toLocaleString('fr-FR')} €</span>
-                              </div>
-                            ))}
-                            <div style={{display:'flex',justifyContent:'space-between',padding:'12px 0',marginTop:4}}>
-                              <span style={{fontSize:14,fontWeight:600,color:'#ffffff'}}>Net estimé</span>
-                              <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:reelResult.reel_net>0?'#2D7A4F':'#8B1A1A'}}>{Math.round(reelResult.reel_net).toLocaleString('fr-FR')} €</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Verdict */}
-                        {(() => {
-                          const diff = reelResult.reel_net - reelResult.micro_net
-                          const mieux = diff > 0 ? 'réel' : 'micro'
-                          return (
-                            <div style={{background:'rgba(255,255,255,0.1)',borderRadius:20,padding:'1.5rem',marginBottom:'1.5rem',textAlign:'center',position:'relative',overflow:'hidden'}}>
-                              <div style={{position:'absolute',top:-40,right:-40,width:180,height:180,borderRadius:'50%',background:'rgba(181,121,42,.12)'}}/>
-                              <div style={{position:'relative',zIndex:1}}>
-                                <div style={{fontSize:13,color:'rgba(255,255,255,.5)',marginBottom:8}}>Verdict pour ton cas</div>
-                                {Math.abs(diff) < 500 ? (
-                                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:20,color:'rgba(255,255,255,0.85)',marginBottom:8}}>Les deux régimes sont équivalents</div>
-                                ) : (
-                                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'rgba(255,255,255,0.85)',marginBottom:8}}>
-                                    Le régime {mieux==='reel'?'réel':'micro'} te rapporte <span style={{color:'#f382ff'}}>{Math.abs(Math.round(diff)).toLocaleString('fr-FR')} € de plus</span> par an
-                                  </div>
-                                )}
-                                <div style={{fontSize:12,color:'rgba(255,255,255,.4)',lineHeight:1.7,maxWidth:600,margin:'0 auto'}}>
-                                  {mieux==='reel'
-                                    ? 'Le régime réel est plus avantageux si tu as des charges importantes à déduire. Mais attention : il implique une comptabilité obligatoire et des obligations administratives plus lourdes.'
-                                    : 'Le régime micro reste plus avantageux dans ton cas grâce à sa simplicité. Pas de comptabilité complexe, pas de charges à justifier.'}
-                                </div>
-                              </div>
-                            </div>
-                          )
-                        })()}
-
-                        {/* Ce qui change concrètement */}
-                        <div className="card" style={{marginBottom:'1.5rem'}}>
-                          <div className="card-title">Ce qui change concrètement si tu passes au réel</div>
-                          <div style={{display:'flex',flexDirection:'column',gap:10}}>
-                            {[
-                              {icon:'account_balance',titre:'Comptabilité obligatoire',micro:'Aucune — tu déclares juste ton CA',reel:'Livre de comptes, bilan annuel, bilan comptable — souvent avec un comptable (~1 000-2 000€/an)'},
-                              {icon:'calculate',titre:'Calcul des cotisations',micro:`${(reelResult.tauxU*100).toFixed(1)}% de ton CA brut, même si tu as des charges`,reel:'~45% de ton bénéfice (CA − charges). Beaucoup plus avantageux si tu as des dépenses pro.'},
-                              {icon:'receipt',titre:'Déduction des charges',micro:'Impossible — abattement forfaitaire seulement',reel:'Toutes les dépenses pro déductibles : loyer, matériel, logiciels, véhicule, formation…'},
-                              {icon:'assignment',titre:'TVA',micro:'Franchise si sous les seuils (36 800€ services)',reel:'TVA obligatoire — tu la collectes et la reverses. Tu récupères aussi la TVA sur tes achats.'},
-                              {icon:'settings',titre:'Complexité administrative',micro:'Simple — une déclaration mensuelle ou trimestrielle',reel:'Plus complexe — liasse fiscale, déclarations TVA, DSN si salarié'},
-                              {icon:'trending_up',titre:'Optimisation fiscale',micro:'Limitée — taux fixe sur le CA',reel:'Beaucoup plus de leviers : amortissements, provisions, optimisation de la rémunération'},
-                            ].map(({icon,titre,micro,reel})=>(
-                              <div key={titre} style={{border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,overflow:'hidden'}}>
-                                <div style={{background:'rgba(255,255,255,0.05)',padding:'10px 14px',display:'flex',alignItems:'center',gap:8}}>
-                                  <span className="material-symbols-outlined" style={{fontSize:20,color:"#f382ff"}}>{icon}</span>
-                                  <span style={{fontSize:13,fontWeight:600,color:'#ffffff'}}>{titre}</span>
-                                </div>
-                                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr'}}>
-                                  <div style={{padding:'10px 14px',borderRight:'1px solid #E2D8C4',background:'rgba(255,255,255,0.05)'}}>
-                                    <div style={{fontSize:10,fontWeight:600,color:'#f382ff',letterSpacing:'1px',textTransform:'uppercase',marginBottom:4}}>Micro-entreprise</div>
-                                    <div style={{fontSize:12,color:'rgba(255,255,255,0.55)',lineHeight:1.6}}>{micro}</div>
-                                  </div>
-                                  <div style={{padding:'10px 14px',background:'rgba(0,120,200,0.1)'}}>
-                                    <div style={{fontSize:10,fontWeight:600,color:'#dbb4ff',letterSpacing:'1px',textTransform:'uppercase',marginBottom:4}}>Régime réel</div>
-                                    <div style={{fontSize:12,color:'#dbb4ff',lineHeight:1.6}}>{reel}</div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div style={{fontSize:11,color:'rgba(255,255,255,.35)',background:'rgba(255,255,255,0.05)',borderRadius:12,padding:'12px 16px',lineHeight:1.7}}>
-                          <strong style={{color:'#ffffff'}}>Simulation indicative</strong> — Le taux TNS de 45% est une approximation. Le régime réel est complexe et dépend fortement de ta situation personnelle. Consulte un expert-comptable avant de prendre cette décision.
-                        </div>
-                      </>
-                    )}
-                  </>
-                )
-              })()}
             </>
           )}
         </div>
@@ -3046,7 +2834,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               ].map(([label,val,color,bg])=>(
                 <div key={label} style={{background:bg,border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:'1rem',textAlign:'center'}}>
                   <div style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>{label}</div>
-                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:26,color}}>{val}</div>
+                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:26,color}}>{val}</div>
                 </div>
               ))}
             </div>
@@ -3097,7 +2885,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           </div>
                           <div>
                             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3,flexWrap:'wrap'}}>
-                              <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:15,fontWeight:600,color:'#ffffff'}}>{d.numero}</span>
+                              <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:600,color:'#ffffff'}}>{d.numero}</span>
                               <span style={{fontSize:10,fontWeight:600,padding:'3px 9px',borderRadius:20,background:sc.bg,color:sc.color}}>{statutLabel[d.statut]||'En attente'}</span>
                             </div>
                             <div style={{fontSize:14,color:'#ffffff',fontWeight:500}}>{d.client_nom}</div>
@@ -3107,7 +2895,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           </div>
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:10,flexShrink:0}}>
-                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:18,color:'#ffffff',textAlign:'right'}}>
+                          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,color:'#ffffff',textAlign:'right'}}>
                             {(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{minimumFractionDigits:2})} €
                             <div style={{fontSize:10,color:'rgba(255,255,255,0.38)',fontFamily:'Inter,sans-serif'}}>{d.tva_taux>0?'TTC':'HT'}</div>
                           </div>
@@ -3381,6 +3169,142 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <button className="btn btn-dark" onClick={()=>{setSalarieForm({prenom:'',nom:'',poste:'',type_contrat:'cdi',salaire_brut:'',date_embauche:'',statut:'actif',notes:''});setSalarieEditing(null);setShowSalarieForm(true)}}>+ Ajouter un salarié</button>
           </div>
 
+          {/* ── SIMULATEUR RAPIDE ── */}
+          <div className="card" style={{marginBottom:'1.25rem'}}>
+            <div className="card-title">Simulateur de coût — combien me coûte vraiment un salarié ?</div>
+            <p style={{fontSize:13,color:'rgba(255,255,255,0.45)',marginBottom:'1.25rem',lineHeight:1.6}}>
+              Saisis un salaire brut pour voir le détail complet : charges salariales, charges patronales, coût employeur réel.
+            </p>
+            <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'flex-end',marginBottom:'1.25rem'}}>
+              <div style={{flex:1,minWidth:180}}>
+                <span className="mini-label">Salaire brut mensuel (€)</span>
+                <input className="mini-input" type="number" value={simSalaire}
+                  onChange={e=>setSimSalaire(e.target.value)}
+                  onKeyDown={e=>{if(e.key==='Enter'){
+                    const brut=parseFloat(simSalaire)||0
+                    if(!brut)return
+                    setSimSalarieResult({brut,...calcSalaire(brut)})
+                  }}}
+                  placeholder="2 000"/>
+              </div>
+              <button className="btn btn-dark" style={{padding:'13px 24px',whiteSpace:'nowrap'}} onClick={()=>{
+                const brut=parseFloat(simSalaire)||0
+                if(!brut)return
+                setSimSalarieResult({brut,...calcSalaire(brut)})
+              }}>Calculer →</button>
+            </div>
+
+            {simSalarieResult && (() => {
+              const r = simSalarieResult
+              const fmt = v => Math.round(v).toLocaleString('fr-FR')
+              return (
+                <>
+                  {/* 3 grandes cartes résultat */}
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:'1.25rem'}}>
+                    <div style={{background:'rgba(20,5,40,0.5)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Salaire brut</div>
+                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#fff'}}>{fmt(r.brut)} €</div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que tu affiches</div>
+                    </div>
+                    <div style={{background:'rgba(192,129,255,0.12)',border:'1px solid rgba(192,129,255,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Salaire net</div>
+                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#c081ff'}}>{fmt(r.net)} €</div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que touche ton salarié</div>
+                    </div>
+                    <div style={{background:'rgba(243,130,255,0.1)',border:'1px solid rgba(243,130,255,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Coût employeur</div>
+                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#f382ff'}}>{fmt(r.cout_apres_fillon)} €</div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que tu paies vraiment</div>
+                    </div>
+                  </div>
+
+                  {r.fillon > 0 && (
+                    <div style={{background:'rgba(192,129,255,0.08)',border:'1px solid rgba(192,129,255,0.2)',borderRadius:12,padding:'10px 14px',marginBottom:'1.25rem',fontSize:13,color:'#dbb4ff'}}>
+                      Réduction Fillon applicable (salaire ≤ 1,6 SMIC) — économie estimée : <strong>{fmt(r.fillon)} €/mois</strong> soit {fmt(r.fillon*12)} €/an
+                    </div>
+                  )}
+
+                  {/* Détail des charges en 2 colonnes */}
+                  <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:12}}>
+                    {/* Charges salariales */}
+                    <div style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:'1rem'}}>
+                      <div style={{fontSize:12,fontWeight:700,color:'#c081ff',marginBottom:12,letterSpacing:'.04em',textTransform:'uppercase'}}>
+                        Charges salariales — {Math.round((r.total_sal/r.brut)*100)}%
+                      </div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10}}>Retenues sur le brut — supportées par le salarié</div>
+                      {[
+                        ['Assurance maladie','0,75%',r.detail_sal.cs_maladie],
+                        ['Retraite de base plafonnée','6,9%',r.detail_sal.cs_vieillesse_plaf],
+                        ['Retraite de base déplafonnée','0,4%',r.detail_sal.cs_vieillesse_deplaf],
+                        ['Assurance chômage','2,4%',r.detail_sal.cs_chomage],
+                        ['CSG déductible','6,8%',r.detail_sal.cs_csg_ded],
+                        ['CSG/CRDS non déductible','2,9%',r.detail_sal.cs_csg_crds],
+                        ['Retraite complémentaire AGIRC-ARRCO','3,15%',r.detail_sal.cs_retraite_comp],
+                      ].map(([label,taux,val])=>(
+                        <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                          <div>
+                            <div style={{fontSize:12,color:'rgba(255,255,255,0.7)'}}>{label}</div>
+                            <div style={{fontSize:10,color:'rgba(255,255,255,0.3)'}}>{taux}</div>
+                          </div>
+                          <span style={{fontSize:13,fontWeight:600,color:'#ff6e84'}}>−{fmt(val)} €</span>
+                        </div>
+                      ))}
+                      <div style={{display:'flex',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:'1px solid rgba(192,129,255,0.2)'}}>
+                        <span style={{fontSize:13,fontWeight:700,color:'#fff'}}>Total salarial</span>
+                        <span style={{fontSize:14,fontWeight:800,color:'#ff6e84'}}>−{fmt(r.total_sal)} €</span>
+                      </div>
+                      <div style={{marginTop:8,padding:'8px 12px',background:'rgba(192,129,255,0.1)',borderRadius:10,display:'flex',justifyContent:'space-between'}}>
+                        <span style={{fontSize:13,color:'rgba(255,255,255,0.6)'}}>Net versé au salarié</span>
+                        <span style={{fontSize:14,fontWeight:800,color:'#c081ff'}}>{fmt(r.net)} €</span>
+                      </div>
+                    </div>
+
+                    {/* Charges patronales */}
+                    <div style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:'1rem'}}>
+                      <div style={{fontSize:12,fontWeight:700,color:'#f382ff',marginBottom:12,letterSpacing:'.04em',textTransform:'uppercase'}}>
+                        Charges patronales — {Math.round((r.total_pat/r.brut)*100)}%
+                      </div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10}}>En plus du brut — supportées par l'employeur</div>
+                      {[
+                        ['Assurance maladie-maternité','7%',r.detail_pat.cp_maladie],
+                        ['Vieillesse plafonnée','8,55%',r.detail_pat.cp_vieillesse_plaf],
+                        ['Vieillesse déplafonnée','1,9%',r.detail_pat.cp_vieillesse_deplaf],
+                        ['Allocations familiales','3,45%',r.detail_pat.cp_fam],
+                        ['Accidents du travail','2,22%',r.detail_pat.cp_at],
+                        ['Assurance chômage','4,05%',r.detail_pat.cp_chomage],
+                        ['AGS (garantie salaires)','0,15%',r.detail_pat.cp_ags],
+                        ['Retraite complémentaire AGIRC-ARRCO','4,72%',r.detail_pat.cp_retraite_comp],
+                        ['CEG (équilibre général)','1,29%',r.detail_pat.cp_ceg],
+                        ['Formation professionnelle','1,55%',r.detail_pat.cp_formation],
+                        ['Taxe apprentissage','0,68%',r.detail_pat.cp_apprentissage],
+                        ['Contribution solidarité autonomie','0,3%',r.detail_pat.cp_csa],
+                      ].map(([label,taux,val])=>(
+                        <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                          <div>
+                            <div style={{fontSize:12,color:'rgba(255,255,255,0.7)'}}>{label}</div>
+                            <div style={{fontSize:10,color:'rgba(255,255,255,0.3)'}}>{taux}</div>
+                          </div>
+                          <span style={{fontSize:13,fontWeight:600,color:'#f382ff'}}>+{fmt(val)} €</span>
+                        </div>
+                      ))}
+                      <div style={{display:'flex',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:'1px solid rgba(243,130,255,0.2)'}}>
+                        <span style={{fontSize:13,fontWeight:700,color:'#fff'}}>Total patronal</span>
+                        <span style={{fontSize:14,fontWeight:800,color:'#f382ff'}}>+{fmt(r.total_pat)} €</span>
+                      </div>
+                      <div style={{marginTop:8,padding:'8px 12px',background:'rgba(243,130,255,0.1)',borderRadius:10,display:'flex',justifyContent:'space-between'}}>
+                        <span style={{fontSize:13,color:'rgba(255,255,255,0.6)'}}>Coût total employeur</span>
+                        <span style={{fontSize:14,fontWeight:800,color:'#f382ff'}}>{fmt(r.cout_apres_fillon)} €</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{marginTop:12,padding:'12px 16px',background:'rgba(255,255,255,0.04)',borderRadius:12,fontSize:11,color:'rgba(255,255,255,0.3)',lineHeight:1.7}}>
+                    Taux 2025 — Sources : URSSAF, DSS. Taux AT moyen (variable selon secteur). Réduction Fillon estimée à 30% des charges patronales pour salaires ≤ 1,6 SMIC. Ces chiffres sont indicatifs — consulte un expert-comptable ou un gestionnaire de paie pour ta situation exacte.
+                  </div>
+                </>
+              )
+            })()}
+          </div>
 
           {/* ── RÉCAP ÉQUIPE ── */}
           {salaries.filter(s=>s.statut==='actif').length > 0 && (
@@ -3392,7 +3316,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               ].map(({label,val,unit})=>(
                 <div key={label} style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                   <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.35)',marginBottom:8}}>{label}</div>
-                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,fontWeight:800,color:'#f382ff'}}>{val} <span style={{fontSize:13,color:'rgba(255,255,255,0.35)'}}>{unit}</span></div>
+                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,color:'#f382ff'}}>{val} <span style={{fontSize:13,color:'rgba(255,255,255,0.35)'}}>{unit}</span></div>
                 </div>
               ))}
             </div>
@@ -3547,6 +3471,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
         </div>
       )}
 
+
       {/* FOOTER LÉGAL */}
       <div className="app-footer">
         © 2026 Serelyo &nbsp;·&nbsp;
@@ -3560,7 +3485,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 }
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
 .material-symbols-outlined {
@@ -3579,21 +3504,18 @@ const CSS = `
 
 /* ── RESET ── */
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;margin:0;padding:0}
-html{background:#0d0d1a;min-height:100vh;scroll-behavior:smooth}
-body{background:transparent;color:rgba(255,255,255,0.95);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+html{background:#04000C;min-height:100vh;scroll-behavior:smooth}
+body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
 /* ── APP BAR ── */
 .app-bar{
-  background:rgba(15,12,30,0.88);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  background:rgba(4,0,12,0.75);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
   height:60px;padding:0 1.25rem;
   display:flex;align-items:center;justify-content:space-between;
   position:sticky;top:0;z-index:200;
   border-bottom:1px solid rgba(255,255,255,0.08)
 }
-@media(min-width:900px){
-  .app-bar{padding-left:calc(240px + 1.5rem)}
-}
-.logo{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;letter-spacing:.16em;text-transform:uppercase}
+.logo{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;color:#fff;letter-spacing:.12em;text-transform:uppercase}
 .logo span{color:#f382ff}
 .bar-right{display:flex;align-items:center;gap:10px}
 .user-tag{font-size:12px;color:rgba(255,255,255,0.4);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -3605,7 +3527,7 @@ body{background:transparent;color:rgba(255,255,255,0.95);font-family:'Space Grot
 }
 .btn-logout{font-size:12px;color:rgba(255,255,255,0.3);background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;padding:8px;min-height:44px;display:flex;align-items:center}
 
-/* ── BOTTOM NAV (mobile) ── */
+/* ── BOTTOM NAV ── */
 .nav-tabs{
   background:rgba(4,0,12,0.85);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
   border-top:1px solid rgba(255,255,255,0.08);
@@ -3627,78 +3549,36 @@ body{background:transparent;color:rgba(255,255,255,0.95);font-family:'Space Grot
 .nav-tab.active{color:#f382ff;background:rgba(243,130,255,0.1)}
 .nav-tab.active span:first-child{transform:scale(1.15)}
 
-/* ── DESKTOP SIDEBAR NAV ── */
-@media(min-width:900px){
-  .nav-tabs{
-    position:fixed;top:60px;left:0;bottom:0;right:auto;
-    width:240px;height:auto;
-    flex-direction:column;justify-content:flex-start;align-items:stretch;
-    border-top:none;border-right:1px solid rgba(255,255,255,0.07);
-    padding:1.5rem 1rem;overflow-x:visible;overflow-y:auto;
-    box-shadow:none;background:rgba(15,12,30,0.75);backdrop-filter:blur(40px);
-    gap:4px
-  }
-  .nav-tab{
-    width:100%;min-width:unset;
-    flex-direction:row;justify-content:flex-start;
-    padding:12px 16px;gap:12px;
-    border-radius:12px;margin:0;
-    font-size:13px;letter-spacing:.02em;text-align:left;
-    font-weight:600
-  }
-  .nav-tab span:first-child{font-size:20px !important;margin-bottom:0 !important;display:inline !important}
-  .nav-tab.active{background:rgba(243,130,255,0.12);color:#f382ff;border:1px solid rgba(243,130,255,0.2)}
-  .nav-tab:not(.active):hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7)}
-  .sidebar-profile{
-    display:flex;align-items:center;gap:10px;
-    margin-top:auto;padding:12px 16px;
-    border-top:1px solid rgba(255,255,255,0.07);
-    cursor:pointer;border-radius:12px;
-    transition:background .2s
-  }
-  .sidebar-profile:hover{background:rgba(255,255,255,0.05)}
-}
-.sidebar-profile{display:none}
-
 /* ── MAIN ── */
-.main{max-width:100%;margin:0;padding:1.25rem 1rem 2rem;position:relative;z-index:1}
+.main{max-width:820px;margin:0 auto;padding:1.25rem 1rem 2rem;position:relative;z-index:1}
 @media(min-width:640px){.main{padding:2rem 1.5rem 2rem}}
-@media(min-width:900px){.main{padding:1.5rem 2rem 2rem 2rem;margin-left:240px;max-width:calc(100vw - 240px)}}
-@media(min-width:1400px){.main{padding:1.5rem 3rem 2rem 2.5rem}}
+@media(min-width:820px){.main{padding:2rem 2rem 2rem}}
 
 /* ── CARDS ── */
 .card{
-  background:rgba(255,255,255,0.07);
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:12px;padding:1.25rem;
-  box-shadow:0 2px 12px rgba(0,0,0,0.15);
-  transition:transform .2s cubic-bezier(.16,1,.3,1),border-color .2s,box-shadow .2s
+  background:rgba(20,5,40,0.35);
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border:1px solid rgba(255,255,255,0.14);
+  border-radius:18px;padding:1.25rem;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.07)
 }
-.card:hover{
-  transform:scale(1.012);
-  border-color:rgba(255,255,255,0.35);
-  box-shadow:0 0 0 1px rgba(255,255,255,0.08),0 8px 32px rgba(0,0,0,0.2)
-}
-@media(min-width:640px){.card{border-radius:14px;padding:1.75rem}}
-@media(min-width:1200px){.card{padding:2rem}}
+@media(min-width:640px){.card{border-radius:22px;padding:1.75rem}}
 .card-title{
-  font-family:'Space Grotesk',sans-serif;
-  font-size:11px;font-weight:700;letter-spacing:.1em;
-  text-transform:uppercase;color:rgba(255,255,255,0.55);
-  margin-bottom:1rem
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:15px;font-weight:700;letter-spacing:-.01em;
+  margin-bottom:1rem;color:#fff
 }
-@media(min-width:640px){.card-title{font-size:11px}}
+@media(min-width:640px){.card-title{font-size:17px}}
 
 /* ── PAGE HEADER ── */
 .page-header{margin-bottom:1.5rem}
 .page-title{
-  font-family:'Space Grotesk',sans-serif;
-  font-size:28px;font-weight:700;color:#fff;
-  margin-bottom:4px;letter-spacing:-.01em;text-transform:uppercase
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:26px;font-weight:800;color:#fff;
+  margin-bottom:6px;letter-spacing:-.02em
 }
-@media(min-width:640px){.page-title{font-size:36px}}
-.page-sub{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.5;letter-spacing:.05em;text-transform:uppercase;font-weight:500}
+@media(min-width:640px){.page-title{font-size:32px}}
+.page-sub{font-size:14px;color:rgba(255,255,255,0.42);line-height:1.5}
 
 /* ── PROGRESS ── */
 .progress-bar{height:6px;background:rgba(255,255,255,0.07);border-radius:9999px;overflow:hidden}
@@ -3707,34 +3587,33 @@ body{background:transparent;color:rgba(255,255,255,0.95);font-family:'Space Grot
 
 /* ── CAL ── */
 .cal-card{
-  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+  background:rgba(20,5,40,0.35);border:1px solid rgba(255,255,255,0.13);
   backdrop-filter:blur(28px);border-radius:14px;
   padding:.875rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap
 }
 .cal-current{border-color:rgba(243,130,255,0.4)!important;background:rgba(243,130,255,0.08)!important}
-.cal-card:hover{transform:scale(1.012);border-color:rgba(255,255,255,0.55);box-shadow:0 0 0 1px rgba(255,255,255,0.08),0 8px 24px rgba(0,0,0,0.3)}
 .cal-past{opacity:.4}
 .cal-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .dot-done{background:#c081ff}
 .dot-late{background:#ff6e84}
 .dot-pending{background:rgba(255,255,255,0.18)}
-.cal-label{font-size:14px;font-weight:600;color:rgba(255,255,255,0.95);margin-bottom:3px}
+.cal-label{font-size:14px;font-weight:600;color:#fff;margin-bottom:3px}
 .cal-date{font-size:12px;color:rgba(255,255,255,0.38)}
 .badge-done{font-size:12px;font-weight:700;color:#c081ff;background:rgba(192,129,255,0.1);padding:6px 16px;border-radius:9999px;border:1px solid rgba(192,129,255,0.22)}
 
 /* ── INFO BOX ── */
-.info-box{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:1rem 1.25rem;backdrop-filter:blur(20px)}
+.info-box{background:rgba(20,5,40,0.35);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:1rem 1.25rem;backdrop-filter:blur(20px)}
 .info-title{font-size:13px;font-weight:700;color:#dbb4ff;margin-bottom:8px}
-.info-text{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.9}
+.info-text{font-size:13px;color:rgba(255,255,255,0.55);line-height:1.8}
 .info-text a{color:#f382ff;text-decoration:none}
 
 /* ── INPUTS ── */
-.mini-label{font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,0.4);display:block;margin-bottom:7px;text-transform:uppercase}
+.mini-label{font-size:11px;font-weight:700;letter-spacing:.07em;color:rgba(255,255,255,0.42);display:block;margin-bottom:7px;text-transform:uppercase}
 .mini-input{
-  padding:13px 16px;border-radius:8px;
+  padding:13px 16px;border-radius:12px;
   border:1px solid rgba(255,255,255,0.18)!important;
-  background:rgba(255,255,255,0.06)!important;
-  color:#fff;font-family:'Space Grotesk',sans-serif;font-size:15px;width:100%;
+  background:rgba(20,5,40,0.45)!important;
+  color:#fff;font-family:'Inter',sans-serif;font-size:15px;width:100%;
   -webkit-appearance:none;transition:border-color .2s
 }
 .mini-input:focus{outline:none;border-color:rgba(243,130,255,0.5)!important;background:rgba(20,5,40,0.6)!important}
@@ -3742,10 +3621,10 @@ body{background:transparent;color:rgba(255,255,255,0.95);font-family:'Space Grot
 
 /* ── TABLE ── */
 .rev-table{width:100%;border-collapse:collapse;font-size:13px}
-.rev-table thead th{font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0 0 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.08)}
+.rev-table thead th{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0 0 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.08)}
 .rev-table thead th:not(:first-child){text-align:right}
 .rev-table tbody tr{border-bottom:1px solid rgba(255,255,255,0.05)}
-.rev-table tbody td{padding:13px 0;color:rgba(255,255,255,0.92);vertical-align:middle;font-size:14px}
+.rev-table tbody td{padding:12px 0;color:#fff;vertical-align:middle}
 .rev-table tbody td:not(:first-child){text-align:right}
 
 /* ── CALC CARDS ── */
@@ -3763,8 +3642,8 @@ body{background:transparent;color:rgba(255,255,255,0.95);font-family:'Space Grot
 .amber-card .calc-big{color:#c081ff}
 .green-card{background:rgba(192,129,255,0.12);border-color:rgba(192,129,255,0.22)!important}
 .green-card .calc-big{color:#dbb4ff}
-.calc-label{font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;color:rgba(255,255,255,0.4)}
-.calc-big{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
+.calc-label{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;color:rgba(255,255,255,0.42)}
+.calc-big{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px}
 .calc-sub{font-size:11px;color:rgba(255,255,255,0.32);line-height:1.5}
 
 /* ── CHIPS / QUESTIONS ── */
@@ -3772,7 +3651,7 @@ body{background:transparent;color:rgba(255,255,255,0.95);font-family:'Space Grot
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .chip{
   font-size:13px;padding:9px 16px;border-radius:9999px;
-  border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.14);background:rgba(20,5,40,0.4);
   color:rgba(255,255,255,0.65);cursor:pointer;transition:all .18s;
   min-height:40px;display:inline-flex;align-items:center;
   backdrop-filter:blur(16px)
@@ -3785,7 +3664,7 @@ textarea{
   width:100%;resize:none;font-family:'Inter',sans-serif;font-size:15px;
   padding:14px 16px 56px;border-radius:14px;
   border:1px solid rgba(255,255,255,0.18);
-  background:rgba(255,255,255,0.06);
+  background:rgba(20,5,40,0.45);
   color:#fff;line-height:1.65;min-height:110px;-webkit-appearance:none;
   backdrop-filter:blur(16px)
 }
@@ -3805,25 +3684,25 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
   width:34px;height:34px;border-radius:50%;
   background:linear-gradient(135deg,#f382ff,#c081ff);
   color:#07080F;display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:800;font-family:'Space Grotesk',sans-serif;flex-shrink:0
+  font-size:11px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;flex-shrink:0
 }
 .reponse-text{font-size:14px;color:rgba(255,255,255,0.8);line-height:1.75}
 .reponse-text p{margin-bottom:.75rem}
 .ring{width:20px;height:20px;flex-shrink:0;border:2px solid rgba(243,130,255,0.2);border-top-color:#f382ff;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .question-preview{
-  background:rgba(20,5,40,0.35);border:1px solid rgba(255,255,255,0.11);transition:transform .2s cubic-bezier(.16,1,.3,1),border-color .2s,box-shadow .2s;
+  background:rgba(20,5,40,0.35);border:1px solid rgba(255,255,255,0.11);
   border-radius:14px;padding:1rem 1.25rem;margin-bottom:10px;
   cursor:pointer;transition:all .15s;backdrop-filter:blur(20px)
 }
-.question-preview:hover{border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.04);transform:scale(1.012);box-shadow:0 0 0 1px rgba(255,255,255,0.07)}
+.question-preview:hover{border-color:rgba(243,130,255,0.3);background:rgba(243,130,255,0.06)}
 .question-text{font-size:14px;color:#fff;margin-bottom:4px;font-weight:500}
 .question-date{font-size:11px;color:rgba(255,255,255,0.28)}
 
 /* ── BUTTONS ── */
 .link-btn{background:none;border:none;color:#f382ff;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;padding:0;font-weight:600}
 .empty-state{text-align:center;padding:3rem 1.5rem}
-.empty-state h3{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.38);margin-bottom:1rem}
+.empty-state h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.38);margin-bottom:1rem}
 .btn{padding:13px 22px;font-size:14px;font-weight:700;border-radius:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;min-height:48px;letter-spacing:.01em}
 .btn-ghost{background:rgba(20,5,40,0.4);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.75);backdrop-filter:blur(10px)}
 .btn-dark{background:linear-gradient(135deg,#f382ff,#c081ff);border:none;color:#07080F;font-weight:800;box-shadow:0 4px 24px rgba(243,130,255,0.28)}
@@ -3844,7 +3723,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 }
 @media(min-width:520px){.modal{padding:2.25rem}}
 @keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-.modal-title{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;color:#fff;letter-spacing:-.02em}
+.modal-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;color:#fff;letter-spacing:-.02em}
 .modal-sub{font-size:14px;color:rgba(255,255,255,0.42);margin-bottom:1.5rem;line-height:1.55}
 .prof-section-title{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#f382ff;margin:1.5rem 0 .875rem;padding-bottom:8px;border-bottom:1px solid rgba(243,130,255,0.18)}
 .form-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:.5rem}
@@ -3867,7 +3746,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 .res-section{margin-bottom:2.5rem}
 .res-section-title{
   display:flex;align-items:center;gap:14px;
-  font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;
   color:#fff;margin-bottom:1.25rem;letter-spacing:-.01em
 }
 .res-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:rgba(20,5,40,0.5);border:1px solid rgba(255,255,255,0.12)}
@@ -3882,7 +3761,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
   text-decoration:none;color:inherit;transition:all .2s;
   min-height:140px
 }
-.res-card:hover{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.04);transform:scale(1.012);box-shadow:0 0 0 1px rgba(255,255,255,0.08),0 8px 24px rgba(0,0,0,0.3)}
+.res-card:hover{border-color:rgba(243,130,255,0.3);background:rgba(243,130,255,0.06);transform:translateY(-2px)}
 .res-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .res-tag{font-size:10px;font-weight:700;padding:4px 10px;border-radius:9999px;letter-spacing:.04em}
 .res-tag-urssaf{background:rgba(243,130,255,0.12);color:#f382ff;border:1px solid rgba(243,130,255,0.2)}
@@ -3892,7 +3771,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 .res-tag-social{background:rgba(219,180,255,0.12);color:#dbb4ff;border:1px solid rgba(219,180,255,0.2)}
 .res-arrow{font-size:14px;color:rgba(255,255,255,0.25);transition:all .2s}
 .res-card:hover .res-arrow{color:#f382ff;transform:translate(2px,-2px)}
-.res-card-title{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;line-height:1.3;letter-spacing:-.01em}
+.res-card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;line-height:1.3;letter-spacing:-.01em}
 .res-card-desc{font-size:13px;color:rgba(255,255,255,0.48);line-height:1.65;margin-bottom:10px;flex:1}
 .res-card-url{font-size:11px;color:rgba(255,255,255,0.22);font-family:monospace;margin-top:auto}
 .res-disclaimer{background:rgba(20,5,40,0.35);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(20px);border-radius:16px;padding:1.25rem;font-size:13px;color:rgba(255,255,255,0.42);line-height:1.75;margin-top:1.25rem}
@@ -3900,13 +3779,12 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 
 /* ── FOOTER ── */
 .app-footer{text-align:center;padding:24px 20px calc(88px + env(safe-area-inset-bottom));font-size:12px;color:rgba(255,255,255,0.18);border-top:1px solid rgba(255,255,255,0.06);margin-top:2rem;position:relative;z-index:1}
-@media(min-width:900px){.app-footer{padding-bottom:40px}}
 .app-footer a{color:rgba(255,255,255,0.18);text-decoration:none;margin:0 10px;transition:color .2s}
 .app-footer a:hover{color:rgba(255,255,255,0.5)}
 
 /* ── EMPTY STATE ── */
 .welcome-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
-.welcome-title{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:-.02em}
+.welcome-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:-.02em}
 
 /* ── DEVIS ── */
 .devis-card{
