@@ -2087,22 +2087,22 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 <div
                   onClick={()=>setSimMode('rapide')}
                   style={{
-                    background: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
-                    border: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '1.5px solid rgba(255,255,255,0.2)' : '1.5px solid rgba(255,255,255,0.08)',
+                    background: simMode==='rapide' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
+                    border: simMode==='rapide' ? '1.5px solid rgba(255,255,255,0.2)' : '1.5px solid rgba(255,255,255,0.08)',
                     borderRadius:20, padding:'1.75rem', cursor:'pointer', transition:'all .2s',
-                    boxShadow: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
+                    boxShadow: simMode==='rapide' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
                   <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>bolt</span>
                   <div style={{
                     fontFamily:"'Space Grotesk',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,
-                    color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '#F0F4FF' : 'rgba(255,255,255,0.65)'
+                    color: simMode==='rapide' ? '#fff' : 'rgba(255,255,255,0.7)'
                   }}>Calcul rapide</div>
                   <div style={{
                     fontSize:13,lineHeight:1.6,
-                    color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)'
+                    color: simMode==='rapide' ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.5)'
                   }}>Tu as encaissé un paiement ?<br/>Calcule instantanément ce que tu dois mettre de côté.</div>
-                  {(simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel') && (
+                  {simMode==='rapide' && (
                     <div style={{marginTop:14,display:'inline-block',background:'rgba(243,130,255,0.15)',color:'#f382ff',border:'1px solid rgba(243,130,255,0.4)',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
                   )}
                 </div>
@@ -2138,8 +2138,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   }}
                 >
                   <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>my_location</span>
-                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='inverse'?'#fff':'#1C1710'}}>Calculateur inversé</div>
-                  <div style={{fontSize:13,lineHeight:1.6,color:simMode==='inverse'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu veux X€ nets par mois ?<br/>Calcule exactement combien tu dois facturer.</div>
+                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='inverse'?'#fff':'rgba(255,255,255,0.7)'}}>Calculateur inversé</div>
+                  <div style={{fontSize:13,lineHeight:1.6,color:simMode==='inverse'?'rgba(255,255,255,0.65)':'rgba(255,255,255,0.5)'}}>Tu veux X€ nets par mois ?<br/>Calcule exactement combien tu dois facturer.</div>
                   {simMode==='inverse' && (
                     <div style={{marginTop:14,display:'inline-block',background:'rgba(243,130,255,0.15)',color:'#f382ff',border:'1px solid rgba(243,130,255,0.4)',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
                   )}
@@ -2154,8 +2154,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   }}
                 >
                   <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>balance</span>
-                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='reel'?'#fff':'#1C1710'}}>Micro vs Réel</div>
-                  <div style={{fontSize:13,lineHeight:1.6,color:simMode==='reel'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu approches du plafond ?<br/>Compare concrètement micro-entreprise et régime réel.</div>
+                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='reel'?'#fff':'rgba(255,255,255,0.7)'}}>Micro vs Réel</div>
+                  <div style={{fontSize:13,lineHeight:1.6,color:simMode==='reel'?'rgba(255,255,255,0.65)':'rgba(255,255,255,0.5)'}}>Tu approches du plafond ?<br/>Compare concrètement micro-entreprise et régime réel.</div>
                   {simMode==='reel' && (
                     <div style={{marginTop:14,display:'inline-block',background:'rgba(243,130,255,0.15)',color:'#f382ff',border:'1px solid rgba(243,130,255,0.4)',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
                   )}
