@@ -899,35 +899,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           )}
 
-          {/* ── BANNER ÉQUIPE si salariés ── */}
-          {nbSalaries>0 && (
-            <div style={{background:'rgba(219,180,255,0.08)',border:'1px solid rgba(219,180,255,0.18)',borderRadius:16,padding:'1rem 1.25rem',marginBottom:'0.875rem',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
-              <div style={{display:'flex',alignItems:'center',gap:12}}>
-                <span className="material-symbols-outlined" style={{fontSize:20,color:'#dbb4ff'}}>group</span>
-                <div>
-                  <div style={{fontSize:13,fontWeight:700,color:'#fff',marginBottom:2}}>
-                    {nbSalaries} salarié{nbSalaries>1?'s':''} actif{nbSalaries>1?'s':''}
-                  </div>
-                  <div style={{fontSize:11,color:'rgba(255,255,255,0.38)'}}>
-                    Masse brute : {Math.round(masseSalarialeBrute).toLocaleString('fr-FR')} € · Coût réel : {Math.round(coutEquipeMensuel).toLocaleString('fr-FR')} €/mois
-                  </div>
-                </div>
-              </div>
-              <div style={{display:'flex',gap:20,flexWrap:'wrap'}}>
-                {[
-                  ['Coût mensuel équipe', Math.round(coutEquipeMensuel), '#dbb4ff'],
-                  ['Coût annuel équipe', Math.round(coutEquipeMensuel*12), '#c081ff'],
-                  ['Net après équipe', Math.round(netMoisApresEquipe), netMoisApresEquipe<0?'#ff6e84':'#c081ff'],
-                ].map(([l,v,c])=>(
-                  <div key={l} style={{textAlign:'right'}}>
-                    <div style={{fontSize:10,fontWeight:600,color:'rgba(255,255,255,0.35)',letterSpacing:'.06em',textTransform:'uppercase',marginBottom:3}}>{l}</div>
-                    <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:16,fontWeight:800,color:c}}>{v.toLocaleString('fr-FR')} €</div>
-                  </div>
-                ))}
-              </div>
-              <button onClick={()=>setView('equipe')} style={{fontSize:12,background:'rgba(219,180,255,0.12)',border:'1px solid rgba(219,180,255,0.25)',color:'#dbb4ff',padding:'7px 14px',borderRadius:9999,cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700,whiteSpace:'nowrap'}}>Gérer l'équipe →</button>
-            </div>
-          )}
+
 
           {/* ── LIGNE 2 : Seuils + Devis récents ── */}
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:'1rem',marginBottom:'1rem'}}>
