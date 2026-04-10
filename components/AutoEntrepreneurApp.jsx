@@ -2106,7 +2106,6 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   )}
                 </div>
               )}
-              {/* ── MODE MICRO VS RÉEL ── */}
             </>
           )}
         </div>
