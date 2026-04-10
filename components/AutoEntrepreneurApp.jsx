@@ -1984,7 +1984,55 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       )}
 
       {/* ── SIMULATEUR ── */}
-      {view==='simulateur' && (
+      {view==='assistant' && (
+        <div className="main">
+          <div className="page-header">
+            <h2 className="page-title">Assistant IA</h2>
+            <p className="page-sub">Pose tes questions en français simple — comme à un ami comptable</p>
+          </div>
+          <div className="card" style={{marginBottom:'1.5rem'}}>
+            <span className="chips-hint">Questions fréquentes ↓</span>
+            <div className="chips">
+              {["Quand dois-je déclarer mon CA à l'URSSAF ?","Comment calculer mes cotisations ?","Qu'est-ce que le seuil de TVA ?","C'est quoi la CFE et quand la payer ?","J'ai oublié de déclarer, que faire ?","Puis-je me verser un salaire ?"].map(q=>(
+                <span key={q} className="chip" onClick={()=>setQuestion(q)}>{q}</span>
+              ))}
+            </div>
+            <div className="input-wrap" style={{marginTop:'1rem'}}>
+              <textarea value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))poserQuestion()}} placeholder="Ex : J'ai encaissé 4 200€ ce mois, combien je vais payer à l'URSSAF ?" style={{minHeight:80}}/>
+              <button className="btn-gen" onClick={poserQuestion} disabled={asking||!question.trim()}>{asking?'Réflexion…':'Envoyer →'}</button>
+            </div>
+            <div className="hint-text">⌘ + Entrée pour envoyer</div>
+          </div>
+          {(reponse||asking)&&(
+            <div className="card" style={{marginBottom:'1.5rem'}}>
+              <div className="reponse-header">
+                <div className="reponse-avatar">IA</div>
+                <span style={{fontSize:13,color:'rgba(255,255,255,0.55)',fontWeight:500}}>Assistant Serelyo</span>
+              </div>
+              {asking
+                ? <div style={{display:'flex',alignItems:'center',gap:10,padding:'1rem 0',color:'rgba(255,255,255,0.38)'}}><div className="ring"/>Je réfléchis à ta question…</div>
+                : <div className="reponse-text">{reponse.split('\n').map((line,i)=><p key={i} style={{marginBottom:line?'0.75rem':0}}>{line}</p>)}</div>
+              }
+            </div>
+          )}
+          {histoQ.length>0&&(
+            <div>
+              <div className="card-title" style={{marginBottom:12}}>Questions précédentes</div>
+              {histoQ.slice(0,10).map(q=>(
+                <div key={q.id} className="question-preview" onClick={()=>{setQuestion(q.question);setReponse(q.reponse)}}>
+                  <div className="question-text">{q.question}</div>
+                  <div className="question-date">{new Date(q.created_at).toLocaleDateString('fr-FR')}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── SIMULATEUR ── */}
+
+
+            {view==='simulateur' && (
         <div className="main">
           <div className="page-header">
             <h2 className="page-title">Calculs & Simulation</h2>
