@@ -901,153 +901,191 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
 
 
-          {/* ── LIGNE 2 : Seuils + Devis récents ── */}
-          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:'1rem',marginBottom:'1rem'}}>
+          {/* ── ROW 1 : 2 grandes cartes CA + Net ── */}
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:10,marginBottom:10}}>
+            {/* CA mois — grande carte principale */}
+            <div className="card" onClick={()=>setView('revenus')} style={{cursor:'pointer',background:'rgba(12,3,24,0.85)'}}>
+              <div className="card-title">Revenu ce mois</div>
+              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?36:48,fontWeight:700,color:'#f382ff',letterSpacing:'-.03em',lineHeight:1,marginBottom:12}}>{caMois.toLocaleString('fr-FR')} €</div>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <div style={{height:3,flex:1,background:'rgba(255,255,255,0.06)',borderRadius:2,overflow:'hidden'}}>
+                  <div style={{height:'100%',width:Math.min(pctPlafond,100)+'%',background:'linear-gradient(90deg,#c081ff,#f382ff)',borderRadius:2}}/>
+                </div>
+                <span style={{fontSize:11,color:'rgba(255,255,255,0.3)',whiteSpace:'nowrap',fontWeight:500}}>{Math.round(pctPlafond)}% du plafond</span>
+              </div>
+            </div>
+
+            {/* À mettre de côté */}
+            <div className="card" onClick={()=>setView('simulateur')} style={{cursor:'pointer',background:'rgba(12,3,24,0.85)'}}>
+              <div className="card-title">À mettre de côté</div>
+              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?36:48,fontWeight:700,color:'#c081ff',letterSpacing:'-.03em',lineHeight:1,marginBottom:12}}>{Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €</div>
+              <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',fontWeight:500}}>
+                Projection URSSAF + Impôts · {Math.round((taux+tauxImpot)*100)}% du CA
+              </div>
+            </div>
+          </div>
+
+          {/* ── ROW 2 : 3 cartes moyennes ── */}
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:10,marginBottom:10}}>
+            {/* CA annuel */}
+            <div className="card" onClick={()=>setView('revenus')} style={{cursor:'pointer'}}>
+              <div className="card-title">Revenu {year}</div>
+              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:28,fontWeight:700,color:'#fff',letterSpacing:'-.02em',marginBottom:8}}>{caAnnuel.toLocaleString('fr-FR')} €</div>
+              {profil?.objectif_ca > 0 && (
+                <div>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
+                    <span style={{fontSize:10,color:'rgba(255,255,255,0.3)',fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase'}}>Objectif annuel</span>
+                    <span style={{fontSize:10,color:'rgba(255,255,255,0.3)'}}>{Math.round((caAnnuel/profil.objectif_ca)*100)}%</span>
+                  </div>
+                  <div style={{height:3,background:'rgba(255,255,255,0.06)',borderRadius:2,overflow:'hidden'}}>
+                    <div style={{height:'100%',width:Math.min((caAnnuel/profil.objectif_ca)*100,100)+'%',background:'#c081ff',borderRadius:2}}/>
+                  </div>
+                  <div style={{fontSize:11,color:'rgba(255,255,255,0.25)',marginTop:4}}>Objectif : {profil.objectif_ca.toLocaleString('fr-FR')} €</div>
+                </div>
+              )}
+              {!profil?.objectif_ca && <div style={{fontSize:11,color:'rgba(255,255,255,0.25)'}}>URSSAF : {Math.round(cotisAnnuel).toLocaleString('fr-FR')} €</div>}
+            </div>
+
+            {/* Taux URSSAF */}
+            <div className="card" onClick={()=>setShowOnboarding(true)} style={{cursor:'pointer'}}>
+              <div className="card-title">Taux URSSAF</div>
+              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:28,fontWeight:700,color:'#fff',letterSpacing:'-.02em',marginBottom:8}}>{profil?(taux*100).toFixed(1):'—'} %</div>
+              <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                <span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:4,background:'rgba(192,129,255,0.15)',color:'#c081ff',letterSpacing:'.06em',textTransform:'uppercase'}}>{profil?.secteur||'—'}</span>
+                {profil?.acre && <span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:4,background:'rgba(0,200,160,0.12)',color:'#00C8A0',letterSpacing:'.06em',textTransform:'uppercase'}}>ACRE ACTIF</span>}
+              </div>
+            </div>
 
             {/* Seuils */}
-            <div className="card">
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
-                <div className="card-title" style={{marginBottom:0}}>Seuils {year}</div>
-                <button className="link-btn" onClick={()=>setView('simulateur')}>Simuler →</button>
-              </div>
+            <div className="card" onClick={()=>setView('simulateur')} style={{cursor:'pointer'}}>
+              <div className="card-title">Seuils {year}</div>
               {[
-                { label:'TVA', val:seuil_tva, pct:pctTVA },
-                { label:'Plafond micro', val:plafond, pct:pctPlafond }
+                {label:'TVA',val:seuil_tva,pct:pctTVA},
+                {label:'Plafond micro',val:plafond,pct:pctPlafond}
               ].map(({label,val,pct})=>(
-                <div key={label} style={{marginBottom:'1rem'}}>
-                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
-                    <span style={{fontSize:12,fontWeight:500,color:'#ffffff'}}>{label}</span>
-                    <span style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>{Math.round(pct)}% atteint</span>
+                <div key={label} style={{marginBottom:12}}>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
+                    <span style={{fontSize:11,fontWeight:600,color:'rgba(255,255,255,0.6)',letterSpacing:'.02em'}}>{label}</span>
+                    <span style={{fontSize:11,color:pct>85?'#ff6e84':'rgba(255,255,255,0.3)',fontWeight:600}}>{Math.round(pct)}%</span>
                   </div>
-                  <div style={{height:8,background:'rgba(255,255,255,0.05)',borderRadius:20,overflow:'hidden'}}>
-                    <div style={{height:'100%',width:pct+'%',background:pct>85?'#ff6e84':pct>60?'#f382ff':'#c081ff',borderRadius:20,transition:'width .5s'}}/>
+                  <div style={{height:3,background:'rgba(255,255,255,0.06)',borderRadius:2,overflow:'hidden'}}>
+                    <div style={{height:'100%',width:pct+'%',background:pct>85?'#ff6e84':pct>60?'#f382ff':'#c081ff',borderRadius:2,transition:'width .6s'}}/>
                   </div>
-                  <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>
-                    {caAnnuel.toLocaleString('fr-FR')} € / {val.toLocaleString('fr-FR')} €
-                    {pct>85 && <span style={{color:'#ff6e84',marginLeft:6}}>Consulte un comptable</span>}
-                  </div>
+                  <div style={{fontSize:10,color:'rgba(255,255,255,0.25)',marginTop:3}}>{caAnnuel.toLocaleString('fr-FR')} / {val.toLocaleString('fr-FR')} €</div>
                 </div>
               ))}
             </div>
-
-            {/* Devis récents */}
-            <div className="card">
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
-                <div className="card-title" style={{marginBottom:0}}>Devis récents</div>
-                <button className="link-btn" onClick={()=>setView('devis')}>Tous voir →</button>
-              </div>
-              {devis.length===0 ? (
-                <div style={{textAlign:'center',padding:'1.5rem 0',color:'rgba(255,255,255,0.38)'}}>
-                  
-                  <div style={{fontSize:13}}>Aucun devis</div>
-                  <button className="link-btn" style={{marginTop:8}} onClick={()=>setView('devis')}>Créer un devis →</button>
-                </div>
-              ) : (
-                <>
-                  {devis.slice(0,3).map(d=>{
-                    const sc = {en_attente:{bg:'rgba(255,160,60,0.12)',c:'#B5792A'},accepte:{bg:'rgba(0,200,160,0.12)',c:'#2D7A4F'},refuse:{bg:'rgba(255,100,100,0.12)',c:'#8B1A1A'},expire:{bg:'rgba(255,255,255,0.06)',c:'rgba(255,255,255,0.5)'}}
-                    const s = sc[d.statut]||sc.en_attente
-                    return (
-                      <div key={d.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,0.07)',cursor:'pointer'}} onClick={()=>setView('devis')}>
-                        <div>
-                          <div style={{fontSize:13,fontWeight:500,color:'#ffffff'}}>{d.client_nom}</div>
-                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>{d.numero} · {d.date_emission}</div>
-                        </div>
-                        <div style={{display:'flex',alignItems:'center',gap:8}}>
-                          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:14,color:'#ffffff'}}>{(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</span>
-                          <span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:20,background:s.bg,color:s.c}}>
-                            {d.statut==='accepte'?'✓':d.statut==='refuse'?'✗':d.statut==='expire'?'exp.':'att.'}
-                          </span>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </>
-              )}
-            </div>
           </div>
 
-          {/* ── LIGNE 3 : Revenus récents + Assistant ── */}
-          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:'1rem',marginBottom:'1rem'}}>
-
-            {/* Revenus des derniers mois */}
+          {/* ── ROW 3 : Assistant + Prochaines échéances ── */}
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:10,marginBottom:10}}>
+            {/* Assistant IA */}
             <div className="card">
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
-                <div className="card-title" style={{marginBottom:0}}>Revenus récents</div>
-                <button className="link-btn" onClick={()=>setView('revenus')}>Saisir →</button>
-              </div>
-              {revenus.slice(0,4).length===0 ? (
-                <div style={{textAlign:'center',padding:'1.5rem 0',color:'rgba(255,255,255,0.38)'}}>
-                  
-                  <div style={{fontSize:13}}>Aucun revenu saisi</div>
-                  <button className="link-btn" style={{marginTop:8}} onClick={()=>setView('revenus')}>Saisir mes revenus →</button>
-                </div>
-              ) : (
-                revenus.slice(0,4).map(r=>{
-                  const net = r.montant*(1-taux-tauxImpot)
-                  return (
-                    <div key={r.mois} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
-                      <div>
-                        <div style={{fontSize:13,fontWeight:500,color:'#ffffff'}}>{r.mois&&r.mois.match(/^\d{4}-\d{2}$/)?formatMois(r.mois):r.mois||'—'}</div>
-                        <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Net ~{Math.round(net).toLocaleString('fr-FR')} €</div>
-                      </div>
-                      <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:15,color:'#ffffff'}}>{r.montant.toLocaleString('fr-FR')} €</span>
-                    </div>
-                  )
-                })
-              )}
-            </div>
-
-            {/* Assistant rapide */}
-            <div className="card">
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.1rem'}}>
                 <div className="card-title" style={{marginBottom:0}}>Assistant IA</div>
                 <button className="link-btn" onClick={()=>setView('assistant')}>Ouvrir →</button>
               </div>
-              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              <div style={{display:'flex',flexDirection:'column',gap:6}}>
                 {["Quand dois-je déclarer mon CA ?","Combien mettre de côté ce mois ?","Comment fonctionne l'ACRE ?","Qu'est-ce que la CFE ?"].map(q=>(
                   <div key={q} onClick={()=>{setQuestion(q);setView('assistant')}}
-                    style={{padding:'12px 16px',borderRadius:12,border:'1px solid rgba(255,255,255,0.12)',fontSize:14,color:'rgba(255,255,255,0.65)',cursor:'pointer',transition:'all .18s',background:'rgba(20,5,40,0.38)'}}
-                    onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(243,130,255,0.3)';e.currentTarget.style.color='#f382ff';e.currentTarget.style.background='rgba(243,130,255,0.07)'}}
-                    onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='rgba(255,255,255,0.65)';e.currentTarget.style.background='rgba(20,5,40,0.38)'}}
-                  >
-                    {q}
-                  </div>
+                    style={{padding:'10px 14px',borderRadius:8,border:'1px solid rgba(255,255,255,0.08)',fontSize:13,color:'rgba(255,255,255,0.55)',cursor:'pointer',transition:'all .15s',fontWeight:500}}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(243,130,255,0.3)';e.currentTarget.style.color='#f382ff';e.currentTarget.style.background='rgba(243,130,255,0.06)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.08)';e.currentTarget.style.color='rgba(255,255,255,0.55)';e.currentTarget.style.background='transparent'}}>{q}</div>
                 ))}
               </div>
             </div>
-          </div>
 
-          {/* ── LIGNE 4 : Prochaines échéances ── */}
-          {profil && (
+            {/* Prochaines échéances */}
             <div className="card">
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.1rem'}}>
                 <div className="card-title" style={{marginBottom:0}}>Prochaines échéances</div>
-                <button className="link-btn" onClick={()=>setView('calendrier')}>Calendrier complet →</button>
+                <button className="link-btn" onClick={()=>setView('calendrier')}>Calendrier →</button>
               </div>
               <div style={{display:'flex',flexDirection:'column',gap:8}}>
                 {calendrier.filter(e=>!e.past).slice(0,3).map(ev=>{
-                  const decl = declarations.find(d=>d.periode===ev.id)
-                  const fait = decl?.statut==='faite'
+                  const decl=declarations.find(d=>d.periode===ev.id)
+                  const fait=decl?.statut==='faite'
                   return (
-                    <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:ev.current?'rgba(243,130,255,0.07)':'rgba(255,255,255,0.03)',border:`1px solid ${ev.current?'rgba(243,130,255,0.22)':'rgba(255,255,255,0.07)'}`}}>
+                    <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',borderRadius:8,background:ev.current?'rgba(243,130,255,0.06)':'rgba(255,255,255,0.02)',border:`1px solid ${ev.current?'rgba(243,130,255,0.18)':'rgba(255,255,255,0.06)'}`}}>
                       <div style={{display:'flex',alignItems:'center',gap:10}}>
-                        <div style={{width:8,height:8,borderRadius:'50%',background:fait?'#00C8A0':ev.current?'#f382ff':'rgba(255,255,255,.15)',flexShrink:0}}/>
+                        <span className="material-symbols-outlined" style={{fontSize:16,color:fait?'#00C8A0':ev.current?'#f382ff':'rgba(255,255,255,0.25)'}}>
+                          {fait?'check_circle':ev.current?'warning':'schedule'}
+                        </span>
                         <div>
-                          <div style={{fontSize:13,fontWeight:500,color:'#ffffff'}}>{ev.label}</div>
-                          <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Avant le {ev.date_limite}</div>
+                          <div style={{fontSize:13,fontWeight:600,color:'#fff'}}>{ev.label.replace('Déclaration URSSAF — ','')}</div>
+                          <div style={{fontSize:10,color:'rgba(255,255,255,0.3)',letterSpacing:'.02em'}}>Avant le {ev.date_limite}</div>
                         </div>
                       </div>
                       {fait
-                        ? <span style={{fontSize:11,fontWeight:600,color:'#c081ff',background:'rgba(192,129,255,0.1)',padding:'3px 10px',borderRadius:20,border:'1px solid rgba(192,129,255,0.25)'}}>✓ Faite</span>
-                        : <button className="btn btn-sm btn-amber" onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')}>Marquer faite</button>
+                        ? <span style={{fontSize:10,fontWeight:700,color:'#00C8A0',letterSpacing:'.04em',textTransform:'uppercase'}}>Faite</span>
+                        : <button onClick={()=>marquerDeclaration(ev.id,ev.type,'faite')} style={{fontSize:10,fontWeight:700,background:'rgba(243,130,255,0.12)',border:'1px solid rgba(243,130,255,0.25)',color:'#f382ff',padding:'5px 12px',borderRadius:6,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif",letterSpacing:'.04em',textTransform:'uppercase'}}>Marquer</button>
                       }
                     </div>
                   )
                 })}
               </div>
             </div>
-          )}
+          </div>
+
+          {/* ── ROW 4 : Revenus récents + Devis ── */}
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:10,marginBottom:10}}>
+            {/* Revenus récents */}
+            <div className="card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.1rem'}}>
+                <div className="card-title" style={{marginBottom:0}}>Revenus récents</div>
+                <button className="link-btn" onClick={()=>setView('revenus')}>Saisir →</button>
+              </div>
+              {revenus.slice(0,4).length===0 ? (
+                <div style={{textAlign:'center',padding:'1.5rem 0'}}>
+                  <div style={{fontSize:12,color:'rgba(255,255,255,0.3)',marginBottom:8,letterSpacing:'.04em',textTransform:'uppercase'}}>Aucun revenu saisi</div>
+                  <button className="link-btn" onClick={()=>setView('revenus')}>Saisir →</button>
+                </div>
+              ) : revenus.slice(0,4).map(r=>{
+                const net=r.montant*(1-taux-tauxImpot)
+                const netApresEquipe=net-coutEquipeMensuel
+                return (
+                  <div key={r.mois} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'9px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:600,color:'#fff'}}>{r.mois&&r.mois.match(/^\d{4}-\d{2}$/)?formatMois(r.mois):r.mois||'—'}</div>
+                      <div style={{fontSize:10,color:'rgba(255,255,255,0.3)',letterSpacing:'.02em'}}>
+                        Net ~{Math.round(net).toLocaleString('fr-FR')} €{nbSalaries>0?` · Après équipe : ${Math.round(netApresEquipe).toLocaleString('fr-FR')} €`:''}
+                      </div>
+                    </div>
+                    <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:16,fontWeight:700,color:'#fff'}}>{r.montant.toLocaleString('fr-FR')} €</div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Devis récents */}
+            <div className="card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.1rem'}}>
+                <div className="card-title" style={{marginBottom:0}}>Devis récents</div>
+                <button className="link-btn" onClick={()=>setView('devis')}>Tous voir →</button>
+              </div>
+              {devis.length===0 ? (
+                <div style={{textAlign:'center',padding:'1.5rem 0'}}>
+                  <div style={{fontSize:12,color:'rgba(255,255,255,0.3)',marginBottom:8,letterSpacing:'.04em',textTransform:'uppercase'}}>Aucun devis</div>
+                  <button className="link-btn" onClick={()=>setView('devis')}>Créer →</button>
+                </div>
+              ) : devis.slice(0,4).map(d=>{
+                const sc={en_attente:{c:'#f382ff',label:'ATT.'},accepte:{c:'#00C8A0',label:'OK'},refuse:{c:'#ff6e84',label:'REF.'},expire:{c:'rgba(255,255,255,0.3)',label:'EXP.'}}
+                const s=sc[d.statut]||sc.en_attente
+                return (
+                  <div key={d.id} onClick={()=>setView('devis')} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'9px 0',borderBottom:'1px solid rgba(255,255,255,0.05)',cursor:'pointer'}}>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:600,color:'#fff'}}>{d.client_nom}</div>
+                      <div style={{fontSize:10,color:'rgba(255,255,255,0.3)',letterSpacing:'.02em'}}>{d.numero} · {d.date_emission}</div>
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:10}}>
+                      <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:15,fontWeight:700,color:'#fff'}}>{(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                      <div style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:4,background:`${s.c}18`,color:s.c,letterSpacing:'.06em'}}>{s.label}</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </div>
       )}
 
