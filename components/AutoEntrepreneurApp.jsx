@@ -158,6 +158,15 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [editingRev, setEditingRev]   = useState(null)
   const [editRevMontant, setEditRevMontant] = useState('')
   const [histoAnnee, setHistoAnnee] = useState(String(new Date().getFullYear()))
+  // Transactions individuelles
+  const [transactions, setTransactions] = useState([])
+  const [txDate, setTxDate]     = useState(new Date().toISOString().split('T')[0])
+  const [txMontant, setTxMontant] = useState('')
+  const [txDesc, setTxDesc]     = useState('')
+  const [txCategorie, setTxCategorie] = useState('recette')
+  const [savingTx, setSavingTx] = useState(false)
+  const [editingTx, setEditingTx] = useState(null)
+  const [txFiltreAnnee, setTxFiltreAnnee] = useState(String(new Date().getFullYear()))
 
   // Calendrier mobile
   const [calMoisActif, setCalMoisActif] = useState(new Date().getMonth())
@@ -288,6 +297,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
     if (rdv) setRdvList(rdv)
     const { data:sal } = await supabase.from('ae_salaries').select('*').eq('user_id',user.id).order('created_at',{ascending:true})
     if (sal) setSalaries(sal)
+    const { data:tx } = await supabase.from('ae_transactions').select('*').eq('user_id',user.id).order('date',{ascending:false})
+    if (tx) setTransactions(tx)
     setLoading(false)
   }
 
@@ -617,8 +628,12 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   }
 
   const { year, month } = getNow()
-  const caAnnuel      = revenus.filter(r=>r.mois.startsWith(String(year))).reduce((s,r)=>s+r.montant,0)
-  const caMois        = revenus.find(r=>r.mois===`${year}-${String(month).padStart(2,'0')}`)?.montant||0
+  // CA calculé depuis les transactions individuelles (+ fallback ae_revenus)
+  const txCaAnnuel = transactions.filter(t=>t.date&&t.date.startsWith(String(year))&&t.categorie==='recette').reduce((s,t)=>s+(parseFloat(t.montant)||0),0)
+  const txCaMois   = transactions.filter(t=>t.date&&t.date.startsWith(`${year}-${String(month).padStart(2,'0')}`)&&t.categorie==='recette').reduce((s,t)=>s+(parseFloat(t.montant)||0),0)
+  // Si pas encore de transactions, fallback sur ae_revenus
+  const caAnnuel = txCaAnnuel > 0 ? txCaAnnuel : revenus.filter(r=>r.mois.startsWith(String(year))).reduce((s,r)=>s+r.montant,0)
+  const caMois   = txCaMois > 0 ? txCaMois : (revenus.find(r=>r.mois===`${year}-${String(month).padStart(2,'0')}`)?.montant||0)
   const taux          = profil?(profil.acre?TAUX_ACRE[profil.secteur]:TAUX[profil.secteur]):0
   const cotisAnnuel   = caAnnuel*taux
   const seuil_tva     = profil?.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services
@@ -1609,315 +1624,196 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       {/* ── REVENUS ── */}
       {view==='revenus' && (
         <div className="main">
-          <div className="page-header">
-            <h2 className="page-title">Mes revenus</h2>
-            <p className="page-sub">Saisis ton CA mois par mois — calculs automatiques inclus</p>
+          <div className="page-header" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12}}>
+            <div>
+              <h2 className="page-title">Mes recettes</h2>
+              <p className="page-sub">Chaque encaissement, à la date exacte</p>
+            </div>
           </div>
 
-          {/* Formulaire saisie */}
-          <div className="card" style={{marginBottom:'1.5rem'}}>
-            <div className="card-title">Saisir un mois</div>
-            <div style={{display:'flex',flexDirection:'column',gap:10,flexWrap:'wrap'}}>
+          {/* ── Formulaire ajout rapide ── */}
+          <div className="card" style={{marginBottom:'1.25rem'}}>
+            <div className="card-title">Ajouter un encaissement</div>
+            <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr 2fr auto',gap:10,alignItems:'flex-end'}}>
               <div>
-                <span className="mini-label">Mois</span>
-                <select className="mini-input" value={revMoisNum} onChange={e=>setRevMoisNum(e.target.value)}>
-                  {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m,i)=>(
-                    <option key={m} value={m}>{['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][i]}</option>
-                  ))}
-                </select>
+                <span className="mini-label">Date</span>
+                <input className="mini-input" type="date" value={txDate} onChange={e=>setTxDate(e.target.value)}/>
               </div>
               <div>
-                <span className="mini-label">Année</span>
-                <select className="mini-input" value={revAnnee} onChange={e=>setRevAnnee(e.target.value)}>
-                  {[year-2, year-1, year, year+1].map(y=>(
-                    <option key={y} value={String(y)}>{y}</option>
-                  ))}
-                </select>
+                <span className="mini-label">Montant HT (€)</span>
+                <input className="mini-input" type="number" value={txMontant}
+                  onChange={e=>setTxMontant(e.target.value)}
+                  onKeyDown={e=>e.key==='Enter'&&txMontant&&txDesc&&(async()=>{
+                    setSavingTx(true)
+                    const {data} = await supabase.from('ae_transactions').insert({user_id:user.id,date:txDate,montant:parseFloat(txMontant)||0,description:txDesc,categorie:txCategorie}).select().single()
+                    if(data){setTransactions(prev=>[data,...prev].sort((a,b)=>b.date.localeCompare(a.date)))}
+                    setTxMontant('');setTxDesc('');setSavingTx(false)
+                  })()}
+                  placeholder="3 000"/>
               </div>
               <div>
-                <span className="mini-label">CA encaissé (€ HT)</span>
-                <input className="mini-input" type="number" value={revMontant}
-                  onChange={e=>setRevMontant(e.target.value)}
-                  onKeyDown={e=>e.key==='Enter'&&saveRevenu()}
-                  placeholder="3 500"/>
+                <span className="mini-label">Description / Client</span>
+                <input className="mini-input" type="text" value={txDesc}
+                  onChange={e=>setTxDesc(e.target.value)}
+                  placeholder="Facture client Dupont — mission web"/>
               </div>
-              <button className="btn btn-dark" onClick={saveRevenu} disabled={savingRev} style={{whiteSpace:'nowrap',width:'100%',padding:'14px'}}>
-                {savingRev?'Sauvegarde…':'Enregistrer →'}
+              <button className="btn btn-dark" disabled={savingTx||!txMontant||!txDesc} style={{padding:'13px 20px',whiteSpace:'nowrap'}}
+                onClick={async()=>{
+                  setSavingTx(true)
+                  const {data} = await supabase.from('ae_transactions').insert({user_id:user.id,date:txDate,montant:parseFloat(txMontant)||0,description:txDesc,categorie:txCategorie}).select().single()
+                  if(data){setTransactions(prev=>[data,...prev].sort((a,b)=>b.date.localeCompare(a.date)))}
+                  setTxMontant('');setTxDesc('');setSavingTx(false)
+                }}>
+                {savingTx?'…':'+ Ajouter'}
               </button>
             </div>
-            <div style={{marginTop:10,fontSize:12,color:'rgba(255,255,255,0.38)'}}>
-              Tu saisis pour : <strong style={{color:'#ffffff'}}>{['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][parseInt(revMoisNum)-1]} {revAnnee}</strong>
-            </div>
           </div>
 
-          {/* Historique */}
-          <div className="card">
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:8}}>
-              <div className="card-title" style={{marginBottom:0}}>Historique</div>
-              <select className="mini-input" style={{width:'auto'}} value={histoAnnee} onChange={e=>setHistoAnnee(e.target.value)}>
-                {[year-2, year-1, year, year+1].map(y=>(
-                  <option key={y} value={String(y)}>{y}</option>
+          {/* ── Récap annuel ── */}
+          {(() => {
+            const txAnnee = transactions.filter(t=>t.date&&t.date.startsWith(txFiltreAnnee)&&t.categorie==='recette')
+            const total = txAnnee.reduce((s,t)=>s+(parseFloat(t.montant)||0),0)
+            const cotis = total*taux
+            const impots = total*tauxImpot
+            const net = total-cotis-impots
+            return (
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:'1.25rem'}}>
+                {[
+                  {label:`CA ${txFiltreAnnee}`,val:total,color:'#fff'},
+                  {label:'URSSAF',val:cotis,color:'#ff6e84'},
+                  {label:'Impôts estimés',val:impots,color:'#dbb4ff'},
+                  {label:'Net estimé',val:net,color:net<0?'#ff6e84':'#c081ff'},
+                ].map(({label,val,color})=>(
+                  <div key={label} className="card" style={{padding:'1rem',textAlign:'center'}}>
+                    <div className="card-title" style={{marginBottom:8}}>{label}</div>
+                    <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,fontWeight:700,color}}>{Math.round(val).toLocaleString('fr-FR')} €</div>
+                  </div>
                 ))}
+              </div>
+            )
+          })()}
+
+          {/* ── Liste transactions groupées par mois ── */}
+          <div className="card">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.25rem',flexWrap:'wrap',gap:8}}>
+              <div className="card-title" style={{marginBottom:0}}>Historique des encaissements</div>
+              <select className="mini-input" style={{width:'auto'}} value={txFiltreAnnee} onChange={e=>setTxFiltreAnnee(e.target.value)}>
+                {[year-2,year-1,year,year+1].map(y=><option key={y} value={String(y)}>{y}</option>)}
               </select>
             </div>
-            {revenus.filter(r=>r.mois.startsWith(histoAnnee)).length===0
-              ? <p style={{fontSize:13,color:'rgba(255,255,255,0.38)',padding:'1rem 0'}}>Aucun revenu saisi pour {histoAnnee}.</p>
-              : (
-                <>
-                  <div style={{overflowX:'auto'}}><table className="rev-table">
-                    <thead>
-                      <tr>
-                        <th>Mois</th>
-                        <th>CA</th>
-                        <th>URSSAF ({(taux*100).toFixed(1)}%)</th>
-                        <th>Impôts ({profil?.taux_impot_perso||14}%)</th>
-                        <th>Net estimé</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {revenus.filter(r=>r.mois.startsWith(histoAnnee)).map(r=>{
-                        const cotis=r.montant*taux, impots=r.montant*tauxImpot, net=r.montant-cotis-impots
-                        const isEditing = editingRev === r.mois
-                        return (
-                          <tr key={r.mois} style={{background:isEditing?'rgba(243,130,255,0.05)':'transparent'}}>
-                            <td style={{fontWeight:600}}>{formatMois(r.mois)}</td>
-                            <td>
-                              {isEditing ? (
-                                <input
-                                  type="number"
-                                  value={editRevMontant}
-                                  onChange={e=>setEditRevMontant(e.target.value)}
-                                  autoFocus
-                                  onKeyDown={async e=>{
-                                    if(e.key==='Enter'){
-                                      const val=parseFloat(editRevMontant)||0
-                                      await supabase.from('ae_revenus').upsert({user_id:user.id,mois:r.mois,montant:val},{onConflict:'user_id,mois'})
-                                      setRevenus(prev=>prev.map(x=>x.mois===r.mois?{...x,montant:val}:x))
-                                      setEditingRev(null)
-                                    }
-                                    if(e.key==='Escape') setEditingRev(null)
-                                  }}
-                                  style={{width:90,padding:'4px 8px',borderRadius:8,border:'1px solid rgba(243,130,255,0.5)',background:'rgba(20,5,40,0.6)',color:'#fff',fontFamily:'Inter,sans-serif',fontSize:13,outline:'none'}}
-                                />
-                              ) : (
-                                <strong>{r.montant.toLocaleString('fr-FR')} €</strong>
-                              )}
-                            </td>
-                            <td style={{color:'#ff6e84'}}>{cotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                            <td style={{color:'#dbb4ff'}}>{impots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                            <td style={{color:'#c081ff',fontWeight:600}}>{net.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</td>
-                            <td>
-                              <div style={{display:'flex',gap:6,alignItems:'center',justifyContent:'flex-end'}}>
-                                {isEditing ? (
-                                  <>
-                                    <button title="Enregistrer" onClick={async()=>{
-                                      const val=parseFloat(editRevMontant)||0
-                                      await supabase.from('ae_revenus').upsert({user_id:user.id,mois:r.mois,montant:val},{onConflict:'user_id,mois'})
-                                      setRevenus(prev=>prev.map(x=>x.mois===r.mois?{...x,montant:val}:x))
-                                      setEditingRev(null)
-                                    }} style={{background:'rgba(0,200,160,0.15)',border:'1px solid rgba(0,200,160,0.3)',borderRadius:8,padding:'4px 10px',color:'#00C8A0',cursor:'pointer',fontSize:12,fontFamily:'Inter,sans-serif',fontWeight:700}}>✓</button>
-                                    <button title="Annuler" onClick={()=>setEditingRev(null)} style={{background:'none',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'4px 10px',color:'rgba(255,255,255,0.4)',cursor:'pointer',fontSize:12,fontFamily:'Inter,sans-serif'}}>✕</button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <button title="Modifier" onClick={()=>{setEditingRev(r.mois);setEditRevMontant(String(r.montant))}}
-                                      style={{background:'rgba(243,130,255,0.08)',border:'1px solid rgba(243,130,255,0.2)',borderRadius:8,padding:'4px 10px',color:'#f382ff',cursor:'pointer',fontSize:11,fontFamily:'Inter,sans-serif',fontWeight:600}}>
-                                      Modifier
-                                    </button>
-                                    <button title="Supprimer" onClick={async()=>{
-                                      if(!confirm('Supprimer le revenu de '+formatMois(r.mois)+' ?')) return
-                                      const {data:ex} = await supabase.from('ae_revenus').select('id').eq('user_id',user.id).eq('mois',r.mois).single()
-                                      if(ex) await supabase.from('ae_revenus').delete().eq('id',ex.id)
-                                      setRevenus(prev=>prev.filter(x=>x.mois!==r.mois))
-                                    }} style={{background:'rgba(255,110,132,0.08)',border:'1px solid rgba(255,110,132,0.2)',borderRadius:8,padding:'4px 10px',color:'#ff6e84',cursor:'pointer',fontSize:11,fontFamily:'Inter,sans-serif',fontWeight:600}}>
-                                      Supprimer
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                    </table></div>
-                  {/* Total récap */}
-                  {(() => {
-                    const totalCA = revenus.filter(r=>r.mois.startsWith(histoAnnee)).reduce((s,r)=>s+r.montant,0)
-                    const totalCotis = totalCA*taux
-                    const totalImpots = totalCA*tauxImpot
-                    const totalNet = totalCA*(1-taux-tauxImpot)
+
+            {(() => {
+              const MOIS_NOMS_FULL = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+              const txAnnee = transactions.filter(t=>t.date&&t.date.startsWith(txFiltreAnnee)&&t.categorie==='recette')
+              if (txAnnee.length === 0) return (
+                <div style={{textAlign:'center',padding:'3rem 0'}}>
+                  <span className="material-symbols-outlined" style={{fontSize:48,color:'rgba(255,255,255,0.1)',display:'block',marginBottom:12}}>receipt_long</span>
+                  <div style={{fontSize:14,color:'rgba(255,255,255,0.35)',marginBottom:8}}>Aucun encaissement pour {txFiltreAnnee}</div>
+                  <div style={{fontSize:12,color:'rgba(255,255,255,0.2)'}}>Utilise le formulaire ci-dessus pour ajouter ta première recette</div>
+                </div>
+              )
+              // Grouper par mois
+              const parMois = {}
+              txAnnee.forEach(t => {
+                const moisKey = t.date.substring(0,7)
+                if (!parMois[moisKey]) parMois[moisKey] = []
+                parMois[moisKey].push(t)
+              })
+              const moisTries = Object.keys(parMois).sort((a,b)=>b.localeCompare(a))
+
+              return (
+                <div style={{display:'flex',flexDirection:'column',gap:16}}>
+                  {moisTries.map(moisKey => {
+                    const txMois = parMois[moisKey]
+                    const totalMois = txMois.reduce((s,t)=>s+(parseFloat(t.montant)||0),0)
+                    const [anneeM, moisM] = moisKey.split('-')
+                    const nomMois = MOIS_NOMS_FULL[parseInt(moisM)-1] + ' ' + anneeM
+                    const cotisM = totalMois*taux
+                    const netM = totalMois*(1-taux-tauxImpot)
+
                     return (
-                      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginTop:'1.25rem'}}>
-                        <div style={{background:'rgba(255,255,255,0.1)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
-                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.5)',marginBottom:6}}>CA Total {histoAnnee}</div>
-                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#fff'}}>{totalCA.toLocaleString('fr-FR')} €</div>
+                      <div key={moisKey}>
+                        {/* Header mois */}
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',marginBottom:8,borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
+                          <div style={{fontSize:13,fontWeight:700,color:'#fff',letterSpacing:'.02em'}}>{nomMois}</div>
+                          <div style={{display:'flex',gap:20,alignItems:'center'}}>
+                            <div style={{textAlign:'right'}}>
+                              <div style={{fontSize:9,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'rgba(255,255,255,0.35)',marginBottom:2}}>Total encaissé</div>
+                              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:16,fontWeight:700,color:'#fff'}}>{totalMois.toLocaleString('fr-FR')} €</div>
+                            </div>
+                            <div style={{textAlign:'right'}}>
+                              <div style={{fontSize:9,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'rgba(255,255,255,0.35)',marginBottom:2}}>URSSAF</div>
+                              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:16,fontWeight:700,color:'#ff6e84'}}>{Math.round(cotisM).toLocaleString('fr-FR')} €</div>
+                            </div>
+                            <div style={{textAlign:'right'}}>
+                              <div style={{fontSize:9,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'rgba(255,255,255,0.35)',marginBottom:2}}>Net estimé</div>
+                              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:16,fontWeight:700,color:netM<0?'#ff6e84':'#c081ff'}}>{Math.round(netM).toLocaleString('fr-FR')} €</div>
+                            </div>
+                          </div>
                         </div>
-                        <div style={{background:'rgba(255,110,132,0.1)',border:'1px solid rgba(255,110,132,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
-                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>URSSAF ({(taux*100).toFixed(1)}%)</div>
-                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#ff6e84'}}>{totalCotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
-                        </div>
-                        <div style={{background:'rgba(243,130,255,0.1)',border:'1px solid rgba(255,160,60,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
-                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Impôts ({profil?.taux_impot_perso||14}%)</div>
-                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#dbb4ff'}}>{totalImpots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
-                        </div>
-                        <div style={{background:'rgba(192,129,255,0.12)',border:'1px solid rgba(192,129,255,0.3)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
-                          <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Net estimé</div>
-                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#c081ff'}}>{totalNet.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+
+                        {/* Transactions du mois */}
+                        <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                          {txMois.sort((a,b)=>b.date.localeCompare(a.date)).map(t=>{
+                            const isEditing = editingTx?.id === t.id
+                            const dateStr = t.date ? new Date(t.date+'T12:00:00').toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}) : '—'
+                            return (
+                              <div key={t.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 12px',borderRadius:10,background:isEditing?'rgba(243,130,255,0.06)':'rgba(255,255,255,0.02)',border:`1px solid ${isEditing?'rgba(243,130,255,0.2)':'rgba(255,255,255,0.05)'}`,transition:'all .15s'}}>
+                                {/* Date */}
+                                <div style={{fontSize:12,fontWeight:700,color:'rgba(255,255,255,0.4)',minWidth:32,flexShrink:0}}>{dateStr}</div>
+                                {/* Description */}
+                                <div style={{flex:1,minWidth:0}}>
+                                  {isEditing ? (
+                                    <input defaultValue={editingTx.description} autoFocus
+                                      onChange={e=>setEditingTx(p=>({...p,description:e.target.value}))}
+                                      style={{width:'100%',background:'rgba(20,5,40,0.5)',border:'1px solid rgba(243,130,255,0.4)',borderRadius:7,padding:'5px 10px',color:'#fff',fontFamily:"'Space Grotesk',sans-serif",fontSize:13,outline:'none'}}/>
+                                  ) : (
+                                    <div style={{fontSize:13,fontWeight:500,color:'rgba(255,255,255,0.85)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.description||'—'}</div>
+                                  )}
+                                </div>
+                                {/* Montant */}
+                                <div style={{flexShrink:0}}>
+                                  {isEditing ? (
+                                    <input type="number" defaultValue={editingTx.montant}
+                                      onChange={e=>setEditingTx(p=>({...p,montant:parseFloat(e.target.value)||0}))}
+                                      style={{width:90,background:'rgba(20,5,40,0.5)',border:'1px solid rgba(243,130,255,0.4)',borderRadius:7,padding:'5px 10px',color:'#fff',fontFamily:"'Space Grotesk',sans-serif",fontSize:13,outline:'none',textAlign:'right'}}/>
+                                  ) : (
+                                    <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:15,fontWeight:700,color:'#ffffff'}}>{parseFloat(t.montant).toLocaleString('fr-FR')} €</div>
+                                  )}
+                                </div>
+                                {/* Actions */}
+                                <div style={{display:'flex',gap:6,flexShrink:0}}>
+                                  {isEditing ? (
+                                    <>
+                                      <button onClick={async()=>{
+                                        await supabase.from('ae_transactions').update({description:editingTx.description,montant:editingTx.montant}).eq('id',t.id)
+                                        setTransactions(prev=>prev.map(x=>x.id===t.id?{...x,description:editingTx.description,montant:editingTx.montant}:x))
+                                        setEditingTx(null)
+                                      }} style={{background:'rgba(0,200,160,0.15)',border:'1px solid rgba(0,200,160,0.3)',borderRadius:7,padding:'5px 12px',color:'#00C8A0',cursor:'pointer',fontSize:12,fontFamily:"'Space Grotesk',sans-serif",fontWeight:700}}>✓</button>
+                                      <button onClick={()=>setEditingTx(null)} style={{background:'none',border:'1px solid rgba(255,255,255,0.1)',borderRadius:7,padding:'5px 10px',color:'rgba(255,255,255,0.4)',cursor:'pointer',fontSize:12}}>✕</button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button onClick={()=>setEditingTx({...t})} style={{background:'rgba(243,130,255,0.08)',border:'1px solid rgba(243,130,255,0.15)',borderRadius:7,padding:'5px 10px',color:'#f382ff',cursor:'pointer',fontSize:11,fontFamily:"'Space Grotesk',sans-serif",fontWeight:600}}>Modifier</button>
+                                      <button onClick={async()=>{
+                                        if(!confirm('Supprimer cet encaissement ?')) return
+                                        await supabase.from('ae_transactions').delete().eq('id',t.id)
+                                        setTransactions(prev=>prev.filter(x=>x.id!==t.id))
+                                      }} style={{background:'rgba(255,110,132,0.08)',border:'1px solid rgba(255,110,132,0.15)',borderRadius:7,padding:'5px 10px',color:'#ff6e84',cursor:'pointer',fontSize:11,fontFamily:"'Space Grotesk',sans-serif",fontWeight:600}}>Suppr.</button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })}
                         </div>
                       </div>
                     )
-                  })()}
-                </>
+                  })}
+                </div>
               )
-            }
+            })()}
           </div>
-        </div>
-      )}
-
-      {/* ── CALCULATEUR ── */}
-      {view==='calculateur' && (
-        <div className="main">
-          <div className="page-header">
-            <h2 className="page-title">Calculateur</h2>
-            <p className="page-sub">Combien dois-je payer et mettre de côté ?</p>
-          </div>
-          {!profil ? (
-            <div className="empty-state"><h3>Configure ton profil d'abord</h3><button className="btn btn-dark" onClick={()=>setShowOnboarding(true)}>Configurer →</button></div>
-          ) : (
-            <>
-              {/* Infos secteur */}
-              <div className="card" style={{marginBottom:'1rem',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)'}}>
-                <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
-                  <div>
-                    <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Ton secteur</span>
-                    <span style={{fontSize:14,color:'#ffffff',fontWeight:500}}>{SECTEURS.find(s=>s.value===profil.secteur)?.label||profil.secteur}</span>
-                  </div>
-                  <div style={{display:'flex',gap:16,flexWrap:'wrap'}}>
-                    <div style={{textAlign:'center'}}>
-                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Taux URSSAF</span>
-                      <span style={{fontSize:20,fontFamily:"'Space Grotesk',sans-serif",color:'#f382ff'}}>{(TAUX[profil.secteur]*100).toFixed(1)}%</span>
-                    </div>
-                    {profil.acre && (
-                      <div style={{textAlign:'center'}}>
-                        <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Avec ACRE</span>
-                        <span style={{fontSize:20,fontFamily:"'Space Grotesk',sans-serif",color:'#c081ff'}}>{(TAUX_ACRE[profil.secteur]*100).toFixed(1)}%</span>
-                      </div>
-                    )}
-                    <div style={{textAlign:'center'}}>
-                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Taux impôt perso</span>
-                      <span style={{fontSize:20,fontFamily:"'Space Grotesk',sans-serif",color:'#dbb4ff'}}>{profil.taux_impot_perso||14}%</span>
-                    </div>
-                    <div style={{textAlign:'center'}}>
-                      <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Total à prévoir</span>
-                      <span style={{fontSize:20,fontFamily:"'Space Grotesk',sans-serif",color:'#ffffff'}}>~{((TAUX[profil.secteur]+(parseFloat(profil.taux_impot_perso)||14)/100)*100).toFixed(0)}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card" style={{marginBottom:'1.5rem'}}>
-                <div className="card-title">Simuler un encaissement</div>
-                <div style={{display:'flex',gap:12,alignItems:'flex-end',flexWrap:'wrap'}}>
-                  <div>
-                    <span className="mini-label">Montant encaissé (€ HT)</span>
-                    <input className="mini-input" type="number" value={calcCA} onChange={e=>setCalcCA(e.target.value)} onKeyDown={e=>e.key==='Enter'&&calculer()} placeholder="2 500" style={{width:200,fontSize:18,padding:'12px 14px'}}/>
-                  </div>
-                  <button className="btn btn-dark" style={{padding:'12px 24px'}} onClick={calculer}>Calculer →</button>
-                </div>
-                <div style={{marginTop:10,fontSize:12,color:'rgba(255,255,255,0.38)'}}>
-                  Les calculs utilisent ton secteur et taux personnalisés du profil. <button className="link-btn" onClick={()=>setShowOnboarding(true)}>Modifier mon profil →</button>
-                </div>
-              </div>
-
-              {calcResult && (
-                <div className="calc-result">
-                  <div className="calc-grid">
-                    <div className="calc-card main-card"><div className="calc-label">CA encaissé</div><div className="calc-big">{calcResult.ca.toLocaleString('fr-FR')} €</div></div>
-                    <div className="calc-card red-card">
-                      <div className="calc-label">URSSAF ({(calcResult.taux*100).toFixed(1)}%{profil.acre?' — ACRE':' — taux normal'})</div>
-                      <div className="calc-big">{calcResult.cotisations.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
-                      <div className="calc-sub">À déclarer sur autoentrepreneur.urssaf.fr</div>
-                    </div>
-                    <div className="calc-card orange-card">
-                      <div className="calc-label">Impôts ({profil.taux_impot_perso||14}% — taux perso)</div>
-                      <div className="calc-big">{calcResult.impots_estimes.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
-                      <div className="calc-sub">Estimation — varie selon ta situation fiscale</div>
-                    </div>
-                    <div className="calc-card amber-card">
-                      <div className="calc-label">Total à mettre de côté</div>
-                      <div className="calc-big">{calcResult.a_mettre_de_cote.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
-                      <div className="calc-sub">{((calcResult.taux+calcResult.tauxImpot)*100).toFixed(0)}% du CA</div>
-                    </div>
-                    <div className="calc-card green-card">
-                      <div className="calc-label">Net estimé (ce qui reste)</div>
-                      <div className="calc-big">{calcResult.net_estime.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
-                      <div className="calc-sub">Après URSSAF et impôts estimés</div>
-                    </div>
-                  </div>
-                  {(calcResult.alerte_tva||calcResult.alerte_plafond)&&(
-                    <div style={{marginTop:'1rem'}}>
-                      {calcResult.alerte_tva&&<div className="seuil-alert">Attention : avec ce CA annuel estimé ({calcResult.caAnnuel.toLocaleString('fr-FR')} €), tu approches du seuil de TVA ({calcResult.seuil_tva.toLocaleString('fr-FR')} €). Renseigne-toi sur tes obligations TVA.</div>}
-                      {calcResult.alerte_plafond&&<div className="seuil-alert" style={{marginTop:8}}>Tu approches du plafond micro-entreprise ({calcResult.plafond.toLocaleString('fr-FR')} €). Au-delà tu bascules au régime réel — consulte un comptable.</div>}
-                    </div>
-                  )}
-                  <div className="info-box" style={{marginTop:'1rem'}}>
-                    <div className="info-text"><strong>Conseil :</strong> Dès que tu encaisses un paiement client, mets <strong>{((calcResult.taux+calcResult.tauxImpot)*100).toFixed(0)}%</strong> de côté immédiatement sur un compte séparé. Tu ne seras jamais pris au dépourvu.</div>
-                  </div>
-                  <div style={{marginTop:8,fontSize:11,color:'rgba(255,255,255,.35)',lineHeight:1.6}}>
-                    <strong>Avertissement :</strong> Ces calculs sont des estimations basées sur les taux officiels URSSAF 2025/2026. Le taux d'imposition réel dépend de ta situation fiscale globale. Ces informations ne constituent pas un conseil comptable ou fiscal. En cas de doute, consulte un expert-comptable.
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
-
-      {/* ── ASSISTANT IA ── */}
-      {view==='assistant' && (
-        <div className="main">
-          <div className="page-header">
-            <h2 className="page-title">Assistant IA</h2>
-            <p className="page-sub">Pose tes questions en français simple — comme à un ami comptable</p>
-          </div>
-          <div className="card" style={{marginBottom:'1.5rem'}}>
-            <span className="chips-hint">Questions fréquentes ↓</span>
-            <div className="chips">
-              {["Quand dois-je déclarer mon CA à l'URSSAF ?","Comment calculer mes cotisations ?","Qu'est-ce que le seuil de TVA ?","C'est quoi la CFE et quand la payer ?","J'ai oublié de déclarer, que faire ?","Puis-je me verser un salaire ?"].map(q=>(
-                <span key={q} className="chip" onClick={()=>setQuestion(q)}>{q}</span>
-              ))}
-            </div>
-            <div className="input-wrap" style={{marginTop:'1rem'}}>
-              <textarea value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))poserQuestion()}} placeholder="Ex : J'ai encaissé 4 200€ ce mois, combien je vais payer à l'URSSAF ?" style={{minHeight:80}}/>
-              <button className="btn-gen" onClick={poserQuestion} disabled={asking||!question.trim()}>{asking?'Réflexion…':'Envoyer →'}</button>
-            </div>
-            <div className="hint-text">⌘ + Entrée pour envoyer</div>
-          </div>
-          {(reponse||asking)&&(
-            <div className="card" style={{marginBottom:'1.5rem'}}>
-              <div className="reponse-header">
-                <div className="reponse-avatar">IA</div>
-                <span style={{fontSize:13,color:'rgba(255,255,255,0.55)',fontWeight:500}}>Assistant Serelyo</span>
-              </div>
-              {asking
-                ? <div style={{display:'flex',alignItems:'center',gap:10,padding:'1rem 0',color:'rgba(255,255,255,0.38)'}}><div className="ring"/>Je réfléchis à ta question…</div>
-                : <div className="reponse-text">{reponse.split('\n').map((line,i)=><p key={i} style={{marginBottom:line?'0.75rem':0}}>{line}</p>)}</div>
-              }
-            </div>
-          )}
-          {histoQ.length>0&&(
-            <div>
-              <div className="card-title" style={{marginBottom:12}}>Questions précédentes</div>
-              {histoQ.slice(0,10).map(q=>(
-                <div key={q.id} className="question-preview" onClick={()=>{setQuestion(q.question);setReponse(q.reponse)}}>
-                  <div className="question-text">{q.question}</div>
-                  <div className="question-date">{new Date(q.created_at).toLocaleDateString('fr-FR')}</div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
 
