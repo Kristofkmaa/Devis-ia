@@ -845,63 +845,35 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       {view==='dashboard' && (
         <div className="main">
 
-          {/* ── HERO ── */}
-          {profil ? (
-            <div style={{background:'rgba(20,5,40,0.38)',backdropFilter:'blur(32px)',WebkitBackdropFilter:'blur(32px)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:22,padding:'1.75rem',maxWidth:680,margin:'0 auto 1.25rem',overflow:'hidden'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12,marginBottom:'1.5rem'}}>
-                <div>
-                  <p style={{fontSize:11,color:'rgba(255,255,255,0.38)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:8,fontWeight:700}}>Bonjour </p>
-                  <h1 style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?26:32,fontWeight:800,color:'#fff',marginBottom:4,letterSpacing:'-.02em'}}>{profil.prenom} {profil.nom}</h1>
-                  <p style={{fontSize:14,color:'rgba(255,255,255,0.42)'}}>{profil.activite}</p>
-                </div>
-                {prochaineDecl && (
-                  <div style={{background:'rgba(243,130,255,0.08)',border:'1px solid rgba(243,130,255,0.22)',borderRadius:16,padding:'14px 18px',minWidth:isMobile?'100%':'auto'}}>
-                    <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Prochaine déclaration</div>
-                    <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:15,color:'#f382ff',fontWeight:700,marginBottom:4}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
-                    <div style={{fontSize:12,color:'rgba(255,255,255,0.35)',marginBottom:10}}>avant le {prochaineDecl.date_limite}</div>
-                    <button onClick={()=>setView('calendrier')} style={{fontSize:12,background:'rgba(243,130,255,0.15)',border:'1px solid rgba(243,130,255,0.3)',color:'#f382ff',padding:'7px 14px',borderRadius:9999,cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700}}>Voir le calendrier →</button>
-                  </div>
-                )}
-              </div>
-
-              {/* Métriques */}
-              <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(3,1fr)',gap:10}}>
-                {[
-                  { label:'CA ce mois', val:`${caMois.toLocaleString('fr-FR')} €`, sub:`Brut encaissé`, color:'#f382ff', onClick:()=>setView('revenus') },
-                  { label:'URSSAF + impôts', val:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:`${Math.round((taux+tauxImpot)*100)}% du CA`, color:'#ff6e84', onClick:()=>setView('simulateur') },
-                  ...(nbSalaries>0 ? [
-                    { label:`Charges équipe (${nbSalaries} sal.)`, val:`${Math.round(coutEquipeMensuel).toLocaleString('fr-FR')} €`, sub:`Coût employeur réel/mois`, color:'#dbb4ff', onClick:()=>setView('equipe') },
-                    { label:'Net après tout', val:`${Math.round(netMoisApresEquipe).toLocaleString('fr-FR')} €`, sub:netMoisApresEquipe<0?'Attention : déficit ce mois':"Ce qu\'il te reste vraiment", color:netMoisApresEquipe<0?'#ff6e84':'#c081ff', onClick:()=>setView('simulateur') },
-                  ] : [
-                    { label:'Taux URSSAF', val:`${profil?(taux*100).toFixed(1):'—'} %`, sub:profil?.acre?'✓ ACRE actif':'Taux standard', color:'#c081ff', onClick:()=>setShowOnboarding(true) },
-                    { label:'Net ce mois', val:`${Math.round(caMois*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €`, sub:'Après URSSAF et impôts', color:'#c081ff', onClick:()=>setView('simulateur') },
-                  ]),
-                  { label:`CA ${year}`, val:`${caAnnuel.toLocaleString('fr-FR')} €`, sub:`URSSAF : ${Math.round(cotisAnnuel).toLocaleString('fr-FR')} €`, color:'#dbb4ff', onClick:()=>setView('revenus') },
-                  { label:nbSalaries>0?'Net annuel estimé':'À mettre de côté ce mois', val:nbSalaries>0?`${Math.round(netAnnuelApresEquipe).toLocaleString('fr-FR')} €`:`${Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €`, sub:nbSalaries>0?`Après charges et équipe (${nbSalaries} sal.)`:`${Math.round((taux+tauxImpot)*100)}% du CA`, color:'#f382ff', onClick:()=>setView('simulateur') },
-                ].map(({label,val,sub,color,onClick})=>(
-                  <div key={label} onClick={onClick} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:14,padding:'1rem',cursor:'pointer',transition:'transform .2s cubic-bezier(.16,1,.3,1),border-color .2s,box-shadow .2s,background .2s'}}
-                    onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.08)';e.currentTarget.style.borderColor='rgba(255,255,255,0.5)';e.currentTarget.style.transform='scale(1.03)';e.currentTarget.style.boxShadow='0 0 0 1px rgba(255,255,255,0.08)'}}
-                    onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.borderColor='rgba(255,255,255,0.09)';e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='none'}}
-                  >
-                    <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.32)',marginBottom:10}}>{label}</div>
-                    <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?20:24,fontWeight:800,color,marginBottom:5,letterSpacing:'-.01em'}}>{val}</div>
-                    <div style={{fontSize:12,color:'rgba(255,255,255,0.28)'}}>{sub}</div>
-                  </div>
-                ))}
-              </div>
+          {/* ── HEADER ── */}
+          {!profil ? (
+            <div style={{background:'rgba(255,255,255,0.03)',border:'2px dashed rgba(255,255,255,0.1)',borderRadius:12,padding:'2rem',textAlign:'center',marginBottom:'1.25rem',cursor:'pointer'}} onClick={()=>setShowOnboarding(true)}>
+              <h2 style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,fontWeight:700,marginBottom:8,color:'#fff'}}>Bienvenue sur Serelyo !</h2>
+              <p style={{fontSize:13,color:'rgba(255,255,255,0.45)',marginBottom:'1rem'}}>Configure ton profil pour personnaliser ton tableau de bord</p>
+              <button className="btn btn-dark">Configurer mon profil →</button>
             </div>
           ) : (
-            <div style={{background:'rgba(255,255,255,0.04)',border:'2px dashed rgba(255,255,255,0.15)',backdropFilter:'blur(16px)',borderRadius:20,padding:'2rem',textAlign:'center',marginBottom:'1.5rem',cursor:'pointer'}} onClick={()=>setShowOnboarding(true)}>
-              
-              <h2 style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,marginBottom:8,color:'#ffffff'}}>Bienvenue sur Serelyo !</h2>
-              <p style={{fontSize:14,color:'rgba(255,255,255,0.55)',marginBottom:'1rem'}}>Configure ton profil pour personnaliser ton tableau de bord</p>
-              <button className="btn btn-dark">Configurer mon profil →</button>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12,marginBottom:'1.25rem',paddingBottom:'1.25rem',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+              <div>
+                <div style={{fontSize:9,fontWeight:700,letterSpacing:'.16em',textTransform:'uppercase',color:'rgba(255,255,255,0.28)',marginBottom:6}}>Bonjour</div>
+                <h1 style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?24:32,fontWeight:700,color:'#fff',letterSpacing:'-.02em',lineHeight:1,marginBottom:4}}>{profil.prenom} {profil.nom}</h1>
+                <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase'}}>{profil.activite}</div>
+              </div>
+              {prochaineDecl && (
+                <div style={{display:'flex',alignItems:'center',gap:12,background:'rgba(243,130,255,0.06)',border:'1px solid rgba(243,130,255,0.16)',borderRadius:10,padding:'10px 16px'}}>
+                  <span className="material-symbols-outlined" style={{fontSize:18,color:'#f382ff',flexShrink:0}}>warning</span>
+                  <div>
+                    <div style={{fontSize:9,fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'rgba(255,255,255,0.3)',marginBottom:3}}>Prochaine déclaration</div>
+                    <div style={{fontSize:13,fontWeight:700,color:'#f382ff',marginBottom:2}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
+                    <div style={{fontSize:10,color:'rgba(255,255,255,0.3)'}}>avant le {prochaineDecl.date_limite}</div>
+                  </div>
+                  <button onClick={()=>setView('calendrier')} style={{fontSize:11,fontWeight:700,background:'transparent',border:'1px solid rgba(243,130,255,0.3)',color:'#f382ff',padding:'6px 14px',borderRadius:7,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif",letterSpacing:'.04em',whiteSpace:'nowrap',flexShrink:0}}>Voir →</button>
+                </div>
+              )}
             </div>
           )}
 
-
-
-          {/* ── ROW 1 : 2 grandes cartes CA + Net ── */}
+                    {/* ── ROW 1 : 2 grandes cartes CA + Net ── */}
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:10,marginBottom:10}}>
             {/* CA mois — grande carte principale */}
             <div className="card" onClick={()=>setView('revenus')} style={{cursor:'pointer',background:'rgba(12,3,24,0.85)'}}>
@@ -3735,7 +3707,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 .devis-card{
   background:rgba(20,5,40,0.35);border:1px solid rgba(255,255,255,0.12);
   backdrop-filter:blur(28px);border-radius:16px;padding:1rem 1.25rem;
-  transition:border-color .2s,transform .15s 
+  transition:border-color .2s,transform .15s
 }
 .devis-card:hover{border-color:rgba(243,130,255,0.2);transform:translateY(-1px)}
 `
