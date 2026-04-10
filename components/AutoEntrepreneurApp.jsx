@@ -170,6 +170,9 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 
   // Calendrier mobile
   const [calMoisActif, setCalMoisActif] = useState(new Date().getMonth())
+  const [dashMois, setDashMois]   = useState(new Date().getMonth()+1) // 1-12
+  const [dashAnnee, setDashAnnee] = useState(new Date().getFullYear())
+  const [showMonthPicker, setShowMonthPicker] = useState(false) // pour revenus
   const [calTouchStart, setCalTouchStart] = useState(null)
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 700)
   useEffect(() => {
@@ -261,6 +264,11 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   const [simSalarieResult, setSimSalarieResult] = useState(null)
 
   useEffect(() => { if (user) loadAll() }, [user])
+  useEffect(() => {
+    const close = (e) => { if (!e.target.closest('[data-picker]')) setShowMonthPicker(false) }
+    if (showMonthPicker) document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [showMonthPicker])
 
   const loadAll = async () => {
     setLoading(true)
@@ -628,12 +636,13 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
   }
 
   const { year, month } = getNow()
-  // CA calculé depuis les transactions individuelles (+ fallback ae_revenus)
-  const txCaAnnuel = transactions.filter(t=>t.date&&t.date.startsWith(String(year))&&t.categorie==='recette').reduce((s,t)=>s+(parseFloat(t.montant)||0),0)
-  const txCaMois   = transactions.filter(t=>t.date&&t.date.startsWith(`${year}-${String(month).padStart(2,'0')}`)&&t.categorie==='recette').reduce((s,t)=>s+(parseFloat(t.montant)||0),0)
-  // Si pas encore de transactions, fallback sur ae_revenus
-  const caAnnuel = txCaAnnuel > 0 ? txCaAnnuel : revenus.filter(r=>r.mois.startsWith(String(year))).reduce((s,r)=>s+r.montant,0)
-  const caMois   = txCaMois > 0 ? txCaMois : (revenus.find(r=>r.mois===`${year}-${String(month).padStart(2,'0')}`)?.montant||0)
+  // CA calculé depuis les transactions — filtre sur le mois/année sélectionné dans le dashboard
+  const dashMoisKey = `${dashAnnee}-${String(dashMois).padStart(2,'0')}`
+  const isCurrentMonth = dashAnnee===year && dashMois===month
+  const txCaAnnuel = transactions.filter(t=>t.date&&t.date.startsWith(String(dashAnnee))&&t.categorie==='recette').reduce((s,t)=>s+(parseFloat(t.montant)||0),0)
+  const txCaMois   = transactions.filter(t=>t.date&&t.date.startsWith(dashMoisKey)&&t.categorie==='recette').reduce((s,t)=>s+(parseFloat(t.montant)||0),0)
+  const caAnnuel = txCaAnnuel > 0 ? txCaAnnuel : revenus.filter(r=>r.mois.startsWith(String(dashAnnee))).reduce((s,r)=>s+r.montant,0)
+  const caMois   = txCaMois > 0 ? txCaMois : (revenus.find(r=>r.mois===dashMoisKey)?.montant||0)
   const taux          = profil?(profil.acre?TAUX_ACRE[profil.secteur]:TAUX[profil.secteur]):0
   const cotisAnnuel   = caAnnuel*taux
   const seuil_tva     = profil?.secteur==='ventes'?SEUILS.tva_ventes:SEUILS.tva_services
@@ -874,17 +883,30 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 <h1 style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?24:32,fontWeight:700,color:'#fff',letterSpacing:'-.02em',lineHeight:1,marginBottom:4}}>{profil.prenom} {profil.nom}</h1>
                 <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase'}}>{profil.activite}</div>
               </div>
-              {prochaineDecl && (
-                <div style={{display:'flex',alignItems:'center',gap:12,background:'rgba(243,130,255,0.06)',border:'1px solid rgba(243,130,255,0.16)',borderRadius:10,padding:'10px 16px'}}>
-                  <span className="material-symbols-outlined" style={{fontSize:18,color:'#f382ff',flexShrink:0}}>warning</span>
-                  <div>
-                    <div style={{fontSize:9,fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'rgba(255,255,255,0.3)',marginBottom:3}}>Prochaine déclaration</div>
-                    <div style={{fontSize:13,fontWeight:700,color:'#f382ff',marginBottom:2}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
-                    <div style={{fontSize:10,color:'rgba(255,255,255,0.3)'}}>avant le {prochaineDecl.date_limite}</div>
+              <div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+                {/* Sélecteur de mois */}
+                <div style={{display:'flex',alignItems:'center',gap:8,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'6px 10px'}}>
+                  <button onClick={()=>{let m=dashMois-1,a=dashAnnee;if(m<1){m=12;a--}setDashMois(m);setDashAnnee(a)}}
+                    style={{width:28,height:28,borderRadius:8,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.6)',cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
+                  <div style={{textAlign:'center',minWidth:120}}>
+                    <div style={{fontSize:14,fontWeight:700,color:'#fff',letterSpacing:'-.01em'}}>{['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][dashMois-1]}</div>
+                    <div style={{fontSize:10,color:'rgba(255,255,255,0.35)',fontWeight:600,letterSpacing:'.06em'}}>{dashAnnee}{isCurrentMonth?' · EN COURS':''}</div>
                   </div>
-                  <button onClick={()=>setView('calendrier')} style={{fontSize:11,fontWeight:700,background:'transparent',border:'1px solid rgba(243,130,255,0.3)',color:'#f382ff',padding:'6px 14px',borderRadius:7,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif",letterSpacing:'.04em',whiteSpace:'nowrap',flexShrink:0}}>Voir →</button>
+                  <button onClick={()=>{let m=dashMois+1,a=dashAnnee;if(m>12){m=1;a++}setDashMois(m);setDashAnnee(a)}}
+                    style={{width:28,height:28,borderRadius:8,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.6)',cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>›</button>
+                  {!isCurrentMonth && <button onClick={()=>{setDashMois(month);setDashAnnee(year)}} style={{fontSize:10,fontWeight:700,background:'rgba(243,130,255,0.1)',border:'1px solid rgba(243,130,255,0.25)',color:'#f382ff',padding:'4px 10px',borderRadius:7,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif",letterSpacing:'.04em',whiteSpace:'nowrap'}}>Aujourd'hui</button>}
                 </div>
-              )}
+                {prochaineDecl && (
+                  <div style={{display:'flex',alignItems:'center',gap:10,background:'rgba(243,130,255,0.06)',border:'1px solid rgba(243,130,255,0.16)',borderRadius:10,padding:'8px 14px'}}>
+                    <span className="material-symbols-outlined" style={{fontSize:16,color:'#f382ff',flexShrink:0}}>warning</span>
+                    <div>
+                      <div style={{fontSize:9,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'rgba(255,255,255,0.3)',marginBottom:2}}>Prochaine déclaration</div>
+                      <div style={{fontSize:12,fontWeight:700,color:'#f382ff'}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
+                    </div>
+                    <button onClick={()=>setView('calendrier')} style={{fontSize:10,fontWeight:700,background:'transparent',border:'1px solid rgba(243,130,255,0.3)',color:'#f382ff',padding:'5px 12px',borderRadius:7,cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif",whiteSpace:'nowrap'}}>Voir →</button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -997,6 +1019,50 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* ── RECAP ANNUEL ── */}
+          <div className="card" style={{marginBottom:10}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:8}}>
+              <div className="card-title" style={{marginBottom:0}}>Récap {dashAnnee}</div>
+              <button className="link-btn" onClick={()=>setView('revenus')}>Voir tout →</button>
+            </div>
+            {(() => {
+              const MOIS_COURTS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
+              const moisData = Array.from({length:12},(_,i)=>{
+                const mKey = `${dashAnnee}-${String(i+1).padStart(2,'0')}`
+                const txM = transactions.filter(t=>t.date&&t.date.startsWith(mKey)&&t.categorie==='recette')
+                const revM = revenus.find(r=>r.mois===mKey)
+                const ca = txM.length>0 ? txM.reduce((s,t)=>s+(parseFloat(t.montant)||0),0) : (revM?.montant||0)
+                return {mois:i+1,label:MOIS_COURTS[i],ca,net:ca*(1-taux-tauxImpot),isActif:i+1===dashMois&&dashAnnee===year||i+1===dashMois}
+              })
+              const maxCA = Math.max(...moisData.map(m=>m.ca),1)
+              const totalAnnee = moisData.reduce((s,m)=>s+m.ca,0)
+              return (
+                <div>
+                  {/* Barres graphique */}
+                  <div style={{display:'flex',gap:4,alignItems:'flex-end',height:60,marginBottom:8}}>
+                    {moisData.map(m=>(
+                      <div key={m.mois} onClick={()=>{setDashMois(m.mois)}} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:3,cursor:'pointer'}}
+                        title={`${m.label} : ${m.ca.toLocaleString('fr-FR')} €`}>
+                        <div style={{width:'100%',borderRadius:'3px 3px 0 0',background:m.isActif?'#f382ff':m.ca>0?'rgba(192,129,255,0.5)':'rgba(255,255,255,0.06)',height:m.ca>0?Math.max((m.ca/maxCA)*52,4):4,transition:'all .2s',minHeight:4}}/>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Labels mois */}
+                  <div style={{display:'flex',gap:4}}>
+                    {moisData.map(m=>(
+                      <div key={m.mois} onClick={()=>{setDashMois(m.mois)}} style={{flex:1,textAlign:'center',fontSize:9,fontWeight:m.isActif?700:500,color:m.isActif?'#f382ff':'rgba(255,255,255,0.3)',cursor:'pointer',letterSpacing:'.02em'}}>{m.label}</div>
+                    ))}
+                  </div>
+                  {/* Total */}
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:12,paddingTop:12,borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+                    <div style={{fontSize:11,color:'rgba(255,255,255,0.4)',fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase'}}>Total {dashAnnee}</div>
+                    <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:18,fontWeight:700,color:'#fff'}}>{totalAnnee.toLocaleString('fr-FR')} € <span style={{fontSize:12,color:'rgba(255,255,255,0.3)',fontWeight:500}}>· net ~{Math.round(totalAnnee*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €</span></div>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
 
           {/* ── ROW 3 : Assistant + Prochaines échéances ── */}
@@ -1697,9 +1763,39 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           <div className="card">
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.25rem',flexWrap:'wrap',gap:8}}>
               <div className="card-title" style={{marginBottom:0}}>Historique des encaissements</div>
-              <select className="mini-input" style={{width:'auto'}} value={txFiltreAnnee} onChange={e=>setTxFiltreAnnee(e.target.value)}>
-                {[year-2,year-1,year,year+1].map(y=><option key={y} value={String(y)}>{y}</option>)}
-              </select>
+              <div style={{position:'relative'}}>
+                <button onClick={()=>setShowMonthPicker(p=>!p)} style={{display:'flex',alignItems:'center',gap:8,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:9,padding:'8px 14px',color:'#fff',cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif",fontSize:13,fontWeight:600}}>
+                  <span className="material-symbols-outlined" style={{fontSize:16}}>calendar_month</span>
+                  {txFiltreAnnee}
+                  <span style={{fontSize:10,color:'rgba(255,255,255,0.4)'}}>▾</span>
+                </button>
+                {showMonthPicker && (
+                  <div style={{position:'absolute',right:0,top:'calc(100% + 8px)',zIndex:200,background:'rgba(8,2,18,0.97)',backdropFilter:'blur(40px)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:14,padding:'1.25rem',width:220,boxShadow:'0 24px 60px rgba(0,0,0,0.6)'}}>
+                    {/* Sélecteur année */}
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+                      <button onClick={()=>setTxFiltreAnnee(String(parseInt(txFiltreAnnee)-1))} style={{width:28,height:28,borderRadius:7,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.6)',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
+                      <div style={{fontSize:15,fontWeight:700,color:'#fff'}}>{txFiltreAnnee}</div>
+                      <button onClick={()=>setTxFiltreAnnee(String(parseInt(txFiltreAnnee)+1))} style={{width:28,height:28,borderRadius:7,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.6)',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center'}}>›</button>
+                    </div>
+                    {/* Grille mois */}
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:4}}>
+                      {['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'].map((m,i)=>{
+                        const mKey = `${txFiltreAnnee}-${String(i+1).padStart(2,'0')}`
+                        const hasTx = transactions.some(t=>t.date&&t.date.startsWith(mKey))
+                        const isNow = parseInt(txFiltreAnnee)===year && i+1===month
+                        return (
+                          <button key={m} onClick={()=>{setTxFiltreAnnee(txFiltreAnnee);setShowMonthPicker(false)}}
+                            style={{padding:'8px 4px',borderRadius:8,border:`1px solid ${isNow?'rgba(243,130,255,0.4)':'rgba(255,255,255,0.08)'}`,background:isNow?'rgba(243,130,255,0.1)':'transparent',color:hasTx?'#fff':'rgba(255,255,255,0.3)',cursor:'pointer',fontSize:12,fontWeight:hasTx?700:400,fontFamily:"'Space Grotesk',sans-serif",position:'relative'}}>
+                            {m}
+                            {hasTx && <span style={{position:'absolute',top:3,right:3,width:4,height:4,borderRadius:'50%',background:'#f382ff'}}/>}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <button onClick={()=>setShowMonthPicker(false)} style={{width:'100%',marginTop:10,padding:'7px',borderRadius:8,border:'none',background:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)',cursor:'pointer',fontFamily:"'Space Grotesk',sans-serif",fontSize:12}}>Fermer</button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {(() => {
