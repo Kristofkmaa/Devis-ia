@@ -1728,7 +1728,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     fontSize:13,lineHeight:1.6,
                     color: simMode==='rapide' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)'
                   }}>Tu as encaissé un paiement ?<br/>Calcule instantanément ce que tu dois mettre de côté.</div>
-                  {simMode==='rapide' && (
+                  {(simMode==='rapide') && (
                     <div style={{marginTop:14,display:'inline-block',background:'rgba(243,130,255,0.15)',color:'#f382ff',border:'1px solid rgba(243,130,255,0.4)',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
                   )}
                 </div>
