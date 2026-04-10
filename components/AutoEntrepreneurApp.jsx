@@ -1021,11 +1021,14 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             </div>
           </div>
 
-          {/* ── RECAP ANNUEL ── */}
+          {/* ── COURBE CA ANNUEL ── */}
           <div className="card" style={{marginBottom:10}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:8}}>
-              <div className="card-title" style={{marginBottom:0}}>Récap {dashAnnee}</div>
-              <button className="link-btn" onClick={()=>setView('revenus')}>Voir tout →</button>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem',flexWrap:'wrap',gap:8}}>
+              <div>
+                <div className="card-title" style={{marginBottom:4}}>Chiffre d'affaires {dashAnnee}</div>
+                <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',letterSpacing:'.04em'}}>CA mensuel · cliquer sur un mois pour le sélectionner</div>
+              </div>
+              <button className="link-btn" onClick={()=>setView('revenus')}>Détail →</button>
             </div>
             {(() => {
               const MOIS_COURTS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
@@ -1034,31 +1037,88 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 const txM = transactions.filter(t=>t.date&&t.date.startsWith(mKey)&&t.categorie==='recette')
                 const revM = revenus.find(r=>r.mois===mKey)
                 const ca = txM.length>0 ? txM.reduce((s,t)=>s+(parseFloat(t.montant)||0),0) : (revM?.montant||0)
-                return {mois:i+1,label:MOIS_COURTS[i],ca,net:ca*(1-taux-tauxImpot),isActif:i+1===dashMois&&dashAnnee===year||i+1===dashMois}
+                const net = ca*(1-taux-tauxImpot)
+                const isActif = i+1===dashMois
+                return {mois:i+1,label:MOIS_COURTS[i],ca,net,isActif}
               })
               const maxCA = Math.max(...moisData.map(m=>m.ca),1)
               const totalAnnee = moisData.reduce((s,m)=>s+m.ca,0)
+              const netAnnee = totalAnnee*(1-taux-tauxImpot)
+              const H = 140 // hauteur svg
+              const W_STEP = 100/11 // % par step
+              const pts = moisData.map((m,i)=>({
+                x: i===0?0:i===11?100:(i/11)*100,
+                y: m.ca>0 ? H - (m.ca/maxCA)*(H-16) : H,
+                ...m
+              }))
+              // Courbe SVG
+              const pathD = pts.reduce((d,p,i)=>{
+                if(i===0) return `M ${p.x} ${p.y}`
+                const prev = pts[i-1]
+                const cx = (prev.x+p.x)/2
+                return d + ` C ${cx} ${prev.y} ${cx} ${p.y} ${p.x} ${p.y}`
+              },'')
+              const areaD = pathD + ` L 100 ${H} L 0 ${H} Z`
+
               return (
                 <div>
-                  {/* Barres graphique */}
-                  <div style={{display:'flex',gap:4,alignItems:'flex-end',height:60,marginBottom:8}}>
-                    {moisData.map(m=>(
-                      <div key={m.mois} onClick={()=>{setDashMois(m.mois)}} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:3,cursor:'pointer'}}
-                        title={`${m.label} : ${m.ca.toLocaleString('fr-FR')} €`}>
-                        <div style={{width:'100%',borderRadius:'3px 3px 0 0',background:m.isActif?'#f382ff':m.ca>0?'rgba(192,129,255,0.5)':'rgba(255,255,255,0.06)',height:m.ca>0?Math.max((m.ca/maxCA)*52,4):4,transition:'all .2s',minHeight:4}}/>
+                  {/* Stats rapides */}
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:'1.5rem'}}>
+                    {[
+                      {label:'Total CA',val:totalAnnee,color:'#fff'},
+                      {label:'URSSAF',val:totalAnnee*taux,color:'#ff6e84'},
+                      {label:'Impôts',val:totalAnnee*tauxImpot,color:'#dbb4ff'},
+                      {label:'Net estimé',val:netAnnee,color:netAnnee<0?'#ff6e84':'#c081ff'},
+                    ].map(({label,val,color})=>(
+                      <div key={label} style={{textAlign:'center'}}>
+                        <div style={{fontSize:9,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'rgba(255,255,255,0.35)',marginBottom:6}}>{label}</div>
+                        <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?16:20,fontWeight:700,color}}>{Math.round(val).toLocaleString('fr-FR')} €</div>
                       </div>
                     ))}
                   </div>
-                  {/* Labels mois */}
-                  <div style={{display:'flex',gap:4}}>
-                    {moisData.map(m=>(
-                      <div key={m.mois} onClick={()=>{setDashMois(m.mois)}} style={{flex:1,textAlign:'center',fontSize:9,fontWeight:m.isActif?700:500,color:m.isActif?'#f382ff':'rgba(255,255,255,0.3)',cursor:'pointer',letterSpacing:'.02em'}}>{m.label}</div>
-                    ))}
+
+                  {/* Courbe SVG */}
+                  <div style={{position:'relative',marginBottom:8}}>
+                    <svg viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" style={{width:'100%',height:isMobile?100:H,display:'block',overflow:'visible'}}>
+                      <defs>
+                        <linearGradient id="caGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#f382ff" stopOpacity="0.25"/>
+                          <stop offset="100%" stopColor="#f382ff" stopOpacity="0.01"/>
+                        </linearGradient>
+                        <linearGradient id="netGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#c081ff" stopOpacity="0.15"/>
+                          <stop offset="100%" stopColor="#c081ff" stopOpacity="0.01"/>
+                        </linearGradient>
+                      </defs>
+                      {/* Grille horizontale */}
+                      {[0.25,0.5,0.75,1].map(p=>(
+                        <line key={p} x1="0" y1={H-(p*H)} x2="100" y2={H-(p*H)} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" vectorEffect="non-scaling-stroke"/>
+                      ))}
+                      {/* Aire CA */}
+                      <path d={areaD} fill="url(#caGrad)" vectorEffect="non-scaling-stroke"/>
+                      {/* Courbe CA */}
+                      <path d={pathD} fill="none" stroke="#f382ff" strokeWidth="1.5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round"/>
+                      {/* Points */}
+                      {pts.map((p,i)=>(
+                        p.ca > 0 && (
+                          <g key={i}>
+                            <circle cx={p.x} cy={p.y} r={p.isActif?3:1.5} fill={p.isActif?'#f382ff':'rgba(243,130,255,0.7)'} vectorEffect="non-scaling-stroke"/>
+                            {p.isActif && <circle cx={p.x} cy={p.y} r="5" fill="none" stroke="#f382ff" strokeWidth="1" opacity="0.4" vectorEffect="non-scaling-stroke"/>}
+                          </g>
+                        )
+                      ))}
+                    </svg>
                   </div>
-                  {/* Total */}
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:12,paddingTop:12,borderTop:'1px solid rgba(255,255,255,0.06)'}}>
-                    <div style={{fontSize:11,color:'rgba(255,255,255,0.4)',fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase'}}>Total {dashAnnee}</div>
-                    <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:18,fontWeight:700,color:'#fff'}}>{totalAnnee.toLocaleString('fr-FR')} € <span style={{fontSize:12,color:'rgba(255,255,255,0.3)',fontWeight:500}}>· net ~{Math.round(totalAnnee*(1-taux-tauxImpot)).toLocaleString('fr-FR')} €</span></div>
+
+                  {/* Labels mois cliquables */}
+                  <div style={{display:'flex'}}>
+                    {moisData.map(m=>(
+                      <div key={m.mois} onClick={()=>setDashMois(m.mois)}
+                        style={{flex:1,textAlign:'center',cursor:'pointer',padding:'4px 2px',borderRadius:6,background:m.isActif?'rgba(243,130,255,0.1)':'transparent',transition:'background .15s'}}>
+                        <div style={{fontSize:9,fontWeight:m.isActif?700:500,color:m.isActif?'#f382ff':'rgba(255,255,255,0.3)',letterSpacing:'.02em'}}>{m.label}</div>
+                        {m.ca>0 && <div style={{fontSize:8,color:m.isActif?'rgba(243,130,255,0.7)':'rgba(255,255,255,0.2)',marginTop:1}}>{Math.round(m.ca/1000)>0?Math.round(m.ca/1000)+'k':''}</div>}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )
