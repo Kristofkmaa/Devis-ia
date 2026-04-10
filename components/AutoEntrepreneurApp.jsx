@@ -709,7 +709,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           ['dashboard',   'dashboard',        'Accueil'],
           ['calendrier',  'calendar_month',   'Calendrier'],
           ['revenus',     'payments',         'Revenus'],
-          ['simulateur',  'calculate',        'Calculs'],
+          ['simulateur',  'calculate',        'Simulation'],
           ['devis',       'description',      'Devis'],
           ['assistant',   'auto_awesome',     'Assistant'],
           ['equipe',      'group',            'Équipe'],
@@ -2074,8 +2074,8 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             {view==='simulateur' && (
         <div className="main">
           <div className="page-header">
-            <h2 className="page-title">Calculs & Simulation</h2>
-            <p className="page-sub">Calcul rapide ou simulation annuelle complète</p>
+            <h2 className="page-title">Simulation</h2>
+            <p className="page-sub">Calculs, simulations et projections</p>
           </div>
 
           {!profil ? (
@@ -2145,6 +2145,163 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   )}
                 </div>
                 <div
+                  onClick={()=>setSimMode('salarie')}
+                  style={{
+                    background: simMode==='salarie' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
+                    border: simMode==='salarie' ? '1.5px solid rgba(255,255,255,0.2)' : '1.5px solid rgba(255,255,255,0.08)',
+                    borderRadius:20, padding:'1.75rem', cursor:'pointer', transition:'all .2s',
+                    boxShadow: simMode==='salarie' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>group</span>
+                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='salarie'?'#fff':'rgba(255,255,255,0.7)'}}>Coût d'un salarié</div>
+                  <div style={{fontSize:13,lineHeight:1.6,color:simMode==='salarie'?'rgba(255,255,255,0.65)':'rgba(255,255,255,0.5)'}}>Tu veux embaucher ?<br/>Calcule le vrai coût employeur, charges incluses.</div>
+                  {simMode==='salarie' && (
+                    <div style={{marginTop:14,display:'inline-block',background:'rgba(243,130,255,0.15)',color:'#f382ff',border:'1px solid rgba(243,130,255,0.4)',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
+                  )}
+                </div>
+                       {/* ── SIMULATION COÛT SALARIÉ ── */}
+              {simMode==='salarie' && (() => {
+                return (
+<div className="card" style={{marginBottom:'1.25rem'}}>
+            <div className="card-title">Simulateur de coût — combien me coûte vraiment un salarié ?</div>
+            <p style={{fontSize:13,color:'rgba(255,255,255,0.45)',marginBottom:'1.25rem',lineHeight:1.6}}>
+              Saisis un salaire brut pour voir le détail complet : charges salariales, charges patronales, coût employeur réel.
+            </p>
+            <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'flex-end',marginBottom:'1.25rem'}}>
+              <div style={{flex:1,minWidth:180}}>
+                <span className="mini-label">Salaire brut mensuel (€)</span>
+                <input className="mini-input" type="number" value={simSalaire}
+                  onChange={e=>setSimSalaire(e.target.value)}
+                  onKeyDown={e=>{if(e.key==='Enter'){
+                    const brut=parseFloat(simSalaire)||0
+                    if(!brut)return
+                    setSimSalarieResult({brut,...calcSalaire(brut)})
+                  }}}
+                  placeholder="2 000"/>
+              </div>
+              <button className="btn btn-dark" style={{padding:'13px 24px',whiteSpace:'nowrap'}} onClick={()=>{
+                const brut=parseFloat(simSalaire)||0
+                if(!brut)return
+                setSimSalarieResult({brut,...calcSalaire(brut)})
+              }}>Calculer →</button>
+            </div>
+
+            {simSalarieResult && (() => {
+              const r = simSalarieResult
+              const fmt = v => Math.round(v).toLocaleString('fr-FR')
+              return (
+                <>
+                  {/* 3 grandes cartes résultat */}
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:'1.25rem'}}>
+                    <div style={{background:'rgba(20,5,40,0.5)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Salaire brut</div>
+                      <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#fff'}}>{fmt(r.brut)} €</div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que tu affiches</div>
+                    </div>
+                    <div style={{background:'rgba(192,129,255,0.12)',border:'1px solid rgba(192,129,255,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Salaire net</div>
+                      <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#c081ff'}}>{fmt(r.net)} €</div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que touche ton salarié</div>
+                    </div>
+                    <div style={{background:'rgba(243,130,255,0.1)',border:'1px solid rgba(243,130,255,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
+                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Coût employeur</div>
+                      <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#f382ff'}}>{fmt(r.cout_apres_fillon)} €</div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que tu paies vraiment</div>
+                    </div>
+                  </div>
+
+                  {r.fillon > 0 && (
+                    <div style={{background:'rgba(192,129,255,0.08)',border:'1px solid rgba(192,129,255,0.2)',borderRadius:12,padding:'10px 14px',marginBottom:'1.25rem',fontSize:13,color:'#dbb4ff'}}>
+                      Réduction Fillon applicable (salaire ≤ 1,6 SMIC) — économie estimée : <strong>{fmt(r.fillon)} €/mois</strong> soit {fmt(r.fillon*12)} €/an
+                    </div>
+                  )}
+
+                  {/* Détail des charges en 2 colonnes */}
+                  <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:16}}>
+                    {/* Charges salariales */}
+                    <div style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:'1rem'}}>
+                      <div style={{fontSize:12,fontWeight:700,color:'#c081ff',marginBottom:12,letterSpacing:'.04em',textTransform:'uppercase'}}>
+                        Charges salariales — {Math.round((r.total_sal/r.brut)*100)}%
+                      </div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10}}>Retenues sur le brut — supportées par le salarié</div>
+                      {[
+                        ['Assurance maladie','0,75%',r.detail_sal.cs_maladie],
+                        ['Retraite de base plafonnée','6,9%',r.detail_sal.cs_vieillesse_plaf],
+                        ['Retraite de base déplafonnée','0,4%',r.detail_sal.cs_vieillesse_deplaf],
+                        ['Assurance chômage','2,4%',r.detail_sal.cs_chomage],
+                        ['CSG déductible','6,8%',r.detail_sal.cs_csg_ded],
+                        ['CSG/CRDS non déductible','2,9%',r.detail_sal.cs_csg_crds],
+                        ['Retraite complémentaire AGIRC-ARRCO','3,15%',r.detail_sal.cs_retraite_comp],
+                      ].map(([label,taux,val])=>(
+                        <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                          <div>
+                            <div style={{fontSize:12,color:'rgba(255,255,255,0.7)'}}>{label}</div>
+                            <div style={{fontSize:10,color:'rgba(255,255,255,0.3)'}}>{taux}</div>
+                          </div>
+                          <span style={{fontSize:13,fontWeight:600,color:'#ff6e84'}}>−{fmt(val)} €</span>
+                        </div>
+                      ))}
+                      <div style={{display:'flex',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:'1px solid rgba(192,129,255,0.2)'}}>
+                        <span style={{fontSize:13,fontWeight:700,color:'#fff'}}>Total salarial</span>
+                        <span style={{fontSize:14,fontWeight:800,color:'#ff6e84'}}>−{fmt(r.total_sal)} €</span>
+                      </div>
+                      <div style={{marginTop:8,padding:'8px 12px',background:'rgba(192,129,255,0.1)',borderRadius:10,display:'flex',justifyContent:'space-between'}}>
+                        <span style={{fontSize:13,color:'rgba(255,255,255,0.6)'}}>Net versé au salarié</span>
+                        <span style={{fontSize:14,fontWeight:800,color:'#c081ff'}}>{fmt(r.net)} €</span>
+                      </div>
+                    </div>
+
+                    {/* Charges patronales */}
+                    <div style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:'1rem'}}>
+                      <div style={{fontSize:12,fontWeight:700,color:'#f382ff',marginBottom:12,letterSpacing:'.04em',textTransform:'uppercase'}}>
+                        Charges patronales — {Math.round((r.total_pat/r.brut)*100)}%
+                      </div>
+                      <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10}}>En plus du brut — supportées par l'employeur</div>
+                      {[
+                        ['Assurance maladie-maternité','7%',r.detail_pat.cp_maladie],
+                        ['Vieillesse plafonnée','8,55%',r.detail_pat.cp_vieillesse_plaf],
+                        ['Vieillesse déplafonnée','1,9%',r.detail_pat.cp_vieillesse_deplaf],
+                        ['Allocations familiales','3,45%',r.detail_pat.cp_fam],
+                        ['Accidents du travail','2,22%',r.detail_pat.cp_at],
+                        ['Assurance chômage','4,05%',r.detail_pat.cp_chomage],
+                        ['AGS (garantie salaires)','0,15%',r.detail_pat.cp_ags],
+                        ['Retraite complémentaire AGIRC-ARRCO','4,72%',r.detail_pat.cp_retraite_comp],
+                        ['CEG (équilibre général)','1,29%',r.detail_pat.cp_ceg],
+                        ['Formation professionnelle','1,55%',r.detail_pat.cp_formation],
+                        ['Taxe apprentissage','0,68%',r.detail_pat.cp_apprentissage],
+                        ['Contribution solidarité autonomie','0,3%',r.detail_pat.cp_csa],
+                      ].map(([label,taux,val])=>(
+                        <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                          <div>
+                            <div style={{fontSize:12,color:'rgba(255,255,255,0.7)'}}>{label}</div>
+                            <div style={{fontSize:10,color:'rgba(255,255,255,0.3)'}}>{taux}</div>
+                          </div>
+                          <span style={{fontSize:13,fontWeight:600,color:'#f382ff'}}>+{fmt(val)} €</span>
+                        </div>
+                      ))}
+                      <div style={{display:'flex',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:'1px solid rgba(243,130,255,0.2)'}}>
+                        <span style={{fontSize:13,fontWeight:700,color:'#fff'}}>Total patronal</span>
+                        <span style={{fontSize:14,fontWeight:800,color:'#f382ff'}}>+{fmt(r.total_pat)} €</span>
+                      </div>
+                      <div style={{marginTop:8,padding:'8px 12px',background:'rgba(243,130,255,0.1)',borderRadius:10,display:'flex',justifyContent:'space-between'}}>
+                        <span style={{fontSize:13,color:'rgba(255,255,255,0.6)'}}>Coût total employeur</span>
+                        <span style={{fontSize:14,fontWeight:800,color:'#f382ff'}}>{fmt(r.cout_apres_fillon)} €</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{marginTop:12,padding:'12px 16px',background:'rgba(255,255,255,0.04)',borderRadius:12,fontSize:11,color:'rgba(255,255,255,0.3)',lineHeight:1.7}}>
+                    Taux 2025 — Sources : URSSAF, DSS. Taux AT moyen (variable selon secteur). Réduction Fillon estimée à 30% des charges patronales pour salaires ≤ 1,6 SMIC. Ces chiffres sont indicatifs — consulte un expert-comptable ou un gestionnaire de paie pour ta situation exacte.
+                  </div>
+                </>
+              )
+            })()}
+          </div>
+                )
+              })()}
+
+       <div
                   onClick={()=>setSimMode('reel')}
                   style={{
                     background: simMode==='reel' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
@@ -3224,142 +3381,6 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
             <button className="btn btn-dark" onClick={()=>{setSalarieForm({prenom:'',nom:'',poste:'',type_contrat:'cdi',salaire_brut:'',date_embauche:'',statut:'actif',notes:''});setSalarieEditing(null);setShowSalarieForm(true)}}>+ Ajouter un salarié</button>
           </div>
 
-          {/* ── SIMULATEUR RAPIDE ── */}
-          <div className="card" style={{marginBottom:'1.25rem'}}>
-            <div className="card-title">Simulateur de coût — combien me coûte vraiment un salarié ?</div>
-            <p style={{fontSize:13,color:'rgba(255,255,255,0.45)',marginBottom:'1.25rem',lineHeight:1.6}}>
-              Saisis un salaire brut pour voir le détail complet : charges salariales, charges patronales, coût employeur réel.
-            </p>
-            <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'flex-end',marginBottom:'1.25rem'}}>
-              <div style={{flex:1,minWidth:180}}>
-                <span className="mini-label">Salaire brut mensuel (€)</span>
-                <input className="mini-input" type="number" value={simSalaire}
-                  onChange={e=>setSimSalaire(e.target.value)}
-                  onKeyDown={e=>{if(e.key==='Enter'){
-                    const brut=parseFloat(simSalaire)||0
-                    if(!brut)return
-                    setSimSalarieResult({brut,...calcSalaire(brut)})
-                  }}}
-                  placeholder="2 000"/>
-              </div>
-              <button className="btn btn-dark" style={{padding:'13px 24px',whiteSpace:'nowrap'}} onClick={()=>{
-                const brut=parseFloat(simSalaire)||0
-                if(!brut)return
-                setSimSalarieResult({brut,...calcSalaire(brut)})
-              }}>Calculer →</button>
-            </div>
-
-            {simSalarieResult && (() => {
-              const r = simSalarieResult
-              const fmt = v => Math.round(v).toLocaleString('fr-FR')
-              return (
-                <>
-                  {/* 3 grandes cartes résultat */}
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:'1.25rem'}}>
-                    <div style={{background:'rgba(20,5,40,0.5)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
-                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Salaire brut</div>
-                      <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#fff'}}>{fmt(r.brut)} €</div>
-                      <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que tu affiches</div>
-                    </div>
-                    <div style={{background:'rgba(192,129,255,0.12)',border:'1px solid rgba(192,129,255,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
-                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Salaire net</div>
-                      <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#c081ff'}}>{fmt(r.net)} €</div>
-                      <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que touche ton salarié</div>
-                    </div>
-                    <div style={{background:'rgba(243,130,255,0.1)',border:'1px solid rgba(243,130,255,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
-                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Coût employeur</div>
-                      <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#f382ff'}}>{fmt(r.cout_apres_fillon)} €</div>
-                      <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que tu paies vraiment</div>
-                    </div>
-                  </div>
-
-                  {r.fillon > 0 && (
-                    <div style={{background:'rgba(192,129,255,0.08)',border:'1px solid rgba(192,129,255,0.2)',borderRadius:12,padding:'10px 14px',marginBottom:'1.25rem',fontSize:13,color:'#dbb4ff'}}>
-                      Réduction Fillon applicable (salaire ≤ 1,6 SMIC) — économie estimée : <strong>{fmt(r.fillon)} €/mois</strong> soit {fmt(r.fillon*12)} €/an
-                    </div>
-                  )}
-
-                  {/* Détail des charges en 2 colonnes */}
-                  <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:16}}>
-                    {/* Charges salariales */}
-                    <div style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:'1rem'}}>
-                      <div style={{fontSize:12,fontWeight:700,color:'#c081ff',marginBottom:12,letterSpacing:'.04em',textTransform:'uppercase'}}>
-                        Charges salariales — {Math.round((r.total_sal/r.brut)*100)}%
-                      </div>
-                      <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10}}>Retenues sur le brut — supportées par le salarié</div>
-                      {[
-                        ['Assurance maladie','0,75%',r.detail_sal.cs_maladie],
-                        ['Retraite de base plafonnée','6,9%',r.detail_sal.cs_vieillesse_plaf],
-                        ['Retraite de base déplafonnée','0,4%',r.detail_sal.cs_vieillesse_deplaf],
-                        ['Assurance chômage','2,4%',r.detail_sal.cs_chomage],
-                        ['CSG déductible','6,8%',r.detail_sal.cs_csg_ded],
-                        ['CSG/CRDS non déductible','2,9%',r.detail_sal.cs_csg_crds],
-                        ['Retraite complémentaire AGIRC-ARRCO','3,15%',r.detail_sal.cs_retraite_comp],
-                      ].map(([label,taux,val])=>(
-                        <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
-                          <div>
-                            <div style={{fontSize:12,color:'rgba(255,255,255,0.7)'}}>{label}</div>
-                            <div style={{fontSize:10,color:'rgba(255,255,255,0.3)'}}>{taux}</div>
-                          </div>
-                          <span style={{fontSize:13,fontWeight:600,color:'#ff6e84'}}>−{fmt(val)} €</span>
-                        </div>
-                      ))}
-                      <div style={{display:'flex',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:'1px solid rgba(192,129,255,0.2)'}}>
-                        <span style={{fontSize:13,fontWeight:700,color:'#fff'}}>Total salarial</span>
-                        <span style={{fontSize:14,fontWeight:800,color:'#ff6e84'}}>−{fmt(r.total_sal)} €</span>
-                      </div>
-                      <div style={{marginTop:8,padding:'8px 12px',background:'rgba(192,129,255,0.1)',borderRadius:10,display:'flex',justifyContent:'space-between'}}>
-                        <span style={{fontSize:13,color:'rgba(255,255,255,0.6)'}}>Net versé au salarié</span>
-                        <span style={{fontSize:14,fontWeight:800,color:'#c081ff'}}>{fmt(r.net)} €</span>
-                      </div>
-                    </div>
-
-                    {/* Charges patronales */}
-                    <div style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:14,padding:'1rem'}}>
-                      <div style={{fontSize:12,fontWeight:700,color:'#f382ff',marginBottom:12,letterSpacing:'.04em',textTransform:'uppercase'}}>
-                        Charges patronales — {Math.round((r.total_pat/r.brut)*100)}%
-                      </div>
-                      <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10}}>En plus du brut — supportées par l'employeur</div>
-                      {[
-                        ['Assurance maladie-maternité','7%',r.detail_pat.cp_maladie],
-                        ['Vieillesse plafonnée','8,55%',r.detail_pat.cp_vieillesse_plaf],
-                        ['Vieillesse déplafonnée','1,9%',r.detail_pat.cp_vieillesse_deplaf],
-                        ['Allocations familiales','3,45%',r.detail_pat.cp_fam],
-                        ['Accidents du travail','2,22%',r.detail_pat.cp_at],
-                        ['Assurance chômage','4,05%',r.detail_pat.cp_chomage],
-                        ['AGS (garantie salaires)','0,15%',r.detail_pat.cp_ags],
-                        ['Retraite complémentaire AGIRC-ARRCO','4,72%',r.detail_pat.cp_retraite_comp],
-                        ['CEG (équilibre général)','1,29%',r.detail_pat.cp_ceg],
-                        ['Formation professionnelle','1,55%',r.detail_pat.cp_formation],
-                        ['Taxe apprentissage','0,68%',r.detail_pat.cp_apprentissage],
-                        ['Contribution solidarité autonomie','0,3%',r.detail_pat.cp_csa],
-                      ].map(([label,taux,val])=>(
-                        <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
-                          <div>
-                            <div style={{fontSize:12,color:'rgba(255,255,255,0.7)'}}>{label}</div>
-                            <div style={{fontSize:10,color:'rgba(255,255,255,0.3)'}}>{taux}</div>
-                          </div>
-                          <span style={{fontSize:13,fontWeight:600,color:'#f382ff'}}>+{fmt(val)} €</span>
-                        </div>
-                      ))}
-                      <div style={{display:'flex',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:'1px solid rgba(243,130,255,0.2)'}}>
-                        <span style={{fontSize:13,fontWeight:700,color:'#fff'}}>Total patronal</span>
-                        <span style={{fontSize:14,fontWeight:800,color:'#f382ff'}}>+{fmt(r.total_pat)} €</span>
-                      </div>
-                      <div style={{marginTop:8,padding:'8px 12px',background:'rgba(243,130,255,0.1)',borderRadius:10,display:'flex',justifyContent:'space-between'}}>
-                        <span style={{fontSize:13,color:'rgba(255,255,255,0.6)'}}>Coût total employeur</span>
-                        <span style={{fontSize:14,fontWeight:800,color:'#f382ff'}}>{fmt(r.cout_apres_fillon)} €</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{marginTop:12,padding:'12px 16px',background:'rgba(255,255,255,0.04)',borderRadius:12,fontSize:11,color:'rgba(255,255,255,0.3)',lineHeight:1.7}}>
-                    Taux 2025 — Sources : URSSAF, DSS. Taux AT moyen (variable selon secteur). Réduction Fillon estimée à 30% des charges patronales pour salaires ≤ 1,6 SMIC. Ces chiffres sont indicatifs — consulte un expert-comptable ou un gestionnaire de paie pour ta situation exacte.
-                  </div>
-                </>
-              )
-            })()}
-          </div>
 
           {/* ── RÉCAP ÉQUIPE ── */}
           {salaries.filter(s=>s.statut==='actif').length > 0 && (
