@@ -1077,58 +1077,97 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     ))}
                   </div>
 
-                  {/* Courbe SVG — coordonnées fixes */}
-                  <div style={{position:'relative',marginBottom:8}}>
+                  {/* Courbe + labels alignés dans le même SVG */}
+                  <div style={{position:'relative'}}>
                     {(()=>{
-                      const W=600, PH=H, PAD=20
-                      const step = (W-PAD*2)/11
-                      const fixedPts = pts.map((p,i)=>({
-                        ...p,
-                        fx: PAD + i*step,
-                        fy: p.ca>0 ? PH - (p.ca/maxCA)*(PH-16) : PH-2
+                      const W=600, PH=H
+                      const colW = W/12
+                      // X centré sur chaque mois
+                      const fixedPts = moisData.map((m,i)=>({
+                        ...m,
+                        fx: colW/2 + i*colW,
+                        fy: m.ca>0 ? PH - (m.ca/maxCA)*(PH-20) : PH
                       }))
+                      // Courbe de Bézier lisse
                       const fPathD = fixedPts.reduce((d,p,i)=>{
                         if(i===0) return `M ${p.fx} ${p.fy}`
                         const prev = fixedPts[i-1]
-                        const cx = (prev.fx+p.fx)/2
-                        return d + ` C ${cx} ${prev.fy} ${cx} ${p.fy} ${p.fx} ${p.fy}`
+                        const tension = 0.35
+                        const cp1x = prev.fx + (p.fx-prev.fx)*tension
+                        const cp2x = p.fx - (p.fx-prev.fx)*tension
+                        return d + ` C ${cp1x} ${prev.fy} ${cp2x} ${p.fy} ${p.fx} ${p.fy}`
                       },'')
-                      const fAreaD = fPathD + ` L ${W-PAD} ${PH} L ${PAD} ${PH} Z`
+                      const lastPt = fixedPts[fixedPts.length-1]
+                      const firstPt = fixedPts[0]
+                      const fAreaD = fPathD + ` L ${lastPt.fx} ${PH} L ${firstPt.fx} ${PH} Z`
+                      const labelH = 28 // hauteur réservée aux labels en bas du SVG
+                      const totalH = PH + labelH
                       return (
-                        <svg viewBox={`0 0 ${W} ${PH}`} preserveAspectRatio="none" style={{width:'100%',height:isMobile?100:PH,display:'block'}}>
+                        <svg viewBox={`0 0 ${W} ${totalH}`} preserveAspectRatio="none"
+                          style={{width:'100%',height:isMobile?120:totalH,display:'block'}}>
                           <defs>
-                            <linearGradient id="caGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#f382ff" stopOpacity="0.3"/>
-                              <stop offset="85%" stopColor="#f382ff" stopOpacity="0.02"/>
+                            <linearGradient id="caGrad2" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#f382ff" stopOpacity="0.28"/>
+                              <stop offset="90%" stopColor="#f382ff" stopOpacity="0.01"/>
                             </linearGradient>
                           </defs>
+
+                          {/* Lignes de grille horizontales */}
                           {[0.25,0.5,0.75].map(p=>(
-                            <line key={p} x1={PAD} y1={PH-(p*PH)} x2={W-PAD} y2={PH-(p*PH)} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
+                            <line key={p}
+                              x1={0} y1={PH-(p*PH)}
+                              x2={W} y2={PH-(p*PH)}
+                              stroke="rgba(255,255,255,0.05)" strokeWidth="0.8"/>
                           ))}
-                          <path d={fAreaD} fill="url(#caGrad)"/>
-                          <path d={fPathD} fill="none" stroke="#f382ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+
+                          {/* Ligne de base */}
+                          <line x1={0} y1={PH} x2={W} y2={PH} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8"/>
+
+                          {/* Surlignage colonne mois actif */}
+                          {fixedPts.map((p,i)=>p.isActif && (
+                            <rect key={i} x={i*colW} y={0} width={colW} height={PH}
+                              fill="rgba(243,130,255,0.05)" rx="0"/>
+                          ))}
+
+                          {/* Aire sous la courbe */}
+                          <path d={fAreaD} fill="url(#caGrad2)"/>
+
+                          {/* Courbe */}
+                          <path d={fPathD} fill="none" stroke="#f382ff"
+                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+
+                          {/* Labels mois DANS le SVG — parfaitement alignés */}
                           {fixedPts.map((p,i)=>(
-                            p.ca > 0 && (
-                              <g key={i}>
-                                {p.isActif && <circle cx={p.fx} cy={p.fy} r="10" fill="rgba(243,130,255,0.12)" stroke="#f382ff" strokeWidth="1" opacity="0.6"/>}
-                                <circle cx={p.fx} cy={p.fy} r={p.isActif?4:2.5} fill={p.isActif?'#f382ff':'rgba(243,130,255,0.6)'}/>
-                              </g>
-                            )
+                            <g key={i} style={{cursor:'pointer'}} onClick={()=>setDashMois(p.mois)}>
+                              {/* Label mois */}
+                              <text x={p.fx} y={PH+16}
+                                textAnchor="middle"
+                                fontSize="9"
+                                fontWeight={p.isActif?700:500}
+                                fill={p.isActif?'#f382ff':'rgba(255,255,255,0.35)'}
+                                fontFamily="'Space Grotesk',sans-serif"
+                                letterSpacing="0.5">
+                                {p.label}
+                              </text>
+                              {/* Montant en k€ si données */}
+                              {p.ca>0 && (
+                                <text x={p.fx} y={PH+26}
+                                  textAnchor="middle"
+                                  fontSize="7.5"
+                                  fill={p.isActif?'rgba(243,130,255,0.8)':'rgba(255,255,255,0.2)'}
+                                  fontFamily="'Space Grotesk',sans-serif">
+                                  {Math.round(p.ca/1000)>0?Math.round(p.ca/1000)+'k':'<1k'}
+                                </text>
+                              )}
+                              {/* Tick vertical sur la ligne de base */}
+                              <line x1={p.fx} y1={PH} x2={p.fx} y2={PH+4}
+                                stroke={p.isActif?'rgba(243,130,255,0.6)':'rgba(255,255,255,0.1)'}
+                                strokeWidth="1"/>
+                            </g>
                           ))}
                         </svg>
                       )
                     })()}
-                  </div>
-
-                  {/* Labels mois cliquables */}
-                  <div style={{display:'flex'}}>
-                    {moisData.map(m=>(
-                      <div key={m.mois} onClick={()=>setDashMois(m.mois)}
-                        style={{flex:1,textAlign:'center',cursor:'pointer',padding:'4px 2px',borderRadius:6,background:m.isActif?'rgba(243,130,255,0.1)':'transparent',transition:'background .15s'}}>
-                        <div style={{fontSize:9,fontWeight:m.isActif?700:500,color:m.isActif?'#f382ff':'rgba(255,255,255,0.3)',letterSpacing:'.02em'}}>{m.label}</div>
-                        {m.ca>0 && <div style={{fontSize:8,color:m.isActif?'rgba(243,130,255,0.7)':'rgba(255,255,255,0.2)',marginTop:1}}>{Math.round(m.ca/1000)>0?Math.round(m.ca/1000)+'k':''}</div>}
-                      </div>
-                    ))}
                   </div>
                 </div>
               )
