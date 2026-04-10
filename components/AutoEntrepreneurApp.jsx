@@ -683,10 +683,10 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
       {/* FIXED NEBULA BACKGROUND — positions animated via scroll */}
       <div ref={bgRef} style={{
         position:'fixed',inset:0,zIndex:0,pointerEvents:'none',
-        backgroundColor:'#04000C',
+        backgroundColor:'#0d0d1a',
         backgroundImage:[
-          'radial-gradient(ellipse 140% 120% at 38% 42%, rgba(70,8,120,0.38) 0%, rgba(35,3,70,0.22) 45%, transparent 72%)',
-          'radial-gradient(ellipse 90% 70% at 98% 90%, rgba(28,0,55,0.18) 0%, transparent 62%)',
+          'radial-gradient(ellipse 140% 120% at 38% 42%, rgba(70,8,120,0.2) 0%, rgba(35,3,70,0.12) 45%, transparent 72%)',
+          'radial-gradient(ellipse 90% 70% at 98% 90%, rgba(28,0,55,0.1) 0%, transparent 62%)',
         ].join(','),
       }}/>
 
@@ -913,7 +913,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     {/* ── ROW 1 : 2 grandes cartes ── */}
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:10,marginBottom:10}}>
             {/* CA mois */}
-            <div className="card" onClick={()=>setView('revenus')} style={{cursor:'pointer',background:'rgba(12,3,24,0.85)'}}>
+            <div className="card" onClick={()=>setView('revenus')} style={{cursor:'pointer',background:'rgba(255,255,255,0.05)'}}>
               <div className="card-title">Revenu ce mois</div>
               <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?40:52,fontWeight:700,color:'#ffffff',letterSpacing:'-.03em',lineHeight:1,marginBottom:14}}>{caMois.toLocaleString('fr-FR')} €</div>
               <div style={{display:'flex',alignItems:'center',gap:10}}>
@@ -924,7 +924,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               </div>
             </div>
             {/* À mettre de côté */}
-            <div className="card" onClick={()=>setView('simulateur')} style={{cursor:'pointer',background:'rgba(12,3,24,0.85)'}}>
+            <div className="card" onClick={()=>setView('simulateur')} style={{cursor:'pointer',background:'rgba(255,255,255,0.05)'}}>
               <div className="card-title">À mettre de côté</div>
               <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?40:52,fontWeight:700,color:'#ffffff',letterSpacing:'-.03em',lineHeight:1,marginBottom:14}}>{Math.round(caMois*(taux+tauxImpot)).toLocaleString('fr-FR')} €</div>
               <div style={{fontSize:12,color:'rgba(255,255,255,0.45)',fontWeight:500}}>URSSAF + Impôts estimés ce mois</div>
@@ -3471,12 +3471,12 @@ const CSS = `
 
 /* ── RESET ── */
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;margin:0;padding:0}
-html{background:#04000C;min-height:100vh;scroll-behavior:smooth}
-body{background:transparent;color:rgba(255,255,255,0.92);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+html{background:#0d0d1a;min-height:100vh;scroll-behavior:smooth}
+body{background:transparent;color:rgba(255,255,255,0.95);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
 
 /* ── APP BAR ── */
 .app-bar{
-  background:rgba(4,0,12,0.92);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  background:rgba(15,12,30,0.88);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
   height:60px;padding:0 1.25rem;
   display:flex;align-items:center;justify-content:space-between;
   position:sticky;top:0;z-index:200;
@@ -3527,7 +3527,7 @@ body{background:transparent;color:rgba(255,255,255,0.92);font-family:'Space Grot
     flex-direction:column;justify-content:flex-start;align-items:stretch;
     border-top:none;border-right:1px solid rgba(255,255,255,0.07);
     padding:1.5rem 1rem;overflow-x:visible;overflow-y:auto;
-    box-shadow:none;background:rgba(4,0,12,0.88);backdrop-filter:blur(40px);
+    box-shadow:none;background:rgba(15,12,30,0.75);backdrop-filter:blur(40px);
     gap:4px
   }
   .nav-tab{
@@ -3560,17 +3560,17 @@ body{background:transparent;color:rgba(255,255,255,0.92);font-family:'Space Grot
 
 /* ── CARDS ── */
 .card{
-  background:rgba(12,3,24,0.75);
+  background:rgba(255,255,255,0.07);
   backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border:1px solid rgba(255,255,255,0.09);
+  border:1px solid rgba(255,255,255,0.12);
   border-radius:12px;padding:1.25rem;
-  box-shadow:0 4px 24px rgba(0,0,0,0.3);
+  box-shadow:0 2px 12px rgba(0,0,0,0.15);
   transition:transform .2s cubic-bezier(.16,1,.3,1),border-color .2s,box-shadow .2s
 }
 .card:hover{
   transform:scale(1.012);
-  border-color:rgba(255,255,255,0.4);
-  box-shadow:0 0 0 1px rgba(255,255,255,0.06),0 12px 40px rgba(0,0,0,0.5)
+  border-color:rgba(255,255,255,0.35);
+  box-shadow:0 0 0 1px rgba(255,255,255,0.08),0 8px 32px rgba(0,0,0,0.2)
 }
 @media(min-width:640px){.card{border-radius:14px;padding:1.75rem}}
 @media(min-width:1200px){.card{padding:2rem}}
@@ -3599,7 +3599,7 @@ body{background:transparent;color:rgba(255,255,255,0.92);font-family:'Space Grot
 
 /* ── CAL ── */
 .cal-card{
-  background:rgba(20,5,40,0.35);border:1px solid rgba(255,255,255,0.13);
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
   backdrop-filter:blur(28px);border-radius:14px;
   padding:.875rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap
 }
@@ -3615,7 +3615,7 @@ body{background:transparent;color:rgba(255,255,255,0.92);font-family:'Space Grot
 .badge-done{font-size:12px;font-weight:700;color:#c081ff;background:rgba(192,129,255,0.1);padding:6px 16px;border-radius:9999px;border:1px solid rgba(192,129,255,0.22)}
 
 /* ── INFO BOX ── */
-.info-box{background:rgba(20,5,40,0.35);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:1rem 1.25rem;backdrop-filter:blur(20px)}
+.info-box{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:1rem 1.25rem;backdrop-filter:blur(20px)}
 .info-title{font-size:13px;font-weight:700;color:#dbb4ff;margin-bottom:8px}
 .info-text{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.9}
 .info-text a{color:#f382ff;text-decoration:none}
@@ -3624,8 +3624,8 @@ body{background:transparent;color:rgba(255,255,255,0.92);font-family:'Space Grot
 .mini-label{font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,0.4);display:block;margin-bottom:7px;text-transform:uppercase}
 .mini-input{
   padding:13px 16px;border-radius:8px;
-  border:1px solid rgba(255,255,255,0.14)!important;
-  background:rgba(0,0,0,0.4)!important;
+  border:1px solid rgba(255,255,255,0.18)!important;
+  background:rgba(255,255,255,0.06)!important;
   color:#fff;font-family:'Space Grotesk',sans-serif;font-size:15px;width:100%;
   -webkit-appearance:none;transition:border-color .2s
 }
@@ -3664,7 +3664,7 @@ body{background:transparent;color:rgba(255,255,255,0.92);font-family:'Space Grot
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .chip{
   font-size:13px;padding:9px 16px;border-radius:9999px;
-  border:1px solid rgba(255,255,255,0.14);background:rgba(20,5,40,0.4);
+  border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.05);
   color:rgba(255,255,255,0.65);cursor:pointer;transition:all .18s;
   min-height:40px;display:inline-flex;align-items:center;
   backdrop-filter:blur(16px)
@@ -3677,7 +3677,7 @@ textarea{
   width:100%;resize:none;font-family:'Inter',sans-serif;font-size:15px;
   padding:14px 16px 56px;border-radius:14px;
   border:1px solid rgba(255,255,255,0.18);
-  background:rgba(20,5,40,0.45);
+  background:rgba(255,255,255,0.06);
   color:#fff;line-height:1.65;min-height:110px;-webkit-appearance:none;
   backdrop-filter:blur(16px)
 }
