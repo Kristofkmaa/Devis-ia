@@ -851,13 +851,13 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12,marginBottom:'1.5rem'}}>
                 <div>
                   <p style={{fontSize:11,color:'rgba(255,255,255,0.38)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:8,fontWeight:700}}>Bonjour </p>
-                  <h1 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?26:32,fontWeight:800,color:'#fff',marginBottom:4,letterSpacing:'-.02em'}}>{profil.prenom} {profil.nom}</h1>
+                  <h1 style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?26:32,fontWeight:800,color:'#fff',marginBottom:4,letterSpacing:'-.02em'}}>{profil.prenom} {profil.nom}</h1>
                   <p style={{fontSize:14,color:'rgba(255,255,255,0.42)'}}>{profil.activite}</p>
                 </div>
                 {prochaineDecl && (
                   <div style={{background:'rgba(243,130,255,0.08)',border:'1px solid rgba(243,130,255,0.22)',borderRadius:16,padding:'14px 18px',minWidth:isMobile?'100%':'auto'}}>
                     <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Prochaine déclaration</div>
-                    <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,color:'#f382ff',fontWeight:700,marginBottom:4}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
+                    <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:15,color:'#f382ff',fontWeight:700,marginBottom:4}}>{prochaineDecl.label.replace('Déclaration URSSAF — ','')}</div>
                     <div style={{fontSize:12,color:'rgba(255,255,255,0.35)',marginBottom:10}}>avant le {prochaineDecl.date_limite}</div>
                     <button onClick={()=>setView('calendrier')} style={{fontSize:12,background:'rgba(243,130,255,0.15)',border:'1px solid rgba(243,130,255,0.3)',color:'#f382ff',padding:'7px 14px',borderRadius:9999,cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700}}>Voir le calendrier →</button>
                   </div>
@@ -884,7 +884,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.borderColor='rgba(255,255,255,0.09)';e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='none'}}
                   >
                     <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.32)',marginBottom:10}}>{label}</div>
-                    <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:24,fontWeight:800,color,marginBottom:5,letterSpacing:'-.01em'}}>{val}</div>
+                    <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?20:24,fontWeight:800,color,marginBottom:5,letterSpacing:'-.01em'}}>{val}</div>
                     <div style={{fontSize:12,color:'rgba(255,255,255,0.28)'}}>{sub}</div>
                   </div>
                 ))}
@@ -893,7 +893,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
           ) : (
             <div style={{background:'rgba(255,255,255,0.04)',border:'2px dashed rgba(255,255,255,0.15)',backdropFilter:'blur(16px)',borderRadius:20,padding:'2rem',textAlign:'center',marginBottom:'1.5rem',cursor:'pointer'}} onClick={()=>setShowOnboarding(true)}>
               
-              <h2 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,marginBottom:8,color:'#ffffff'}}>Bienvenue sur Serelyo !</h2>
+              <h2 style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,marginBottom:8,color:'#ffffff'}}>Bienvenue sur Serelyo !</h2>
               <p style={{fontSize:14,color:'rgba(255,255,255,0.55)',marginBottom:'1rem'}}>Configure ton profil pour personnaliser ton tableau de bord</p>
               <button className="btn btn-dark">Configurer mon profil →</button>
             </div>
@@ -921,7 +921,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 ].map(([l,v,c])=>(
                   <div key={l} style={{textAlign:'right'}}>
                     <div style={{fontSize:10,fontWeight:600,color:'rgba(255,255,255,0.35)',letterSpacing:'.06em',textTransform:'uppercase',marginBottom:3}}>{l}</div>
-                    <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:16,fontWeight:800,color:c}}>{v.toLocaleString('fr-FR')} €</div>
+                    <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:16,fontWeight:800,color:c}}>{v.toLocaleString('fr-FR')} €</div>
                   </div>
                 ))}
               </div>
@@ -982,7 +982,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>{d.numero} · {d.date_emission}</div>
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:8}}>
-                          <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,color:'#ffffff'}}>{(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</span>
+                          <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:14,color:'#ffffff'}}>{(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{maximumFractionDigits:0})} €</span>
                           <span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:20,background:s.bg,color:s.c}}>
                             {d.statut==='accepte'?'✓':d.statut==='refuse'?'✗':d.statut==='expire'?'exp.':'att.'}
                           </span>
@@ -1019,7 +1019,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         <div style={{fontSize:13,fontWeight:500,color:'#ffffff'}}>{r.mois&&r.mois.match(/^\d{4}-\d{2}$/)?formatMois(r.mois):r.mois||'—'}</div>
                         <div style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>Net ~{Math.round(net).toLocaleString('fr-FR')} €</div>
                       </div>
-                      <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,color:'#ffffff'}}>{r.montant.toLocaleString('fr-FR')} €</span>
+                      <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:15,color:'#ffffff'}}>{r.montant.toLocaleString('fr-FR')} €</span>
                     </div>
                   )
                 })
@@ -1143,7 +1143,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1rem'}}>
                 <button onClick={allerMoisPrev} style={{width:44,height:44,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.18)',background:'rgba(255,255,255,0.05)',color:'#f382ff',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
                 <div style={{textAlign:'center'}}>
-                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:'#ffffff',fontWeight:600}}>{nomMois}</div>
+                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#ffffff',fontWeight:600}}>{nomMois}</div>
                   <div style={{fontSize:12,color:'rgba(255,255,255,.35)',marginTop:2}}>{calYear}{estCourant?' · Mois en cours':''}</div>
                 </div>
                 <button onClick={allerMoisNext} style={{width:44,height:44,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.18)',background:'rgba(255,255,255,0.05)',color:'#f382ff',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>›</button>
@@ -1280,7 +1280,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                     <div>
                       <div style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:4}}>CA {nomMois}</div>
-                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,color:'#f382ff'}}>{rev.toLocaleString('fr-FR')} €</div>
+                      <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:24,color:'#f382ff'}}>{rev.toLocaleString('fr-FR')} €</div>
                     </div>
                     <button onClick={()=>setView('revenus')} style={{fontSize:12,background:'rgba(243,130,255,0.1)',border:'1px solid rgba(255,255,255,0.18)',color:'#f382ff',padding:'8px 14px',borderRadius:20,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Voir revenus →</button>
                   </div>
@@ -1305,7 +1305,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   onMouseEnter={e=>{e.currentTarget.style.background='rgba(243,130,255,0.12)';e.currentTarget.style.borderColor='rgba(243,130,255,0.4)'}}
                   onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.05)';e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'}}>‹</button>
                 <div style={{textAlign:'center'}}>
-                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:28,fontWeight:800,color:'#fff',letterSpacing:'-.02em'}}>
+                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:28,fontWeight:800,color:'#fff',letterSpacing:'-.02em'}}>
                     {nomMois} {calYear}
                     {estCourant && <span style={{fontSize:11,background:'rgba(243,130,255,0.12)',color:'#f382ff',padding:'3px 10px',borderRadius:20,marginLeft:10,fontFamily:'Inter,sans-serif',fontWeight:700,border:'1px solid rgba(243,130,255,0.25)',verticalAlign:'middle'}}>En cours</span>}
                   </div>
@@ -1497,7 +1497,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         <div style={{fontSize:10,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#f382ff',marginBottom:6}}>
                           {rdvEditing ? 'Modifier un événement' : 'Nouvel événement'}
                         </div>
-                        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.01em'}}>
+                        <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.01em'}}>
                           {rdvJour.jour} {rdvJour.moisNom} {year}
                         </div>
                       </div>
@@ -1735,19 +1735,19 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginTop:'1.25rem'}}>
                         <div style={{background:'rgba(255,255,255,0.1)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                           <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.5)',marginBottom:6}}>CA Total {histoAnnee}</div>
-                          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:'#fff'}}>{totalCA.toLocaleString('fr-FR')} €</div>
+                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#fff'}}>{totalCA.toLocaleString('fr-FR')} €</div>
                         </div>
                         <div style={{background:'rgba(255,110,132,0.1)',border:'1px solid rgba(255,110,132,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                           <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>URSSAF ({(taux*100).toFixed(1)}%)</div>
-                          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:'#ff6e84'}}>{totalCotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#ff6e84'}}>{totalCotis.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                         </div>
                         <div style={{background:'rgba(243,130,255,0.1)',border:'1px solid rgba(255,160,60,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                           <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Impôts ({profil?.taux_impot_perso||14}%)</div>
-                          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:'#dbb4ff'}}>{totalImpots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#dbb4ff'}}>{totalImpots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                         </div>
                         <div style={{background:'rgba(192,129,255,0.12)',border:'1px solid rgba(192,129,255,0.3)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                           <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Net estimé</div>
-                          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:'#c081ff'}}>{totalNet.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#c081ff'}}>{totalNet.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                         </div>
                       </div>
                     )
@@ -1780,21 +1780,21 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   <div style={{display:'flex',gap:16,flexWrap:'wrap'}}>
                     <div style={{textAlign:'center'}}>
                       <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Taux URSSAF</span>
-                      <span style={{fontSize:20,fontFamily:"'Plus Jakarta Sans',sans-serif",color:'#f382ff'}}>{(TAUX[profil.secteur]*100).toFixed(1)}%</span>
+                      <span style={{fontSize:20,fontFamily:"'Space Grotesk',sans-serif",color:'#f382ff'}}>{(TAUX[profil.secteur]*100).toFixed(1)}%</span>
                     </div>
                     {profil.acre && (
                       <div style={{textAlign:'center'}}>
                         <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Avec ACRE</span>
-                        <span style={{fontSize:20,fontFamily:"'Plus Jakarta Sans',sans-serif",color:'#c081ff'}}>{(TAUX_ACRE[profil.secteur]*100).toFixed(1)}%</span>
+                        <span style={{fontSize:20,fontFamily:"'Space Grotesk',sans-serif",color:'#c081ff'}}>{(TAUX_ACRE[profil.secteur]*100).toFixed(1)}%</span>
                       </div>
                     )}
                     <div style={{textAlign:'center'}}>
                       <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Taux impôt perso</span>
-                      <span style={{fontSize:20,fontFamily:"'Plus Jakarta Sans',sans-serif",color:'#dbb4ff'}}>{profil.taux_impot_perso||14}%</span>
+                      <span style={{fontSize:20,fontFamily:"'Space Grotesk',sans-serif",color:'#dbb4ff'}}>{profil.taux_impot_perso||14}%</span>
                     </div>
                     <div style={{textAlign:'center'}}>
                       <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Total à prévoir</span>
-                      <span style={{fontSize:20,fontFamily:"'Plus Jakarta Sans',sans-serif",color:'#ffffff'}}>~{((TAUX[profil.secteur]+(parseFloat(profil.taux_impot_perso)||14)/100)*100).toFixed(0)}%</span>
+                      <span style={{fontSize:20,fontFamily:"'Space Grotesk',sans-serif",color:'#ffffff'}}>~{((TAUX[profil.secteur]+(parseFloat(profil.taux_impot_perso)||14)/100)*100).toFixed(0)}%</span>
                     </div>
                   </div>
                 </div>
@@ -1929,7 +1929,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 >
                   <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>bolt</span>
                   <div style={{
-                    fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,
+                    fontFamily:"'Space Grotesk',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,
                     color: simMode==='rapide'||simMode!=='mensuel'&&simMode!=='annuel'&&simMode!=='mensuel_annuel' ? '#F0F4FF' : 'rgba(255,255,255,0.65)'
                   }}>Calcul rapide</div>
                   <div style={{
@@ -1951,7 +1951,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                 >
                   <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>bar_chart</span>
                   <div style={{
-                    fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,
+                    fontFamily:"'Space Grotesk',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,
                     color: simMode==='mensuel'||simMode==='annuel'||simMode==='mensuel_annuel' ? '#F0F4FF' : 'rgba(255,255,255,0.65)'
                   }}>Simulation annuelle</div>
                   <div style={{
@@ -1972,7 +1972,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   }}
                 >
                   <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>my_location</span>
-                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='inverse'?'#fff':'#1C1710'}}>Calculateur inversé</div>
+                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='inverse'?'#fff':'#1C1710'}}>Calculateur inversé</div>
                   <div style={{fontSize:13,lineHeight:1.6,color:simMode==='inverse'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu veux X€ nets par mois ?<br/>Calcule exactement combien tu dois facturer.</div>
                   {simMode==='inverse' && (
                     <div style={{marginTop:14,display:'inline-block',background:'rgba(243,130,255,0.15)',color:'#f382ff',border:'1px solid rgba(243,130,255,0.4)',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
@@ -1988,7 +1988,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   }}
                 >
                   <span className="material-symbols-outlined" style={{fontSize:36,color:"#f382ff",display:"block",marginBottom:12}}>balance</span>
-                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='reel'?'#fff':'#1C1710'}}>Micro vs Réel</div>
+                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:20,fontWeight:600,marginBottom:8,color:simMode==='reel'?'#fff':'#1C1710'}}>Micro vs Réel</div>
                   <div style={{fontSize:13,lineHeight:1.6,color:simMode==='reel'?'rgba(255,255,255,.65)':'#6B5E45'}}>Tu approches du plafond ?<br/>Compare concrètement micro-entreprise et régime réel.</div>
                   {simMode==='reel' && (
                     <div style={{marginTop:14,display:'inline-block',background:'rgba(243,130,255,0.15)',color:'#f382ff',border:'1px solid rgba(243,130,255,0.4)',fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:20}}>Mode actif</div>
@@ -2010,21 +2010,21 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         <div style={{display:'flex',gap:16,flexWrap:'wrap'}}>
                           <div style={{textAlign:'center'}}>
                             <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Taux URSSAF</span>
-                            <span style={{fontSize:20,fontFamily:"'Plus Jakarta Sans',sans-serif",color:'#f382ff'}}>{(TAUX[profil.secteur]*100).toFixed(1)}%</span>
+                            <span style={{fontSize:20,fontFamily:"'Space Grotesk',sans-serif",color:'#f382ff'}}>{(TAUX[profil.secteur]*100).toFixed(1)}%</span>
                           </div>
                           {profil.acre && (
                             <div style={{textAlign:'center'}}>
                               <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Avec ACRE</span>
-                              <span style={{fontSize:20,fontFamily:"'Plus Jakarta Sans',sans-serif",color:'#c081ff'}}>{(TAUX_ACRE[profil.secteur]*100).toFixed(1)}%</span>
+                              <span style={{fontSize:20,fontFamily:"'Space Grotesk',sans-serif",color:'#c081ff'}}>{(TAUX_ACRE[profil.secteur]*100).toFixed(1)}%</span>
                             </div>
                           )}
                           <div style={{textAlign:'center'}}>
                             <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Taux impôt</span>
-                            <span style={{fontSize:20,fontFamily:"'Plus Jakarta Sans',sans-serif",color:'#dbb4ff'}}>{profil.taux_impot_perso||14}%</span>
+                            <span style={{fontSize:20,fontFamily:"'Space Grotesk',sans-serif",color:'#dbb4ff'}}>{profil.taux_impot_perso||14}%</span>
                           </div>
                           <div style={{textAlign:'center'}}>
                             <span style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',display:'block',marginBottom:4}}>Total à prévoir</span>
-                            <span style={{fontSize:20,fontFamily:"'Plus Jakarta Sans',sans-serif",color:'#ffffff'}}>~{((TAUX[profil.secteur]+(parseFloat(profil.taux_impot_perso)||14)/100)*100).toFixed(0)}%</span>
+                            <span style={{fontSize:20,fontFamily:"'Space Grotesk',sans-serif",color:'#ffffff'}}>~{((TAUX[profil.secteur]+(parseFloat(profil.taux_impot_perso)||14)/100)*100).toFixed(0)}%</span>
                           </div>
                         </div>
                       </div>
@@ -2181,19 +2181,19 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:'1.25rem'}}>
                       <div style={{background:'rgba(255,255,255,0.1)',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
                         <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.5)',marginBottom:6}}>CA Total</div>
-                        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:'#fff'}}>{totCA.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                        <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#fff'}}>{totCA.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                       </div>
                       <div style={{background:'rgba(255,110,132,0.1)',border:'1px solid rgba(255,110,132,0.25)',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
                         <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>URSSAF ({(tauxU*100).toFixed(1)}%)</div>
-                        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:'#ff6e84'}}>{totUrssaf.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                        <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#ff6e84'}}>{totUrssaf.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                       </div>
                       <div style={{background:'rgba(243,130,255,0.1)',border:'1px solid rgba(255,160,60,0.25)',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
                         <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Impôts (~{Math.round(tauxI*100)}%)</div>
-                        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:'#dbb4ff'}}>{totImpots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                        <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#dbb4ff'}}>{totImpots.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                       </div>
                       <div style={{background:'rgba(192,129,255,0.12)',border:'1px solid rgba(192,129,255,0.3)',borderRadius:16,padding:'1.1rem',textAlign:'center'}}>
                         <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Net estimé</div>
-                        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:'#c081ff'}}>{totNet.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
+                        <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'#c081ff'}}>{totNet.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>
                         <div style={{fontSize:11,color:'#c081ff',opacity:.7}}>{Math.round(totNet/12).toLocaleString('fr-FR')} €/mois</div>
                       </div>
                     </div>
@@ -2304,7 +2304,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             ].map(({label,val,color,bg,textColor,subColor})=>(
                               <div key={label} style={{background:bg,backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                                 <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:subColor||'#A89878',marginBottom:6}}>{label}</div>
-                                <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,color:textColor||color,fontWeight:600}}>{val.toLocaleString('fr-FR')} €</div>
+                                <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:20,color:textColor||color,fontWeight:600}}>{val.toLocaleString('fr-FR')} €</div>
                                 <div style={{fontSize:11,color:subColor||'#A89878',marginTop:4}}>{Math.round(val/simMoisActifs).toLocaleString('fr-FR')} €/mois</div>
                               </div>
                             ))}
@@ -2349,7 +2349,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                                   </div>
                                 </div>
                                 <div style={{display:'flex',alignItems:'center',gap:12}}>
-                                  <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,color:'#ffffff'}}>{Math.round(totCA).toLocaleString('fr-FR')} € / {val.toLocaleString('fr-FR')} €</span>
+                                  <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:15,color:'#ffffff'}}>{Math.round(totCA).toLocaleString('fr-FR')} € / {val.toLocaleString('fr-FR')} €</span>
                                   <span style={{fontSize:10,fontWeight:700,padding:'3px 10px',borderRadius:20,background:bgCouleur,color:couleur,letterSpacing:'.5px'}}>{status}</span>
                                 </div>
                               </div>
@@ -2441,7 +2441,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       <div style={{background:'rgba(255,255,255,0.1)',borderRadius:20,padding:'1.75rem',marginBottom:'1.25rem',textAlign:'center',position:'relative',overflow:'hidden'}}>
                         <div style={{position:'absolute',top:-30,right:-30,width:150,height:150,borderRadius:'50%',background:'rgba(181,121,42,.12)'}}/>
                         <div style={{fontSize:12,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,.4)',marginBottom:8}}>Pour toucher {invResult.netMensuel.toLocaleString('fr-FR')} € nets/mois</div>
-                        <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:48,color:'rgba(255,255,255,0.85)',marginBottom:6}}>{Math.ceil(invResult.caParMoisActif).toLocaleString('fr-FR')} €</div>
+                        <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:48,color:'rgba(255,255,255,0.85)',marginBottom:6}}>{Math.ceil(invResult.caParMoisActif).toLocaleString('fr-FR')} €</div>
                         <div style={{fontSize:14,color:'rgba(255,255,255,.5)'}}>à facturer chaque mois actif</div>
                       </div>
 
@@ -2449,17 +2449,17 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                       <div style={{display:'grid',gridTemplateColumns:'1fr',gap:10,marginBottom:'1rem'}}>
                         <div style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:'1rem',textAlign:'center'}}>
                           <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>TJM conseillé</div>
-                          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,color:'#f382ff'}}>{Math.ceil(invResult.tjm).toLocaleString('fr-FR')} €</div>
+                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:24,color:'#f382ff'}}>{Math.ceil(invResult.tjm).toLocaleString('fr-FR')} €</div>
                           <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>par jour ({invJours}j/mois)</div>
                         </div>
                         <div style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:'1rem',textAlign:'center'}}>
                           <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>Taux horaire</div>
-                          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,color:'#f382ff'}}>{Math.ceil(invResult.tauxHoraire).toLocaleString('fr-FR')} €</div>
+                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:24,color:'#f382ff'}}>{Math.ceil(invResult.tauxHoraire).toLocaleString('fr-FR')} €</div>
                           <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>par heure (7h/jour)</div>
                         </div>
                         <div style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:'1rem',textAlign:'center'}}>
                           <div style={{fontSize:10,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>CA annuel</div>
-                          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:24,color:'#f382ff'}}>{Math.ceil(invResult.caAnnuel).toLocaleString('fr-FR')} €</div>
+                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:24,color:'#f382ff'}}>{Math.ceil(invResult.caAnnuel).toLocaleString('fr-FR')} €</div>
                           <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>{invResult.moisActifs} mois actifs</div>
                         </div>
                       </div>
@@ -2475,7 +2475,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                         ].map(({label,val,bg,text})=>(
                           <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:12,background:bg,marginBottom:8}}>
                             <span style={{fontSize:13,color:bg==='#1C1710'?'rgba(255,255,255,.6)':text,fontWeight:500}}>{label}</span>
-                            <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,color:bg==='#1C1710'?'#E8D5A8':text,fontWeight:600}}>{val.toLocaleString('fr-FR')} €</span>
+                            <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:18,color:bg==='#1C1710'?'#E8D5A8':text,fontWeight:600}}>{val.toLocaleString('fr-FR')} €</span>
                           </div>
                         ))}
                       </div>
@@ -2573,7 +2573,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           <div style={{background:'rgba(255,255,255,0.06)',border:'2px solid #E8D5A8',borderRadius:20,padding:'1.5rem'}}>
                             <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:'1rem'}}>
                               <div style={{background:'rgba(243,130,255,0.15)',color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>Régime actuel</div>
-                              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,color:'#ffffff'}}>Micro-entreprise</div>
+                              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:18,color:'#ffffff'}}>Micro-entreprise</div>
                             </div>
                             <div style={{fontSize:12,color:'rgba(255,255,255,0.55)',marginBottom:'1rem',lineHeight:1.6}}>
                               Cotisations calculées sur le <strong>CA brut</strong> ({(reelResult.tauxU*100).toFixed(1)}%), pas sur le bénéfice.
@@ -2590,7 +2590,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             ))}
                             <div style={{display:'flex',justifyContent:'space-between',padding:'12px 0',marginTop:4}}>
                               <span style={{fontSize:14,fontWeight:600,color:'#ffffff'}}>Net estimé</span>
-                              <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:reelResult.micro_net>0?'#2D7A4F':'#8B1A1A'}}>{Math.round(reelResult.micro_net).toLocaleString('fr-FR')} €</span>
+                              <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:reelResult.micro_net>0?'#2D7A4F':'#8B1A1A'}}>{Math.round(reelResult.micro_net).toLocaleString('fr-FR')} €</span>
                             </div>
                             <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:4}}>
                               Taux global réel : {Math.round(((reelResult.micro_cotis+reelResult.micro_impots)/reelResult.ca)*100)}% du CA
@@ -2601,7 +2601,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           <div style={{background:'rgba(106,13,173,0.2)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:'1px solid rgba(192,129,255,0.25)',borderRadius:20,padding:'1.5rem'}}>
                             <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:'1rem'}}>
                               <div style={{background:'rgba(106,13,173,0.2)',color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>Régime réel</div>
-                              <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,color:'#ffffff'}}>EI au réel simplifié</div>
+                              <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:18,color:'#ffffff'}}>EI au réel simplifié</div>
                             </div>
                             <div style={{fontSize:12,color:'#dbb4ff',marginBottom:'1rem',lineHeight:1.6}}>
                               Cotisations calculées sur le <strong>bénéfice net</strong> (CA − charges). Tu déduis tes dépenses pro.
@@ -2620,7 +2620,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                             ))}
                             <div style={{display:'flex',justifyContent:'space-between',padding:'12px 0',marginTop:4}}>
                               <span style={{fontSize:14,fontWeight:600,color:'#ffffff'}}>Net estimé</span>
-                              <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:reelResult.reel_net>0?'#2D7A4F':'#8B1A1A'}}>{Math.round(reelResult.reel_net).toLocaleString('fr-FR')} €</span>
+                              <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:reelResult.reel_net>0?'#2D7A4F':'#8B1A1A'}}>{Math.round(reelResult.reel_net).toLocaleString('fr-FR')} €</span>
                             </div>
                           </div>
                         </div>
@@ -2635,9 +2635,9 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                               <div style={{position:'relative',zIndex:1}}>
                                 <div style={{fontSize:13,color:'rgba(255,255,255,.5)',marginBottom:8}}>Verdict pour ton cas</div>
                                 {Math.abs(diff) < 500 ? (
-                                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:20,color:'rgba(255,255,255,0.85)',marginBottom:8}}>Les deux régimes sont équivalents</div>
+                                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:20,color:'rgba(255,255,255,0.85)',marginBottom:8}}>Les deux régimes sont équivalents</div>
                                 ) : (
-                                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,color:'rgba(255,255,255,0.85)',marginBottom:8}}>
+                                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,color:'rgba(255,255,255,0.85)',marginBottom:8}}>
                                     Le régime {mieux==='reel'?'réel':'micro'} te rapporte <span style={{color:'#f382ff'}}>{Math.abs(Math.round(diff)).toLocaleString('fr-FR')} € de plus</span> par an
                                   </div>
                                 )}
@@ -2723,7 +2723,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               ].map(([label,val,color,bg])=>(
                 <div key={label} style={{background:bg,border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:'1rem',textAlign:'center'}}>
                   <div style={{fontSize:11,fontWeight:600,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:6}}>{label}</div>
-                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:26,color}}>{val}</div>
+                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:26,color}}>{val}</div>
                 </div>
               ))}
             </div>
@@ -2774,7 +2774,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           </div>
                           <div>
                             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3,flexWrap:'wrap'}}>
-                              <span style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:15,fontWeight:600,color:'#ffffff'}}>{d.numero}</span>
+                              <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:15,fontWeight:600,color:'#ffffff'}}>{d.numero}</span>
                               <span style={{fontSize:10,fontWeight:600,padding:'3px 9px',borderRadius:20,background:sc.bg,color:sc.color}}>{statutLabel[d.statut]||'En attente'}</span>
                             </div>
                             <div style={{fontSize:14,color:'#ffffff',fontWeight:500}}>{d.client_nom}</div>
@@ -2784,7 +2784,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                           </div>
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:10,flexShrink:0}}>
-                          <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:18,color:'#ffffff',textAlign:'right'}}>
+                          <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:18,color:'#ffffff',textAlign:'right'}}>
                             {(d.total_ttc||d.total_ht||0).toLocaleString('fr-FR',{minimumFractionDigits:2})} €
                             <div style={{fontSize:10,color:'rgba(255,255,255,0.38)',fontFamily:'Inter,sans-serif'}}>{d.tva_taux>0?'TTC':'HT'}</div>
                           </div>
@@ -3092,17 +3092,17 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
                   <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:'1.25rem'}}>
                     <div style={{background:'rgba(20,5,40,0.5)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                       <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Salaire brut</div>
-                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#fff'}}>{fmt(r.brut)} €</div>
+                      <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#fff'}}>{fmt(r.brut)} €</div>
                       <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que tu affiches</div>
                     </div>
                     <div style={{background:'rgba(192,129,255,0.12)',border:'1px solid rgba(192,129,255,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                       <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Salaire net</div>
-                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#c081ff'}}>{fmt(r.net)} €</div>
+                      <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#c081ff'}}>{fmt(r.net)} €</div>
                       <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que touche ton salarié</div>
                     </div>
                     <div style={{background:'rgba(243,130,255,0.1)',border:'1px solid rgba(243,130,255,0.25)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                       <div style={{fontSize:10,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'rgba(255,255,255,0.38)',marginBottom:8}}>Coût employeur</div>
-                      <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#f382ff'}}>{fmt(r.cout_apres_fillon)} €</div>
+                      <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:isMobile?20:26,fontWeight:800,color:'#f382ff'}}>{fmt(r.cout_apres_fillon)} €</div>
                       <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:4}}>ce que tu paies vraiment</div>
                     </div>
                   </div>
@@ -3205,7 +3205,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
               ].map(({label,val,unit})=>(
                 <div key={label} style={{background:'rgba(20,5,40,0.4)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:14,padding:'1rem',textAlign:'center'}}>
                   <div style={{fontSize:10,fontWeight:700,letterSpacing:'.07em',textTransform:'uppercase',color:'rgba(255,255,255,0.35)',marginBottom:8}}>{label}</div>
-                  <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:22,fontWeight:800,color:'#f382ff'}}>{val} <span style={{fontSize:13,color:'rgba(255,255,255,0.35)'}}>{unit}</span></div>
+                  <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:22,fontWeight:800,color:'#f382ff'}}>{val} <span style={{fontSize:13,color:'rgba(255,255,255,0.35)'}}>{unit}</span></div>
                 </div>
               ))}
             </div>
@@ -3373,7 +3373,7 @@ export default function AutoEntrepreneurApp({ user, onLogout }) {
 }
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
 .material-symbols-outlined {
@@ -3393,11 +3393,11 @@ const CSS = `
 /* ── RESET ── */
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;margin:0;padding:0}
 html{background:#04000C;min-height:100vh;scroll-behavior:smooth}
-body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{background:transparent;color:#fff;font-family:'Space Grotesk',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
 /* ── APP BAR ── */
 .app-bar{
-  background:rgba(4,0,12,0.75);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  background:rgba(4,0,12,0.92);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
   height:60px;padding:0 1.25rem;
   display:flex;align-items:center;justify-content:space-between;
   position:sticky;top:0;z-index:200;
@@ -3406,7 +3406,7 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
 @media(min-width:900px){
   .app-bar{padding-left:calc(240px + 1.5rem)}
 }
-.logo{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;color:#fff;letter-spacing:.12em;text-transform:uppercase}
+.logo{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;letter-spacing:.16em;text-transform:uppercase}
 .logo span{color:#f382ff}
 .bar-right{display:flex;align-items:center;gap:10px}
 .user-tag{font-size:12px;color:rgba(255,255,255,0.4);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -3448,7 +3448,7 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
     flex-direction:column;justify-content:flex-start;align-items:stretch;
     border-top:none;border-right:1px solid rgba(255,255,255,0.07);
     padding:1.5rem 1rem;overflow-x:visible;overflow-y:auto;
-    box-shadow:none;background:rgba(4,0,12,0.65);backdrop-filter:blur(40px);
+    box-shadow:none;background:rgba(4,0,12,0.88);backdrop-filter:blur(40px);
     gap:4px
   }
   .nav-tab{
@@ -3481,36 +3481,37 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
 
 /* ── CARDS ── */
 .card{
-  background:rgba(20,5,40,0.35);
-  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
-  border:1px solid rgba(255,255,255,0.14);
-  border-radius:18px;padding:1.25rem;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.07);
+  background:rgba(12,3,24,0.75);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid rgba(255,255,255,0.09);
+  border-radius:12px;padding:1.25rem;
+  box-shadow:0 4px 24px rgba(0,0,0,0.3);
   transition:transform .2s cubic-bezier(.16,1,.3,1),border-color .2s,box-shadow .2s
 }
 .card:hover{
   transform:scale(1.012);
-  border-color:rgba(255,255,255,0.55);
-  box-shadow:0 0 0 1px rgba(255,255,255,0.08),0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.12)
+  border-color:rgba(255,255,255,0.4);
+  box-shadow:0 0 0 1px rgba(255,255,255,0.06),0 12px 40px rgba(0,0,0,0.5)
 }
-@media(min-width:640px){.card{border-radius:22px;padding:1.75rem}}
+@media(min-width:640px){.card{border-radius:14px;padding:1.75rem}}
 @media(min-width:1200px){.card{padding:2rem}}
 .card-title{
-  font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:15px;font-weight:700;letter-spacing:-.01em;
-  margin-bottom:1rem;color:#fff
+  font-family:'Space Grotesk',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:rgba(255,255,255,0.45);
+  margin-bottom:1rem
 }
-@media(min-width:640px){.card-title{font-size:17px}}
+@media(min-width:640px){.card-title{font-size:11px}}
 
 /* ── PAGE HEADER ── */
 .page-header{margin-bottom:1.5rem}
 .page-title{
-  font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:26px;font-weight:800;color:#fff;
-  margin-bottom:6px;letter-spacing:-.02em
+  font-family:'Space Grotesk',sans-serif;
+  font-size:28px;font-weight:700;color:#fff;
+  margin-bottom:4px;letter-spacing:-.01em;text-transform:uppercase
 }
-@media(min-width:640px){.page-title{font-size:32px}}
-.page-sub{font-size:14px;color:rgba(255,255,255,0.42);line-height:1.5}
+@media(min-width:640px){.page-title{font-size:36px}}
+.page-sub{font-size:12px;color:rgba(255,255,255,0.38);line-height:1.5;letter-spacing:.05em;text-transform:uppercase;font-weight:500}
 
 /* ── PROGRESS ── */
 .progress-bar{height:6px;background:rgba(255,255,255,0.07);border-radius:9999px;overflow:hidden}
@@ -3541,12 +3542,12 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
 .info-text a{color:#f382ff;text-decoration:none}
 
 /* ── INPUTS ── */
-.mini-label{font-size:11px;font-weight:700;letter-spacing:.07em;color:rgba(255,255,255,0.42);display:block;margin-bottom:7px;text-transform:uppercase}
+.mini-label{font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,0.4);display:block;margin-bottom:7px;text-transform:uppercase}
 .mini-input{
-  padding:13px 16px;border-radius:12px;
-  border:1px solid rgba(255,255,255,0.18)!important;
-  background:rgba(20,5,40,0.45)!important;
-  color:#fff;font-family:'Inter',sans-serif;font-size:15px;width:100%;
+  padding:13px 16px;border-radius:8px;
+  border:1px solid rgba(255,255,255,0.14)!important;
+  background:rgba(0,0,0,0.4)!important;
+  color:#fff;font-family:'Space Grotesk',sans-serif;font-size:15px;width:100%;
   -webkit-appearance:none;transition:border-color .2s
 }
 .mini-input:focus{outline:none;border-color:rgba(243,130,255,0.5)!important;background:rgba(20,5,40,0.6)!important}
@@ -3554,7 +3555,7 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
 
 /* ── TABLE ── */
 .rev-table{width:100%;border-collapse:collapse;font-size:13px}
-.rev-table thead th{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0 0 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.08)}
+.rev-table thead th{font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0 0 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.08)}
 .rev-table thead th:not(:first-child){text-align:right}
 .rev-table tbody tr{border-bottom:1px solid rgba(255,255,255,0.05)}
 .rev-table tbody td{padding:12px 0;color:#fff;vertical-align:middle}
@@ -3575,8 +3576,8 @@ body{background:transparent;color:#fff;font-family:'Inter',sans-serif;overflow-x
 .amber-card .calc-big{color:#c081ff}
 .green-card{background:rgba(192,129,255,0.12);border-color:rgba(192,129,255,0.22)!important}
 .green-card .calc-big{color:#dbb4ff}
-.calc-label{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;color:rgba(255,255,255,0.42)}
-.calc-big{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px}
+.calc-label{font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;color:rgba(255,255,255,0.4)}
+.calc-big{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .calc-sub{font-size:11px;color:rgba(255,255,255,0.32);line-height:1.5}
 
 /* ── CHIPS / QUESTIONS ── */
@@ -3617,7 +3618,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
   width:34px;height:34px;border-radius:50%;
   background:linear-gradient(135deg,#f382ff,#c081ff);
   color:#07080F;display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;flex-shrink:0
+  font-size:11px;font-weight:800;font-family:'Space Grotesk',sans-serif;flex-shrink:0
 }
 .reponse-text{font-size:14px;color:rgba(255,255,255,0.8);line-height:1.75}
 .reponse-text p{margin-bottom:.75rem}
@@ -3635,7 +3636,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 /* ── BUTTONS ── */
 .link-btn{background:none;border:none;color:#f382ff;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;padding:0;font-weight:600}
 .empty-state{text-align:center;padding:3rem 1.5rem}
-.empty-state h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.38);margin-bottom:1rem}
+.empty-state h3{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:rgba(255,255,255,0.38);margin-bottom:1rem}
 .btn{padding:13px 22px;font-size:14px;font-weight:700;border-radius:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;min-height:48px;letter-spacing:.01em}
 .btn-ghost{background:rgba(20,5,40,0.4);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.75);backdrop-filter:blur(10px)}
 .btn-dark{background:linear-gradient(135deg,#f382ff,#c081ff);border:none;color:#07080F;font-weight:800;box-shadow:0 4px 24px rgba(243,130,255,0.28)}
@@ -3656,7 +3657,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 }
 @media(min-width:520px){.modal{padding:2.25rem}}
 @keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-.modal-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;color:#fff;letter-spacing:-.02em}
+.modal-title{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;color:#fff;letter-spacing:-.02em}
 .modal-sub{font-size:14px;color:rgba(255,255,255,0.42);margin-bottom:1.5rem;line-height:1.55}
 .prof-section-title{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#f382ff;margin:1.5rem 0 .875rem;padding-bottom:8px;border-bottom:1px solid rgba(243,130,255,0.18)}
 .form-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:.5rem}
@@ -3679,7 +3680,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 .res-section{margin-bottom:2.5rem}
 .res-section-title{
   display:flex;align-items:center;gap:14px;
-  font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;
+  font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;
   color:#fff;margin-bottom:1.25rem;letter-spacing:-.01em
 }
 .res-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:rgba(20,5,40,0.5);border:1px solid rgba(255,255,255,0.12)}
@@ -3704,7 +3705,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 .res-tag-social{background:rgba(219,180,255,0.12);color:#dbb4ff;border:1px solid rgba(219,180,255,0.2)}
 .res-arrow{font-size:14px;color:rgba(255,255,255,0.25);transition:all .2s}
 .res-card:hover .res-arrow{color:#f382ff;transform:translate(2px,-2px)}
-.res-card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;line-height:1.3;letter-spacing:-.01em}
+.res-card-title{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;line-height:1.3;letter-spacing:-.01em}
 .res-card-desc{font-size:13px;color:rgba(255,255,255,0.48);line-height:1.65;margin-bottom:10px;flex:1}
 .res-card-url{font-size:11px;color:rgba(255,255,255,0.22);font-family:monospace;margin-top:auto}
 .res-disclaimer{background:rgba(20,5,40,0.35);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(20px);border-radius:16px;padding:1.25rem;font-size:13px;color:rgba(255,255,255,0.42);line-height:1.75;margin-top:1.25rem}
@@ -3718,7 +3719,7 @@ textarea::placeholder{color:rgba(255,255,255,0.22)}
 
 /* ── EMPTY STATE ── */
 .welcome-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
-.welcome-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:-.02em}
+.welcome-title{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:-.02em}
 
 /* ── DEVIS ── */
 .devis-card{
